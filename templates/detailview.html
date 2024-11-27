@@ -122,7 +122,8 @@
     <main class="detail-view-pages">
         <div class="grid-container-pages">
             {% for image in images %}
-            <a href="{{ url_for('reader', project_id=manga.id, page_id=image.idx + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}" class="manga-item">
+            <a href="{{ url_for('reader', project_id=manga.id, page_id=image.idx + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}"
+               class="image-item">
                 <img src="{{ url_for('get_image', image_path=image.path) }}" alt="Error">
             </a>
             {% endfor %}

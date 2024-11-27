@@ -1,7 +1,8 @@
 /data/index/*
 !/data/index/
-/settings/libs.json
 test*
 venv.bat
 misc.xml
 .idea
+/settings/libs/*
+!/settings/libs/lib_example.json

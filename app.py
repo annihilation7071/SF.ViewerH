@@ -83,8 +83,8 @@ def index():
 def detail_view(project_id):
     project = all_projects[project_id]
     images = utils.get_pages(project)
-    print(project)
-    print(images)
+    # print(project)
+    # print(images)
     return render_template("detailview.html", manga=project, images=images)
 
 
