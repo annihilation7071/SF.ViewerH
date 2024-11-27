@@ -10,7 +10,7 @@
 <body>
     <header>
         <div class="nav-buttons">
-            <a href="{{ url_for('index', search=request.args.get('search', ''), page=request.args.get('page', 1)) }}">Back</a>
+            <a href="{{ url_for('index', search=request.args.get('search', ''), page=request.args.get('page', 1)) }}">Home</a>
         </div>
         <div class="search-bar">
             <form action="/" method="GET">
@@ -26,6 +26,11 @@
             <a href="/artists">Artists</a>
             <a href="/characters">Characters</a>
             <a href="/parodies">Parodies</a>
+        </div>
+    </header>
+    <header class="extra_header">
+        <div class="extra-nav-buttons">
+            <a href="{{ url_for('detail_view', project_id=project_id) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}">Back</a>
         </div>
     </header>
     <main>

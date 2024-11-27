@@ -101,7 +101,8 @@ def reader(project_id, page_id):
                            current_page=page,
                            project_id=project_id,
                            total_pages=total_pages,
-                           visible_pages=visible_pages,)
+                           visible_pages=visible_pages,
+                           )
 
 @app.route('/get_image/<path:image_path>')
 def get_image(image_path):

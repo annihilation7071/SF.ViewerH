@@ -19,7 +19,7 @@ main {
 
 .page-item {
     background: white;
-    border-radius: 5px;
+    border-radius: 15px;
     overflow: hidden;
     border: 1px solid #ddd;
     width: 100%;
@@ -30,9 +30,7 @@ main {
 }
 
 .page-item img {
-    width: 1200px;
     padding: 10px;
-    height: 100%;
     object-fit: contain;
     background-color: #f4f4f4;
 }

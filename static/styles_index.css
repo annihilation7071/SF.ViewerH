@@ -8,7 +8,7 @@ main {
 }
 
 .grid-container {
-    display: flex;
+    display: inline-flex;
     gap: 15px;
     justify-content: center;
     flex-wrap: wrap;
@@ -36,7 +36,6 @@ main {
 
 .manga-item img {
     width: 100%;
-    /*height: 300px;*/
     object-fit: contain;
     background-color: #f4f4f4;
 }

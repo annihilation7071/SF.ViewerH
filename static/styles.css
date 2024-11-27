@@ -86,3 +86,30 @@ header {
     font-weight: bold;
     color: #888;
 }
+
+.extra_header {
+    background-color: #393939;
+    color: white;
+    padding: 5px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.extra-nav-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.extra-nav-buttons a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+.extra-nav-buttons a:hover {
+    background-color: #5b5b5b;
+}
