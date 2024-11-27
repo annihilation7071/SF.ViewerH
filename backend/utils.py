@@ -36,12 +36,12 @@ def get_projects():
         proc = import_module(f"backend.processors.{data['processor']}")
         projects += proc.get_projects(name, data)
 
-    for i in range(len(projects)):
-        projects[i]["id"] = i
-
     projects = sorted(projects,
                       key=lambda x: datetime.strptime(x["upload_date"], "%Y-%m-%dT%H:%M:%S"),
                       reverse=True)
+
+    for i in range(len(projects)):
+        projects[i]["id"] = i
 
     return projects
 
