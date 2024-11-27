@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ manga.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles_detailview.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav-buttons">
+            <a href="{{ url_for('index', search=request.args.get('search', ''), page=request.args.get('page', 1)) }}">Back</a>
+        </div>
+        <div class="search-bar">
+            <form action="/" method="GET">
+                <input
+                        type="text"
+                        name="search"
+                        placeholder="Search manga..."
+                        value="{{ request.args.get('search', '') }}">
+            </form>
+        </div>
+        <div class="nav-buttons">
+            <a href="/tags">Tags</a>
+            <a href="/artists">Artists</a>
+            <a href="/characters">Characters</a>
+            <a href="/parodies">Parodies</a>
+        </div>
+    </header>
+
+    <main class="detail-view">
+        <div class="manga-image">
+            <img src="{{ url_for('get_image', image_path=manga.preview_path) }}" alt="{{ manga.title }}">
+        </div>
+        <div class="manga-info">
+            <h1>{{ manga.title }}</h1>
+            <h2>{{ manga.subtitle }}</h2>
+
+            <div class="label-tags-container">
+                <div class="label">ID:</div>
+                <div class="tags-container">
+                    <div class="tag-info">{{ manga.id }}</div>
+                </div>
+            </div>
+
+            <div class="label-tags-container">
+                <div class="label">Source ID:</div>
+                <div class="tags-container">
+                    <div class="tag-info">{{ manga.source_id }}</div>
+                </div>
+            </div>
+
+            <div class="label-tags-container">
+                <div class="label">Tag:</div>
+                <div class="tags-container">
+                    {% for tag in manga.tag %}
+                    <a href="{{ url_for('index', search='tag:'+tag, page=1) }}" class="tag">{{ tag }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="label-tags-container">
+                <div class="label">Artist:</div>
+                <div class="tags-container">
+                    {% for artist in manga.artist %}
+                    <a href="{{ url_for('index', search='artist:'+artist, page=1) }}" class="tag">{{ artist }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="label-tags-container">
+                <div class="label">Group:</div>
+                <div class="tags-container">
+                    {% for group in manga.group %}
+                    <a href="{{ url_for('index', search='group:'+group, page=1) }}" class="tag">{{ group }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="label-tags-container">
+                <div class="label">Parody:</div>
+                <div class="tags-container">
+                    {% for parody in manga.parody %}
+                    <a href="{{ url_for('index', search='parody:'+parody, page=1) }}" class="tag">{{ parody }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="label-tags-container">
+                <div class="label">Character:</div>
+                <div class="tags-container">
+                    {% for character in manga.character %}
+                    <a href="{{ url_for('index', search='character:'+character, page=1) }}" class="tag">{{ character }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="label-tags-container">
+                <div class="label">Language:</div>
+                <div class="tags-container">
+                    {% for language in manga.language %}
+                    <a href="{{ url_for('index', search='language:'+language, page=1) }}" class="tag">{{ language }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="label-tags-container">
+                <div class="label">Lib:</div>
+                <div class="tags-container">
+                    <a href="{{ url_for('index', search='lib:'+manga.lib, page=1) }}" class="tag">{{ manga.lib }}</a>
+                </div>
+            </div>
+
+            <div class="label-tags-container">
+                <div class="label">Pages:</div>
+                <div class="tag-info">{{ manga.pages }}</div>
+            </div>
+        </div>
+    </main>
+
+    <main class="detail-view-pages">
+        <div class="grid-container-pages">
+            {% for image in images %}
+            <a href="{{ url_for('reader', project_id=manga.id, page_id=image.idx + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}" class="manga-item">
+                <img src="{{ url_for('get_image', image_path=image.path) }}" alt="Error">
+            </a>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>

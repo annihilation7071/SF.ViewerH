@@ -1,0 +1,7 @@
+/data/index/*
+!/data/index/
+/settings/libs.json
+test*
+venv.bat
+misc.xml
+.idea

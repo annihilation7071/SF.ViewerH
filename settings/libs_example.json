@@ -1,0 +1,12 @@
+{
+  "nhentai-example": {
+    "active": false,
+    "processor": "nhentai",
+    "path": "E:\\Files\\downloads"
+  },
+  "gallery-dl-hitomila-example": {
+    "active": false,
+    "processor": "gallery-dl-hitomila",
+    "path": "E:\\Files\\downloads"
+  }
+}

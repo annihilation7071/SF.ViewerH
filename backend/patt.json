@@ -1,0 +1,22 @@
+{
+  "patt_version": 2,
+  "id": -1,
+  "dir_name": "name",
+  "path": "path",
+  "source_id": "id",
+  "preview_path": "preview_path",
+  "title": "title",
+  "subtitle": "subtitle",
+  "upload_date": "1950-01-01T00:00:00",
+  "parody": ["parody"],
+  "character": ["character"],
+  "tag": ["tag1", "tag2"],
+  "artist": ["artist"],
+  "group": ["group"],
+  "language": ["language"],
+  "category": ["doujinshi"],
+  "pages": 999,
+  "lib": "lib_1",
+  "source": "example.com",
+  "url": "example.com/1707"
+}

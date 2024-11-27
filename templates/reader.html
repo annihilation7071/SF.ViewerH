@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalViewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles_reader.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav-buttons">
+            <a href="{{ url_for('index', search=request.args.get('search', ''), page=request.args.get('page', 1)) }}">Back</a>
+        </div>
+        <div class="search-bar">
+            <form action="/" method="GET">
+                <input
+                        type="text"
+                        name="search"
+                        placeholder="Search manga..."
+                        value="{{ request.args.get('search', '') }}">
+            </form>
+        </div>
+        <div class="nav-buttons">
+            <a href="/tags">Tags</a>
+            <a href="/artists">Artists</a>
+            <a href="/characters">Characters</a>
+            <a href="/parodies">Parodies</a>
+        </div>
+    </header>
+    <main>
+        <div class="page-container">
+            <div class="page-item">
+                <img src="{{ url_for('get_image', image_path=image) }}"
+                     alt="ERROR"
+                     id="manga-page"
+                     data-current-page="{{ current_page }}"
+                     data-total-pages="{{ total_pages }}"
+                >
+            </div>
+        </div>
+
+        <div class="pagination">
+            <!-- Prev button -->
+            {% if current_page > 1 %}
+            <a href="{{ url_for('reader', project_id=project_id, page_id=current_page - 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}">&laquo; Prev</a>
+            {% endif %}
+
+            <!-- Show visible pages buttons -->
+            {% for page in visible_pages %}
+                {% if page == '...' %}
+                <span class="ellipsis">...</span>
+                {% elif page == current_page %}
+                <a href="{{ url_for('reader', project_id=project_id, page_id=page) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}" class="active">{{ page }}</a>
+                {% else %}
+                <a href="{{ url_for('reader', project_id=project_id, page_id=page) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}">{{ page }}</a>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Next button -->
+            {% if current_page < total_pages %}
+            <a href="{{ url_for('reader', project_id=project_id, page_id=current_page + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </main>
+
+    <script>
+        const mangaPage = document.getElementById('manga-page');
+
+        const currentPage = parseInt(mangaPage.dataset.currentPage, 10)
+        const totalPages = parseInt(mangaPage.dataset.totalPages, 10)
+
+        const urlParams = new URLSearchParams(window.location.search)
+
+        function navigateToPage(page) {
+
+            const baseUrl = window.location.pathname.split('/').slice(0, -1).join('/')
+            const newUrl = `${baseUrl}/${page}?${urlParams.toString()}`
+
+            window.location.href = newUrl
+        }
+
+
+
+        // Image click
+        mangaPage.addEventListener('click', function(event) {
+            const imgWidth = mangaPage.offsetWidth
+            const clickX = event.offsetX
+
+
+            if (clickX > imgWidth / 2) {
+                if (currentPage < totalPages) {
+                    navigateToPage(currentPage + 1)
+                }
+            } else {
+                if (currentPage > 1) {
+                    navigateToPage(currentPage - 1)
+                }
+            }
+        })
+
+        // Arrow click
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowRight') {
+                if (currentPage < totalPages) {
+                    navigateToPage(currentPage + 1)
+                }
+            } else if (event.key === 'ArrowLeft') {
+                if (currentPage > 1) {
+                    navigateToPage(currentPage - 1)
+                }
+            }
+        })
+    </script>
+
+</body>
+</html>
+
+

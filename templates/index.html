@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalViewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles_index.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav-buttons">
+            <a href="{{ url_for('index', search='', page=1) }}">Home</a>
+        </div>
+        <div class="search-bar">
+            <form action="/" method="GET">
+                <input
+                        type="text"
+                        name="search"
+                        placeholder="Search manga..."
+                        value="{{ request.args.get('search', '') }}">
+            </form>
+        </div>
+        <div class="nav-buttons">
+            <a href="/tags">Tags</a>
+            <a href="/artists">Artists</a>
+            <a href="/characters">Characters</a>
+            <a href="/parodies">Parodies</a>
+        </div>
+    </header>
+    <main>
+        <div class="grid-container">
+            {% for manga in mangas %}
+            <a href="{{ url_for('detail_view', project_id=manga.id) }}?page={{ current_page }}&search={{ request.args.get('search', '') }}" class="manga-item">
+                <div class="manga-item">
+                    <img src="{{ url_for('get_image', image_path=manga.preview_path) }}" alt="{{ manga.title }}">
+                    <div class="manga-title">{{ manga.title }}</div>
+                </div>
+            </a>
+            {% endfor %}
+            {% for _ in range(25 - mangas|length) %}
+            <div class="manga-item empty"></div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination">
+            <!-- Prev button -->
+            {% if current_page > 1 %}
+            <a href="?page={{ current_page - 1 }}&search={{ request.args.get('search', '') }}">&laquo; Prev</a>
+            {% endif %}
+
+            <!-- Show visible pages buttons -->
+            {% for page in visible_pages %}
+                {% if page == '...' %}
+                <span class="ellipsis">...</span>
+                {% elif page == current_page %}
+                <a href="?page={{ page }}&search={{ request.args.get('search', '') }}" class="active">{{ page }}</a>
+                {% else %}
+                <a href="?page={{ page }}&search={{ request.args.get('search', '') }}">{{ page }}</a>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Next button -->
+            {% if current_page < total_pages %}
+            <a href="?page={{ current_page + 1 }}&search={{ request.args.get('search', '') }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

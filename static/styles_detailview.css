@@ -1,0 +1,115 @@
+.detail-view {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.detail-view-pages {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+
+.manga-image {
+    flex: 0 0 600px;
+    display: flex;
+    justify-content: center;
+}
+
+.manga-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.manga-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.manga-info h1 {
+    font-size: 28px;
+    margin: 0;
+}
+
+.manga-info h2 {
+    font-size: 22px;
+    color: #555;
+    margin: 0;
+}
+
+.manga-info p {
+    font-size: 16px;
+    margin: 0;
+}
+
+.label-tags-container {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    justify-content: flex-start;
+}
+
+.manga-info .label {
+    font-weight: bold;
+    color: #333;
+    margin-top: 15px;
+    display: inline-flex;
+    align-items: start;
+    min-width: 80px;
+}
+
+.manga-info .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: start;
+}
+
+.tag {
+    padding: 5px 10px;
+    background-color: #eee;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 14px;
+    color: #333;
+    transition: background-color 0.3s ease;
+}
+
+.tag:hover {
+    background-color: #ddd;
+}
+
+.tag-info {
+    padding: 5px 10px;
+    background-color: #eee;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 14px;
+    color: #333;
+    transition: background-color 0.3s ease;
+}
+
+.grid-container-pages {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 30px;
+    justify-items: center;
+}

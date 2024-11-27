@@ -1,0 +1,18 @@
+main {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 10px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    justify-items: center;
+}
+
+.manga-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
