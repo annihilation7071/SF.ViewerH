@@ -2,6 +2,7 @@ import os
 import json
 from importlib import import_module
 from datetime import datetime
+from collections import defaultdict
 
 
 def get_pages(project: dict):
@@ -52,14 +53,22 @@ def get_projects():
                       reverse=True)
 
     for i in range(len(projects)):
-        # for key, value in projects[i].items():
-        #     print(key, end=" --- :")
-        #     print(value)
         projects[i]["id"] = i
 
     return projects
 
 
+def count_param(param: str, projects: list = None):
+    if projects is None:
+        projects = get_projects()
+
+    params = defaultdict(int)
+
+    for project in projects:
+        for artist in project[param]:
+            params[artist] += 1
+
+    return sorted(params.items(), key=lambda item: item[1], reverse=True)
 
 
 

@@ -112,6 +112,38 @@ def get_image(image_path):
         return "Image not found", 404
 
 
+@app.route('/tags')
+def tags_list():
+    item = "tag"
+    find = item
+    tags = utils.count_param(item, all_projects)
+    return render_template("items.html", items=tags, find=find)
+
+
+@app.route('/artists')
+def artists_list():
+    item = "artist"
+    find = item
+    tags = utils.count_param(item, all_projects)
+    return render_template("items.html", items=tags, find=find)
+
+
+@app.route('/characters')
+def characters_list():
+    item = "character"
+    find = item
+    tags = utils.count_param(item, all_projects)
+    return render_template("items.html", items=tags, find=find)
+
+
+@app.route('/parodies')
+def parodies_list():
+    item = "parody"
+    find = item
+    tags = utils.count_param(item, all_projects)
+    return render_template("items.html", items=tags, find=find)
+
+
 if __name__ == '__main__':
     with app.app_context():
         app.run(debug=True)

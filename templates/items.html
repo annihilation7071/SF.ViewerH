@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalViewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles_items.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav-buttons">
+            <a href="{{ url_for('index', search='', page=1) }}">Home</a>
+        </div>
+        <div class="search-bar">
+            <form action="/" method="GET">
+                <input
+                        type="text"
+                        name="search"
+                        placeholder="Search manga..."
+                        value="{{ request.args.get('search', '') }}">
+            </form>
+        </div>
+        <div class="nav-buttons">
+            <a href="/tags">Tags</a>
+            <a href="/artists">Artists</a>
+            <a href="/characters">Characters</a>
+            <a href="/parodies">Parodies</a>
+        </div>
+    </header>
+    <main>
+        <div class="grid-container-items">
+            {% for item in items %}
+            <div class="item">
+                <div class="item-text">
+                    <div class="item-text-label">{{ item[0] }}</div>
+                    <div class="item-text-count"> ({{ item[1] }})</div>
+                </div>
+                <a href="{{ url_for('index', search=find+':'+item[0], page=1) }}"
+                   class="item-link"></a>
+            </div>
+            {%  endfor %}
+        </div>
+    </main>
+</body>
+</html>

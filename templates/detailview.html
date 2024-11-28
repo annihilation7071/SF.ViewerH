@@ -135,4 +135,26 @@
         </div>
     </main>
 </body>
+<script>
+    document.querySelectorAll('.image-item img').forEach(img => {
+        function applyStyles() {
+            const aspectRatio = img.naturalWidth / img.naturalHeight
+            const container = img.parentElement
+
+            if (aspectRatio < 1) {
+                container.classList.add('tall')
+                container.classList.remove('wide')
+            } else {
+                container.classList.add('wide')
+                container.classList.remove('tall')
+            }
+        }
+
+        if (img.complete) {
+            applyStyles()
+        } else {
+            img.addEventListener('load', applyStyles)
+        }
+    })
+</script>
 </html>
