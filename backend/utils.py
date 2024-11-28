@@ -27,7 +27,7 @@ def get_projects():
     projects = []
 
     files = os.listdir("./settings/libs/")
-    files = [file for file in files if file.startswith('lib_')]
+    files = [file for file in files if file.startswith('libs_') and file.endswith('.json')]
 
     libs = {}
     for file in files:
@@ -36,7 +36,7 @@ def get_projects():
 
         a = len(libs)
         if len(libs.keys() - lib.keys()) > a:
-            raise IOError(f"ERROR: Lib files contain the same names")
+            raise IOError(f"ERROR: Libs files contain the same names")
 
         libs.update(lib)
 

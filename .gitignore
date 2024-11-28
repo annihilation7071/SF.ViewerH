@@ -5,4 +5,4 @@ venv.bat
 misc.xml
 .idea
 /settings/libs/*
-!/settings/libs/lib_example.json
+!/settings/libs/libs_example.json
