@@ -6,3 +6,5 @@ misc.xml
 .idea
 /settings/libs/*
 !/settings/libs/libs_example.json
+saved_page
+saved_page.html
