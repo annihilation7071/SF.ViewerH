@@ -1,10 +1,16 @@
 main {
-    max-width: 1200px;
+    max-width: 75%;
     margin: 20px auto;
     padding: 0 10px;
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
+}
+
+@media (max-aspect-ratio: 1) {
+    main {
+        max-width: 100%;
+    }
 }
 
 .grid-container {
@@ -20,21 +26,32 @@ main {
     color: inherit;
 }
 
-.manga-item {
+.manga-item-container {
     background: white;
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid #ddd;
-    width: 220px;
+    width: 17%;
     aspect-ratio: 0.63;
     display: flex;
     transition: box-shadow 0.3s ease, transform 0.3s ease;
     position: relative;
     flex-direction: column;
+}
+
+@media (max-aspect-ratio: 1) {
+    .manga-item-container {
+        width: 40%;
+    }
+}
+
+.manga-item-preview {
+    display: flex;
+    flex-direction: column;
     align-items: center;
 }
 
-.manga-item img {
+.manga-item-preview img {
     width: 100%;
     object-fit: contain;
     background-color: #f4f4f4;

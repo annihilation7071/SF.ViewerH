@@ -12,8 +12,9 @@
     <main>
         <div class="grid-container">
             {% for manga in mangas %}
-            <a href="{{ url_for('detail_view', project_id=manga.id) }}?page={{ current_page }}&search={{ request.args.get('search', '') }}" class="manga-item">
-                <div class="manga-item">
+            <a href="{{ url_for('detail_view', project_id=manga.id) }}?page={{ current_page }}&search={{ request.args.get('search', '') }}"
+               class="manga-item-container">
+                <div class="manga-item-preview">
                     <img src="{{ url_for('get_image', image_path=manga.preview_path) }}" alt="{{ manga.title }}">
                     <div class="manga-title-container">
                         <div class="manga-title-text">{{ manga.title }}</div>

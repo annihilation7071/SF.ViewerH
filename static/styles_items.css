@@ -8,13 +8,16 @@ main {
 }
 
 .grid-container-items {
-    display: inline-grid;
+    display: inline-flex;
     grid-template-columns: repeat(6, 1fr);
     gap: 15px;
     justify-content: center;
+    align-content: center;
+    flex-wrap: wrap;
 }
 
 .item {
+    width: 160px;
     display: inline-flex;
     padding: 5px 10px;
     background-color: #6c6c6c;
