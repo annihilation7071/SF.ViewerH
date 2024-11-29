@@ -24,9 +24,7 @@ def get_pages(project: dict):
     return pages
 
 
-def get_projects():
-    projects = []
-
+def read_libs():
     files = os.listdir("./settings/libs/")
     files = [file for file in files if file.startswith('libs_') and file.endswith('.json')]
 
@@ -40,6 +38,14 @@ def get_projects():
             raise IOError(f"ERROR: Libs files contain the same names")
 
         libs.update(lib)
+
+    return libs
+
+
+def get_projects():
+    projects = []
+
+    libs = read_libs()
 
     for name, data in libs.items():
         if data["active"] is False:

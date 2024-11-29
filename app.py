@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, send_file
-from backend import search, utils
+from backend import search, utils, downloader
 
 # all_projects = []
 projects = {'search': "",
@@ -148,6 +148,7 @@ def parodies_list():
 def load():
     data = request.json
     print("Received URL:", data.get('url'))
+    downloader.download(data.get('url'))
     return {"status": "success"}
 
 

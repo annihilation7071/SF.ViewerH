@@ -4,7 +4,12 @@ test*
 venv.bat
 misc.xml
 .idea
+/settings/download/*
+!/settings/download/config_nhentai_example.json
+!/settings/download/download_targets.json
 /settings/libs/*
 !/settings/libs/libs_example.json
 saved_page
 saved_page.html
+/downloads/*
+!/downloads

@@ -5,6 +5,8 @@ from datetime import datetime
 
 def get_dirs(path: str, meta_file: str) -> list[str]:
     dirs = []
+    if os.path.exists(path) is False:
+        os.makedirs(path)
     files = os.listdir(path)
     for file in files:
         if os.path.exists(os.path.join(path, file) + f"/{meta_file}"):
