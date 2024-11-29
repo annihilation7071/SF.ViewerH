@@ -8,26 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles_detailview.css') }}">
 </head>
 <body>
-    <header>
-        <div class="nav-buttons">
-            <a href="{{ url_for('index', search=request.args.get('search', ''), page=request.args.get('page', 1)) }}">Home</a>
-        </div>
-        <div class="search-bar">
-            <form action="/" method="GET">
-                <input
-                        type="text"
-                        name="search"
-                        placeholder="Search manga..."
-                        value="{{ request.args.get('search', '') }}">
-            </form>
-        </div>
-        <div class="nav-buttons">
-            <a href="/tags">Tags</a>
-            <a href="/artists">Artists</a>
-            <a href="/characters">Characters</a>
-            <a href="/parodies">Parodies</a>
-        </div>
-    </header>
+    {% include 'header.html' %}
     <header class="extra_header">
         <div class="extra-nav-buttons">
             <a href="{{ url_for('index', search=request.args.get('search', ''), page=request.args.get('page', 1)) }}">Back</a>

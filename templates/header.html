@@ -1,0 +1,20 @@
+<header>
+    <div class="nav-buttons">
+        <a href="{{ url_for('index', search='', page=1) }}">Home</a>
+    </div>
+    <div class="search-bar">
+        <form action="/" method="GET">
+            <input
+                    type="text"
+                    name="search"
+                    placeholder="Search manga..."
+                    value="{{ request.args.get('search', '') }}">
+        </form>
+    </div>
+    <div class="nav-buttons">
+        <a href="/items/tags">Tags</a>
+        <a href="/items/artists">Artists</a>
+        <a href="/items/characters">Characters</a>
+        <a href="/items/parodies">Parodies</a>
+    </div>
+</header>

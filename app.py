@@ -50,7 +50,6 @@ def index():
         projects['search'] = ""
         projects['data'] = all_projects
 
-
     search_query = request.args.get("search", "").strip().lower()
     print(search_query)
     if search_query == projects['search']:
@@ -104,6 +103,7 @@ def reader(project_id, page_id):
                            visible_pages=visible_pages,
                            )
 
+
 @app.route('/get_image/<path:image_path>')
 def get_image(image_path):
     try:
@@ -112,7 +112,7 @@ def get_image(image_path):
         return "Image not found", 404
 
 
-@app.route('/tags')
+@app.route('/items/tags')
 def tags_list():
     item = "tag"
     find = item
@@ -120,7 +120,7 @@ def tags_list():
     return render_template("items.html", items=tags, find=find)
 
 
-@app.route('/artists')
+@app.route('/items/artists')
 def artists_list():
     item = "artist"
     find = item
@@ -128,7 +128,7 @@ def artists_list():
     return render_template("items.html", items=tags, find=find)
 
 
-@app.route('/characters')
+@app.route('/items/characters')
 def characters_list():
     item = "character"
     find = item
@@ -136,7 +136,7 @@ def characters_list():
     return render_template("items.html", items=tags, find=find)
 
 
-@app.route('/parodies')
+@app.route('/items/parodies')
 def parodies_list():
     item = "parody"
     find = item
