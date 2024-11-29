@@ -144,6 +144,13 @@ def parodies_list():
     return render_template("items.html", items=tags, find=find)
 
 
+@app.route('/load', methods=['POST'])
+def load():
+    data = request.json
+    print("Received URL:", data.get('url'))
+    return {"status": "success"}
+
+
 if __name__ == '__main__':
     with app.app_context():
         app.run(debug=True, host='0.0.0.0', port=5000)
