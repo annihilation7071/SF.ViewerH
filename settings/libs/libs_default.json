@@ -1,0 +1,12 @@
+{
+  "download-default-nhentai": {
+    "active": true,
+    "processor": "nhentai",
+    "path": ".\\downloads\\nhentai"
+  },
+  "download-default-gallery-dl-hitomila": {
+    "active": true,
+    "processor": "gallery-dl-hitomila",
+    "path": ".\\downloads\\gallery-dl-hitomila"
+  }
+}

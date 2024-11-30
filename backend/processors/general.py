@@ -112,3 +112,20 @@ def get_projects(lib_name: str, lib_data: dict, meta_file: str, processor) -> li
 
     return projects
 
+
+def get_v_info(path: str) -> dict | bool:
+    with open('./backend/v_info.json', 'r', encoding='utf-8') as f:
+        v_info = json.load(f)
+
+    if os.path.exists(os.path.join(path, "v_info.json")):
+        with open(os.path.join(path, "v_info.json"), "r", encoding='utf-8') as f:
+            v_info_exist = json.load(f)
+
+        if v_info_exist["info_version"] == v_info["info_version"]:
+            return v_info_exist
+        else:
+            raise IOError("v_info version is not corrected")
+
+    else:
+        return False
+

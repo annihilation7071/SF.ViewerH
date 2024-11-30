@@ -77,4 +77,18 @@ def count_param(param: str, projects: list = None):
     return sorted(params.items(), key=lambda item: item[1], reverse=True)
 
 
+def gen_lid():
+    number = int(datetime.now().strftime('%Y%m%d%H%M%S%f'))
 
+    base = 64
+    result = ""
+    letters = ("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+               "abcdefghijklmnopqrstuvwxyz"
+               "0123456789"
+               "-_")
+
+    while number != 0:
+        result += letters[number % base]
+        number //= base
+
+    return result[::-1]

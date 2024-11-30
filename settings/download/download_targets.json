@@ -1,4 +1,4 @@
 {
-  "nhentai.net": "nhentai-download-default",
-  "hitomi.la": "gallery-dl-hitomila-download-default"
+  "nhentai.net": "download-default-nhentai",
+  "hitomi.la": "download-default-gallery-dl-hitomila"
 }

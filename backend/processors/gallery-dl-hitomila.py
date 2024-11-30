@@ -5,50 +5,84 @@ import json
 import os
 from collections import defaultdict
 from backend.processors import general
+from backend import utils
 
 meta_file = "info.json"
 
 
 def get_project(path: str, lib_name: dict, lib_date: str) -> dict:
-    with open('./backend/patt.json', 'r', encoding='utf-8') as f:
-        patt = json.load(f)
+    with open('./backend/project.json', 'r', encoding='utf-8') as f:
+        project = json.load(f)
+
+    v_info = general.get_v_info(path)
+    if v_info is False:
+        make_v_info(path)
+        v_info = general.get_v_info(path)
+
+    for k, v in v_info.items():
+        project[k] = v
 
     _name = os.path.basename(path)
 
-    patt["dir_name"] = _name
-    patt["path"] = path
-    patt["source_id"] = _name[0:_name.find(" ")]
-    patt["lib"] = lib_name
-    patt["source"] = "hitomi.la"
+    project["dir_name"] = _name
+    project["path"] = path
+    project["lib"] = lib_name
 
     files = os.listdir(path)
     files = [file for file in files if file.startswith("hitomi_")]
     files = sorted(files)
 
-    patt["preview_path"] = os.path.join(path, files[0])
+    project["preview_path"] = os.path.join(path, files[0])
+
+    return project
+
+
+def make_v_info(path: str) -> None:
+    with open("./backend/v_info.json", "r", encoding='utf-8') as f:
+        v_info = json.load(f)
 
     with open(os.path.join(path, meta_file), "r", encoding='utf-8') as f:
         metadata = defaultdict(lambda: False, json.load(f))
 
+    v_info["lid"] = utils.gen_lid()
+    v_info["lvariants"] = []
+    v_info["source"] = "hitomi.la"
+    v_info["downloader"] = "gallery-dl"
+
+    _name = os.path.basename(path)
+
+    try:
+        if metadata["gallery_id"] is not False:
+            _id = metadata["gallery_id"]
+            v_info["source_id"] = str(_id)
+        else:
+            _id = _name[0:_name.find(" ")]
+            _id = int(_id)
+            v_info["source_id"] = str(_id)
+    except Exception:
+        v_info["source_id"] = "unknown"
+
+    v_info["url"] = "unknown"
+    v_info["title"] = metadata["title"] or _name
+    v_info["subtitle"] = ""
+    # noinspection PyTypeChecker
+    v_info["upload_date"] = general.get_time(metadata["date"], "%Y-%m-%d %H:%M:%S") or "unknown"
+    v_info["category"] = ["unknown"]
+    v_info["series"] = []
+
     def f(key: str) -> list | str:
         return general.tag_normalizer(metadata[key])
 
-    # noinspection PyTypeChecker
-    patt["upload_date"] = general.get_time(metadata["date"], "%Y-%m-%d %H:%M:%S") or "unknown"
-    patt["url"] = metadata["URL"] or metadata["url"] or "unknown"
-    patt["subtitle"] = ""
-    patt["category"] = ["unknown"]
-    patt["title"] = metadata["title"]
+    v_info["parody"] = f("parody") or ["unknown"]
+    v_info["character"] = f("characters") or ["unknown"]
+    v_info["tag"] = f("tags") or ["unknown"]
+    v_info["artist"] = f("artist") or ["unknown"]
+    v_info["group"] = f("group") or ["unknown"]
+    v_info["language"] = [f("language")] or ["unknown"]
+    v_info["pages"] = f("count") or "unknown"
 
-    patt["parody"] = f("parody") or ["unknown"]
-    patt["character"] = f("characters") or ["unknown"]
-    patt["tag"] = f("tags") or ["unknown"]
-    patt["artist"] = f("artist") or ["unknown"]
-    patt["group"] = f("group") or ["unknown"]
-    patt["language"] = [f("language")] or ["unknown"]
-    patt["pages"] = f("count") or "unknown"
-
-    return patt
+    with open(os.path.join(path, "v_info.json"), "w", encoding='utf-8') as f:
+        json.dump(v_info, f, indent=4)
 
 
 def get_projects(lib_name: str, lib_data: dict) -> list:
