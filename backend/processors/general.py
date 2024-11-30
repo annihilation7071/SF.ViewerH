@@ -19,11 +19,11 @@ def get_index(index_path: str, dirs: list[str]) -> bool | dict:
     with open(index_path, "r", encoding="utf-8") as f:
         index = json.load(f)
 
-    if len(index) != len(dirs):
+    if len(index["projects"]) != len(dirs):
         return False
 
     for directory in dirs:
-        if directory not in index:
+        if directory not in index["projects"]:
             return False
 
     return index
@@ -31,7 +31,8 @@ def get_index(index_path: str, dirs: list[str]) -> bool | dict:
 
 def write_index(index_path: str, projects: list) -> None:
 
-    index = {project["dir_name"]: project for project in projects}
+    index = {"info_version": projects[0]["info_version"],
+             "projects": {project["dir_name"]: project for project in projects}}
 
     with open(index_path, "w", encoding="utf-8") as f:
         json.dump(index, f, indent=4)
@@ -84,11 +85,19 @@ def get_projects(lib_name: str, lib_data: dict, meta_file: str, processor) -> li
         print(f"Index file for {lib_name}: exist")
         index = get_index(index_path, dirs)
         if index is not False:
-            projects = list(index.values())
-            print(f"Index file for {lib_name}: correct\n"
-                  f"Using existing index file for {lib_name}")
-            return projects
-        print(f"Index file for {lib_name}: INCORRECT")
+
+            with open("./backend/v_info.json", "r", encoding="utf-8") as f:
+                current_info_version = json.load(f)["info_version"]
+
+            if index["info_version"] != current_info_version:
+                print(f"Index file for {lib_name}: INCORRECT VERSION")
+            else:
+                projects = list(index["projects"].values())
+                print(f"Index file for {lib_name}: correct\n"
+                      f"Using existing index file for {lib_name}")
+                return projects
+        else:
+            print(f"Index file for {lib_name}: INCORRECT")
 
     print(f"Creating index file for {lib_name}")
     percent = 0
@@ -107,7 +116,9 @@ def get_projects(lib_name: str, lib_data: dict, meta_file: str, processor) -> li
         project = processor(os.path.join(path, directory), lib_name, lib_data)
         projects.append(project)
 
-    write_index(index_path, projects)
+    if len(projects) > 0:
+        write_index(index_path, projects)
+
     print(f"Indexing files for {lib_name}: created")
 
     return projects
