@@ -1,6 +1,6 @@
 {
   "nhentai-example": {
-    "active": false,
+    "active": true,
     "processor": "nhentai",
     "path": "E:\\Files\\downloads"
   },

@@ -26,7 +26,7 @@ def get_pages(project: dict):
 
 def read_libs():
     files = os.listdir("./settings/libs/")
-    files = [file for file in files if file.startswith('libs_') and file.endswith('.json')]
+    files = [file for file in files if file.startswith('libs_') and file.endswith('.json') and file != "libs_example.json"]
 
     libs = {}
     for file in files:
