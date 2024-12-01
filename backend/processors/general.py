@@ -64,13 +64,22 @@ def tag_normalizer(tags: str | list | int):
         return new_tags
 
 
-def get_time(str_time: str, format: str) -> str | bool:
-    try:
-        date = datetime.strptime(str_time, format)
-        return date.strftime("%Y-%m-%dT%H:%M:%S")
-    except Exception as e:
-        print(e)
-        return False
+def get_time(str_time: str | int, format: str = None) -> str | bool:
+    if isinstance(str_time, str) and format is None:
+        raise IOError("Format must be specified")
+
+    target_format = "%Y-%m-%dT%H:%M:%S"
+
+    if isinstance(str_time, str):
+        try:
+            date = datetime.strptime(str_time, format)
+            return date.strftime(target_format)
+        except Exception as e:
+            print(e)
+            return False
+    elif isinstance(str_time, int):
+        date = datetime.fromtimestamp(1566440093)
+        return date.strftime(target_format)
 
 
 def get_projects(lib_name: str, lib_data: dict, meta_file: str, processor) -> list:

@@ -8,5 +8,10 @@
     "active": true,
     "processor": "gallery-dl-hitomila",
     "path": ".\\downloads\\gallery-dl-hitomila"
+  },
+  "download-default-gallery-dl-nhentai": {
+    "active": false,
+    "processor": "gallery-dl-nhentai",
+    "path": ".\\downloads\\gallery-dl-nhentai"
   }
 }
