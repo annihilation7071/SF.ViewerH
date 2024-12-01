@@ -14,3 +14,4 @@ saved_page
 saved_page.html
 /downloads/*
 !/downloads
+/extention/*.pem

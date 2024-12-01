@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Send Current URL",
+  "name": "SF.ViewerH.Downloader",
   "version": "1.0",
   "permissions": [
     "activeTab",
@@ -10,7 +10,7 @@
     "service_worker": "background.js"
   },
   "host_permissions": [
-    "http://127.0.0.1:5000/*"
+    "http://127.0.0.1:1707/*"
   ],
   "action": {
     "default_title": "Send URL to Server"

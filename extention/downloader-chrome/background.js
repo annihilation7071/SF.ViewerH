@@ -2,7 +2,7 @@ chrome.action.onClicked.addListener ((tab) => {
     if (tab.url) {
         const currentUrl = tab.url
 
-        fetch("http://127.0.0.1:5000/load", {
+        fetch("http://127.0.0.1:1707/load", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
