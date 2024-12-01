@@ -24,9 +24,23 @@
             <h2>{{ manga.subtitle }}</h2>
 
             <div class="label-tags-container">
+                <div class="label">Lib:</div>
+                <div class="tags-container">
+                    <a href="{{ url_for('index', search='lib:'+manga.lib, page=1) }}" class="tag">{{ manga.lib }}</a>
+                </div>
+            </div>
+
+            <div class="label-tags-container">
                 <div class="label">LID:</div>
                 <div class="tags-container">
                     <div class="tag-info">{{ manga.lid }}</div>
+                </div>
+            </div>
+
+            <div class="label-tags-container">
+                <div class="label">Source:</div>
+                <div class="tags-container">
+                    <a href="{{ url_for('index', search='source:'+manga.source, page=1) }}" class="tag">{{ manga.source }}</a>
                 </div>
             </div>
 
@@ -83,18 +97,20 @@
             </div>
 
             <div class="label-tags-container">
-                <div class="label">Language:</div>
+                <div class="label">Series:</div>
                 <div class="tags-container">
-                    {% for language in manga.language %}
-                    <a href="{{ url_for('index', search='language:'+language, page=1) }}" class="tag">{{ language }}</a>
+                    {% for series in manga.series %}
+                    <a href="{{ url_for('index', search='series:'+series, page=1) }}" class="tag">{{ series }}</a>
                     {% endfor %}
                 </div>
             </div>
 
             <div class="label-tags-container">
-                <div class="label">Lib:</div>
+                <div class="label">Language:</div>
                 <div class="tags-container">
-                    <a href="{{ url_for('index', search='lib:'+manga.lib, page=1) }}" class="tag">{{ manga.lib }}</a>
+                    {% for language in manga.language %}
+                    <a href="{{ url_for('index', search='language:'+language, page=1) }}" class="tag">{{ language }}</a>
+                    {% endfor %}
                 </div>
             </div>
 

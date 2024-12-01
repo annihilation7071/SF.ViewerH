@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, send_file
 from backend import search, utils, downloader
 
-# all_projects = []
+PROJECTS_PER_PAGE = 60
+PPG = PROJECTS_PER_PAGE
+
 projects = {'search': "",
             'data': []}
 
@@ -60,12 +62,12 @@ def index():
         _projects = projects['data']
 
     page = int(request.args.get('page', 1))
-    start_index = (page - 1) * 25
-    end_index = start_index + 25
+    start_index = (page - 1) * PPG
+    end_index = start_index + PPG
 
     displayed_projects = _projects[start_index:end_index]
 
-    total_pages = (len(_projects) + 25 - 1) // 25
+    total_pages = (len(_projects) + PPG - 1) // PPG
 
     visible_pages = get_visible_pages(page, total_pages)
 

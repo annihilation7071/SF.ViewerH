@@ -13,6 +13,7 @@ class SearchBody:
     tag: str
     category: str
     lib: str
+    source: str
     general: str = None
 
     def init_general(self):
@@ -58,7 +59,8 @@ def to_search(projects, search_query):
             language=f('language'),
             tag=f('tag'),
             category=f('category'),
-            lib=f('lib')
+            lib=f('lib'),
+            source=f('source')
         )
 
         search_body.init_general()
