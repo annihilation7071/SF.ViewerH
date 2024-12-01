@@ -56,5 +56,41 @@ def download(url):
         print(command)
         os.system(command)
 
+    elif site == "hitomi.la":
+        output = os.path.abspath(libs[targets[site]]["path"])
 
+        _id: str = address[1][address[1].rfind("-") + 1:].replace('#1', '').replace(".html", "")
+
+        output += f"\\{_id}"
+
+        command = f"gallery-dl --write-info-json --directory={output}"
+
+        if os.path.exists("./settings/download/config_gallery-dl.json"):
+            with open("./settings/download/config_gallery-dl.json", "r", encoding="utf-8") as f:
+                params = json.load(f)
+
+        if "proxy" in params["hitomi.la"]:
+            com = f' --proxy="{params["hitomi.la"]["proxy"]}"'
+            command += com
+        elif "proxy" in params["all"]:
+            com = f' --proxy="{params["all"]["proxy"]}"'
+            command += com
+
+        if "user-agent" in params["hitomi.la"]:
+            com = f' --user-agent="{params["hitomi.la"]["user-agent"]}"'
+            command += com
+        elif "user-agent" in params["all"]:
+            com = f' --user-agent="{params["all"]["user-agent"]}"'
+            command += com
+
+        if "cookies" in params["hitomi.la"]:
+            if params["hitomi.la"]["cookies"] is not None and params["hitomi.la"]["cookies"] != "E:\\example\\cookies_file.txt":
+                com = f' --cookies="{params["hitomi.la"]["cookies"]}"'
+                command += com
+
+        url = f"{protocol}//{site}/{address[0]}/{_id}.html"
+        command += f" {url}"
+
+        print(command)
+        os.system(command)
 

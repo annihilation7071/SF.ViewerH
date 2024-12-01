@@ -56,8 +56,13 @@ def make_v_info(path: str) -> None:
             _id = metadata["gallery_id"]
             v_info["source_id"] = str(_id)
         else:
-            _id = _name[0:_name.find(" ")]
-            _id = int(_id)
+            try:
+                _id = _name[0:_name.find(" ")]
+                _id = int(_id)
+            except Exception as e:
+                _id = _name
+                _id = int(_id)
+                raise e
             v_info["source_id"] = str(_id)
     except Exception:
         v_info["source_id"] = "unknown"
