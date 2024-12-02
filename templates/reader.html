@@ -19,7 +19,7 @@
             <div class="page-item">
                 <img src="{{ url_for('get_image', image_path=image) }}"
                      alt="ERROR"
-                     id="manga-page"
+                     id="project-page"
                      data-current-page="{{ current_page }}"
                      data-total-pages="{{ total_pages }}"
                 >
@@ -51,10 +51,10 @@
     </main>
 
     <script>
-        const mangaPage = document.getElementById('manga-page');
+        const projectPage = document.getElementById('project-page');
 
-        const currentPage = parseInt(mangaPage.dataset.currentPage, 10)
-        const totalPages = parseInt(mangaPage.dataset.totalPages, 10)
+        const currentPage = parseInt(projectPage.dataset.currentPage, 10)
+        const totalPages = parseInt(projectPage.dataset.totalPages, 10)
 
         const urlParams = new URLSearchParams(window.location.search)
 
@@ -69,8 +69,8 @@
 
 
         // Image click
-        mangaPage.addEventListener('click', function(event) {
-            const imgWidth = mangaPage.offsetWidth
+        projectPage.addEventListener('click', function(event) {
+            const imgWidth = projectPage.offsetWidth
             const clickX = event.offsetX
 
 

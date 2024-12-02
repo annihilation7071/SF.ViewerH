@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ manga.title }}</title>
+    <title>{{ project.title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles_detailview.css') }}">
 </head>
@@ -16,45 +16,45 @@
     </header>
 
     <main class="detail-view">
-        <div class="manga-image">
-            <img src="{{ url_for('get_image', image_path=manga.preview_path) }}" alt="{{ manga.title }}">
+        <div class="project-image">
+            <img src="{{ url_for('get_image', image_path=project.preview_path) }}" alt="{{ project.title }}">
         </div>
-        <div class="manga-info">
-            <h1>{{ manga.title }}</h1>
-            <h2>{{ manga.subtitle }}</h2>
+        <div class="project-info">
+            <h1>{{ project.title }}</h1>
+            <h2>{{ project.subtitle }}</h2>
 
             <div class="label-tags-container">
                 <div class="label">Lib:</div>
                 <div class="tags-container">
-                    <a href="{{ url_for('index', search='lib:'+manga.lib, page=1) }}" class="tag">{{ manga.lib }}</a>
+                    <a href="{{ url_for('index', search='lib:'+project.lib, page=1) }}" class="tag">{{ project.lib }}</a>
                 </div>
             </div>
 
             <div class="label-tags-container">
                 <div class="label">LID:</div>
                 <div class="tags-container">
-                    <div class="tag-info">{{ manga.lid }}</div>
+                    <div class="tag-info">{{ project.lid }}</div>
                 </div>
             </div>
 
             <div class="label-tags-container">
                 <div class="label">Source:</div>
                 <div class="tags-container">
-                    <a href="{{ url_for('index', search='source:'+manga.source, page=1) }}" class="tag">{{ manga.source }}</a>
+                    <a href="{{ url_for('index', search='source:'+project.source, page=1) }}" class="tag">{{ project.source }}</a>
                 </div>
             </div>
 
             <div class="label-tags-container">
                 <div class="label">Source ID:</div>
                 <div class="tags-container">
-                    <div class="tag-info">{{ manga.source_id }}</div>
+                    <div class="tag-info">{{ project.source_id }}</div>
                 </div>
             </div>
 
             <div class="label-tags-container">
                 <div class="label">Tag:</div>
                 <div class="tags-container">
-                    {% for tag in manga.tag %}
+                    {% for tag in project.tag %}
                     <a href="{{ url_for('index', search='tag:'+tag, page=1) }}" class="tag">{{ tag }}</a>
                     {% endfor %}
                 </div>
@@ -63,7 +63,7 @@
             <div class="label-tags-container">
                 <div class="label">Artist:</div>
                 <div class="tags-container">
-                    {% for artist in manga.artist %}
+                    {% for artist in project.artist %}
                     <a href="{{ url_for('index', search='artist:'+artist, page=1) }}" class="tag">{{ artist }}</a>
                     {% endfor %}
                 </div>
@@ -72,7 +72,7 @@
             <div class="label-tags-container">
                 <div class="label">Group:</div>
                 <div class="tags-container">
-                    {% for group in manga.group %}
+                    {% for group in project.group %}
                     <a href="{{ url_for('index', search='group:'+group, page=1) }}" class="tag">{{ group }}</a>
                     {% endfor %}
                 </div>
@@ -81,7 +81,7 @@
             <div class="label-tags-container">
                 <div class="label">Parody:</div>
                 <div class="tags-container">
-                    {% for parody in manga.parody %}
+                    {% for parody in project.parody %}
                     <a href="{{ url_for('index', search='parody:'+parody, page=1) }}" class="tag">{{ parody }}</a>
                     {% endfor %}
                 </div>
@@ -90,7 +90,7 @@
             <div class="label-tags-container">
                 <div class="label">Character:</div>
                 <div class="tags-container">
-                    {% for character in manga.character %}
+                    {% for character in project.character %}
                     <a href="{{ url_for('index', search='character:'+character, page=1) }}" class="tag">{{ character }}</a>
                     {% endfor %}
                 </div>
@@ -99,7 +99,7 @@
             <div class="label-tags-container">
                 <div class="label">Series:</div>
                 <div class="tags-container">
-                    {% for series in manga.series %}
+                    {% for series in project.series %}
                     <a href="{{ url_for('index', search='series:'+series, page=1) }}" class="tag">{{ series }}</a>
                     {% endfor %}
                 </div>
@@ -108,7 +108,7 @@
             <div class="label-tags-container">
                 <div class="label">Language:</div>
                 <div class="tags-container">
-                    {% for language in manga.language %}
+                    {% for language in project.language %}
                     <a href="{{ url_for('index', search='language:'+language, page=1) }}" class="tag">{{ language }}</a>
                     {% endfor %}
                 </div>
@@ -116,7 +116,7 @@
 
             <div class="label-tags-container">
                 <div class="label">Pages:</div>
-                <div class="tag-info">{{ manga.pages }}</div>
+                <div class="tag-info">{{ project.pages }}</div>
             </div>
         </div>
     </main>
@@ -124,7 +124,7 @@
     <main class="detail-view-pages">
         <div class="grid-container-pages">
             {% for image in images %}
-            <a href="{{ url_for('reader', project_id=manga.id, page_id=image.idx + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}"
+            <a href="{{ url_for('reader', project_id=project.id, page_id=image.idx + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}"
                class="image-item">
                 <img src="{{ url_for('get_image', image_path=image.path) }}" alt="Error">
             </a>

@@ -73,23 +73,23 @@ def index():
 
     return render_template(
         'index.html',
-        mangas=displayed_projects,
+        projects=displayed_projects,
         current_page=page,
         total_pages=total_pages,
         visible_pages=visible_pages,
     )
 
 
-@app.route('/manga/<int:project_id>')
+@app.route('/project/<int:project_id>')
 def detail_view(project_id):
     project = all_projects[project_id]
     images = utils.get_pages(project)
     # print(project)
     # print(images)
-    return render_template("detailview.html", manga=project, images=images)
+    return render_template("detailview.html", project=project, images=images)
 
 
-@app.route('/manga/<int:project_id>/<int:page_id>')
+@app.route('/project/<int:project_id>/<int:page_id>')
 def reader(project_id, page_id):
     project = all_projects[project_id]
     images = utils.get_pages(project)
