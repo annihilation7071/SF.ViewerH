@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, send_file
-from backend import search, utils, downloader
+from backend import search, utils, downloader, parser, extra
 
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
