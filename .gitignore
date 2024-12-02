@@ -15,3 +15,4 @@ saved_page.html
 /downloads/*
 !/downloads
 /extention/*.pem
+__pycache__

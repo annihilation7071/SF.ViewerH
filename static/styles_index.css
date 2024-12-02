@@ -7,7 +7,13 @@ main {
     flex-wrap: wrap;
 }
 
-@media (max-aspect-ratio: 1) {
+@media (min-aspect-ratio: 1.0) and (max-aspect-ratio: 1.35) {
+    main {
+        max-width: 90%;
+    }
+}
+
+@media (max-aspect-ratio: 0.99) {
     main {
         max-width: 100%;
     }
@@ -19,6 +25,25 @@ main {
     gap: 15px;
     justify-content: center;
     flex-wrap: wrap;
+}
+
+@media (min-aspect-ratio: 2.2) {
+    .grid-container {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+
+@media (min-aspect-ratio: 1.0) and (max-aspect-ratio: 1.45) {
+    .grid-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-aspect-ratio: 0.99) {
+    .grid-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .project-link {
