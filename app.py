@@ -158,11 +158,13 @@ def load():
 def update_tags():
     type = request.form.get('type')
     data = request.form.get('data')
+    url = request.form.get('url')
 
     print(type)
     print(data)
+    print(url)
 
-    return redirect(url_for("index"))
+    return redirect(url)
 
 
 if __name__ == '__main__':
