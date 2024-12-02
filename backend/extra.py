@@ -3,7 +3,7 @@ import os
 blur = """
 /* BLUR_START */
 img {
-    filter: blur(15px);
+    filter: blur(25px);
 }
 
 .project-title-text {

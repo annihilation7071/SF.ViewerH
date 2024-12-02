@@ -2,6 +2,8 @@
 ___
 *Save your collection*
 
+![](https://files.catbox.moe/ac0yk1.png)
+
 ### Features:
 - View projects from **nhentai.net** downloaded using [nhentai][1].
 - View projects from **hitomi.la**, **nhentai.net** (and other **sites** in the future) downloaded using [gallery-dl][2].
