@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, redirect, url_for
 from backend import search, utils, downloader, parser, extra
 
 PROJECTS_PER_PAGE = 60
@@ -152,6 +152,17 @@ def load():
     print("Received URL:", data.get('url'))
     downloader.download(data.get('url'))
     return {"status": "success"}
+
+
+@app.route('/edit_data', methods=['POST'])
+def update_tags():
+    type = request.form.get('type')
+    data = request.form.get('data')
+
+    print(type)
+    print(data)
+
+    return redirect(url_for("index"))
 
 
 if __name__ == '__main__':

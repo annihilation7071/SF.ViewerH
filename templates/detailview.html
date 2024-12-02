@@ -6,6 +6,7 @@
     <title>{{ project.title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles_detailview.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles_edit_window.css') }}">
 </head>
 <body>
     {% include 'header.html' %}
@@ -57,6 +58,7 @@
                     {% for tag in project.tag %}
                     <a href="{{ url_for('index', search='tag:'+tag, page=1) }}" class="tag">{{ tag }}</a>
                     {% endfor %}
+                    <button class="edit-button" data-type="tags" data-content="{{ '\n'.join(project.tag) }}">+</button>
                 </div>
             </div>
 
@@ -131,6 +133,8 @@
             {% endfor %}
         </div>
     </main>
+
+    {% include 'edit_window.html' %}
 </body>
 <script>
     document.querySelectorAll('.image-item img').forEach(img => {
@@ -153,5 +157,30 @@
             img.addEventListener('load', applyStyles)
         }
     })
+
+    const modal = document.getElementById('edit-window')
+    const editForm = document.getElementById('edit-form')
+    const editTypeInput = document.getElementById('edit-type')
+    const editDataTextarea = document.getElementById('edit-data')
+    const cancelEditButton = document.getElementById('cancel-edit')
+    const editButtons = document.querySelectorAll('.edit-button')
+
+    editButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            console.log("test")
+            const type = button.getAttribute('data-type')
+            const content = button.getAttribute('data-content')
+
+            editTypeInput.value = type
+            editDataTextarea.value = content
+
+            modal.classList.add('active')
+        })
+    })
+
+    cancelEditButton.addEventListener('click', () => {
+        modal.classList.remove('active')
+    })
+
 </script>
 </html>

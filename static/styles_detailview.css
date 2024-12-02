@@ -107,6 +107,16 @@
     transition: background-color 0.3s ease;
 }
 
+.edit-button {
+    padding: 5px 10px;
+    background-color: #eee;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 14px;
+    color: #333;
+    transition: background-color 0.3s ease;
+}
+
 .grid-container-pages {
     display: inline-flex;
     gap: 15px;

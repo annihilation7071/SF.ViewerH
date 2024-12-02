@@ -1,0 +1,13 @@
+<div class="modal" id="edit-window">
+    <div class="modal-content">
+        <form id="edit-form" action="/edit_data" method="post">
+            <input type="hidden" name="type" id="edit-type">
+            <input type="hidden" name="hidden-data" id="hidden-data">
+            <textarea name="data" id="edit-data">{{ '\n'.join(project.tags) }}</textarea>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-ok">OK</button>
+                <button type="button" class="btn-cancel" id="cancel-edit">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
