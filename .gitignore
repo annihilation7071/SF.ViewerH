@@ -16,3 +16,5 @@ saved_page.html
 !/downloads
 /extention/*.pem
 __pycache__
+/.gitconfig
+/start.bat
