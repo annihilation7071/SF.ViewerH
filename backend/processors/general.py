@@ -49,6 +49,8 @@ def tag_normalizer(tags: str | list | int):
         new_tag = tag.lower()
         new_tag = new_tag.replace("♀", "")
         new_tag = new_tag.replace("♂", "")
+        new_tag = new_tag.replace("\r", "")
+        new_tag = new_tag.replace("\n", "")
         new_tag = new_tag.strip()
         if new_tag in aliases:
             return aliases[new_tag]

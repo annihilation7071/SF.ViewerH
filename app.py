@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, redirect, url_for
 from backend import search, utils, downloader, parser, extra
+from backend.editor import selector as edit_selector
 
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
@@ -152,6 +153,23 @@ def load():
     print("Received URL:", data.get('url'))
     downloader.download(data.get('url'))
     return {"status": "success"}
+
+
+@app.route('/edit_data', methods=['POST'])
+def update_tags():
+    type = request.form.get('edit-type')
+    data = request.form.get('edit-data')
+    url = request.form.get('url')
+    lid = request.form.get('lid')
+
+    print(type)
+    print(data)
+    print(url)
+    print(lid)
+
+    edit_selector.edit(lid, type, data, all_projects)
+
+    return redirect(url)
 
 
 if __name__ == '__main__':
