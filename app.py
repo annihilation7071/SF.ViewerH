@@ -167,7 +167,7 @@ def update_tags():
     print(url)
     print(lid)
 
-    edit_selector.edit(lid, type, data)
+    edit_selector.edit(lid, type, data, all_projects)
 
     return redirect(url)
 

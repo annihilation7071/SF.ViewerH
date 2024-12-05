@@ -44,6 +44,7 @@ def read_libs():
 
 def get_projects():
     projects = []
+    lids = {}
 
     libs = read_libs()
 
@@ -60,6 +61,10 @@ def get_projects():
 
     for i in range(len(projects)):
         projects[i]["id"] = i
+        lids[projects[i]["lid"]] = i
+
+    with open("./data/index/lids.json", "w", encoding="utf-8") as f:
+        json.dump(lids, f)
 
     return projects
 
