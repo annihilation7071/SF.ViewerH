@@ -58,7 +58,7 @@
                     {% for tag in project.tag %}
                     <a href="{{ url_for('index', search='tag:'+tag, page=1) }}" class="tag">{{ tag }}</a>
                     {% endfor %}
-                    <button class="edit-button" data-type="tags" data-content="{{ '\n'.join(project.tag) }}">+</button>
+                    <button class="edit-button" data-type="edit-tags" data-content="{{ '\n'.join(project.tag) }}">+</button>
                 </div>
             </div>
 
