@@ -10,7 +10,8 @@ class Projects:
         self.session = get_session()
         self.libs = utils.read_libs()
         active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
-        self.all_projects = self.session.query(Project).where(Project.lib.in_(active_libs)).order_by(desc(Project.upload_date))
+        self.all_projects = self.session.query(Project).where(Project.lib.in_(active_libs)).order_by(
+            desc(Project.upload_date))
         self.projects = self.all_projects
         self.search = ""
         self.ppg = ppg
@@ -54,7 +55,6 @@ class Projects:
         project = {column.name: f(getattr(project, column.name), column.name) for column in project.__table__.columns}
 
         return project
-
 
     def db(self):
         return self.session
@@ -106,6 +106,76 @@ class Projects:
 
         return dict_project
 
+    def get_dirs(self, lib_name: str = None):
+        if lib_name is not None:
+            selected_lib = self.all_projects.filter_by(lib=lib_name)
+        else:
+            selected_lib = self.all_projects
+
+        selected_lib = selected_lib.with_entities(Project.dir_name).all()
+        dirs = set([dir_name[0] for dir_name in selected_lib])
+
+        return dirs
+
+    def delete_by_dir_and_lib(self, dir_name: str, lib_name: str):
+        selected_lib = self.all_projects.filter_by(dir_name=dir_name, lib=lib_name).first()
+
+        if selected_lib:
+            self.session.delete(selected_lib)
+            self.session.commit()
+            print(f"Row deleted: {lib_name}: {dir_name}")
+        else:
+            print(f"Row not found: {lib_name}: {dir_name}")
+
+    def add_project(self, project: dict):
+        add_to_db(self.session, project)
 
 
+def add_to_db(session, project: dict):
+    def f(x):
+        if isinstance(x, list):
+            return ";;;".join(x)
+        else:
+            try:
+                d = datetime.strptime(x, '%Y-%m-%dT%H:%M:%S')
+                print(d)
+                return d
+            except:
+                print(x)
+                pass
+            return x
 
+    project = {k: f(v) for k, v in project.items()}
+
+    search_body = ";;;".join([project["lid"], project["source"], project["url"], project["downloader"],
+                              project["title"], project["subtitle"], project["parody"], project["character"],
+                              project["tag"], project["artist"], project["group"], project["language"],
+                              project["category"], project["series"]])
+
+    row = Project(info_version=project["info_version"],
+                  lid=project["lid"],
+                  lvariants=project["lvariants"],
+                  source_id=project["source_id"],
+                  source=project["source"],
+                  url=project["url"],
+                  downloader=project["downloader"],
+                  title=project["title"],
+                  subtitle=project["subtitle"],
+                  upload_date=project["upload_date"],
+                  preview=project["preview"],
+                  parody=project["parody"],
+                  character=project["character"],
+                  tag=project["tag"],
+                  artist=project["artist"],
+                  group=project["group"],
+                  language=project["language"],
+                  category=project["category"],
+                  series=project["series"],
+                  pages=project["pages"],
+                  dir_name=project["dir_name"],
+                  lib=project["lib"],
+                  search_body=search_body
+                  )
+
+    session.add(row)
+    session.commit()

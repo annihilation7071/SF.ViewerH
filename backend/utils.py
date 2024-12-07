@@ -44,9 +44,6 @@ def read_libs() -> dict:
 
 
 def get_projects():
-    projects = []
-    lids = {}
-
     libs = read_libs()
 
     for name, data in libs.items():
@@ -54,20 +51,7 @@ def get_projects():
             continue
 
         proc = import_module(f"backend.processors.{data['processor']}")
-        projects += proc.get_projects(name, data)
-
-    projects = sorted(projects,
-                      key=lambda x: datetime.strptime(x["upload_date"], "%Y-%m-%dT%H:%M:%S"),
-                      reverse=True)
-
-    for i in range(len(projects)):
-        projects[i]["id"] = i
-        lids[projects[i]["lid"]] = i
-
-    with open("./data/index/lids.json", "w", encoding="utf-8") as f:
-        json.dump(lids, f)
-
-    return projects
+        proc.get_projects(name, data)
 
 
 def count_param(param: str, projects: list = None):

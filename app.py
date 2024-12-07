@@ -6,6 +6,7 @@ from backend.projects import Projects
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
 
+utils.get_projects()
 projects = Projects(ppg=PPG)
 
 

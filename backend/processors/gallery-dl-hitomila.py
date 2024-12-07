@@ -97,6 +97,6 @@ def make_v_info(path: str) -> None:
         json.dump(v_info, f, indent=4)
 
 
-def get_projects(lib_name: str, lib_data: dict) -> list:
-    projects = general.get_projects(lib_name, lib_data, meta_file, processor=get_project)
-    return projects
+def get_projects(lib_name: str, lib_data: dict):
+    general.get_projects(lib_name, lib_data, meta_file, processor=get_project)
+

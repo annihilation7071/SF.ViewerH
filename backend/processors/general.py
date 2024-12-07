@@ -2,6 +2,9 @@ import json
 import os
 from datetime import datetime
 from backend import parser
+from backend.projects import Projects
+
+projects = Projects()
 
 
 def get_dirs(path: str, meta_file: str) -> list[str]:
@@ -15,30 +18,14 @@ def get_dirs(path: str, meta_file: str) -> list[str]:
     return dirs
 
 
-def get_index(index_path: str, dirs: list[str]) -> bool | dict:
-    if parser.args.reindex is True:
-        return False
+def check_dirs(lib_name: str, dirs: list[str]) -> tuple:
+    exist_dirs = set(dirs)
+    dirs_in_db = set(projects.get_dirs(lib_name))
 
-    with open(index_path, "r", encoding="utf-8") as f:
-        index = json.load(f)
+    dirs_not_in_db = exist_dirs - dirs_in_db
+    dirs_not_exist = dirs_in_db - exist_dirs
 
-    if len(index["projects"]) != len(dirs):
-        return False
-
-    for directory in dirs:
-        if directory not in index["projects"]:
-            return False
-
-    return index
-
-
-def write_index(index_path: str, projects: list) -> None:
-
-    index = {"info_version": projects[0]["info_version"],
-             "projects": {project["dir_name"]: project for project in projects}}
-
-    with open(index_path, "w", encoding="utf-8") as f:
-        json.dump(index, f, indent=4)
+    return dirs_not_in_db, dirs_not_exist
 
 
 def tag_normalizer(tags: str | list | int):
@@ -90,52 +77,16 @@ def get_time(str_time: str | int, format: str = None) -> str | bool:
 def get_projects(lib_name: str, lib_data: dict, meta_file: str, processor) -> list:
 
     path = lib_data["path"]
-    projects = []
     dirs = get_dirs(path, meta_file)
 
-    index_path = f"./data/index/{lib_name}.json"
+    dirs_not_in_db, dirs_not_exist = check_dirs(lib_name, dirs)
 
-    if os.path.exists(index_path):
-        print(f"Index file for {lib_name}: exist")
-        index = get_index(index_path, dirs)
-        if index is not False:
+    for dir in dirs_not_exist:
+        projects.delete_by_dir_and_lib(dir, lib_name)
 
-            with open("./backend/v_info.json", "r", encoding="utf-8") as f:
-                current_info_version = json.load(f)["info_version"]
-
-            if index["info_version"] != current_info_version:
-                print(f"Index file for {lib_name}: INCORRECT VERSION")
-            else:
-                projects = list(index["projects"].values())
-                print(f"Index file for {lib_name}: correct\n"
-                      f"Using existing index file for {lib_name}")
-                return projects
-        else:
-            print(f"Index file for {lib_name}: INCORRECT")
-
-    print(f"Creating index file for {lib_name}")
-    percent = 0
-
-    for i in range(0, len(dirs)):
-
-        if i + 1 == len(dirs):
-            print(f"Indexing files for {lib_name}: 100%")
-        else:
-            if i >= len(dirs) * percent/100:
-                print(f"Indexing files for {lib_name}: {percent}%")
-                while i / len(dirs) > percent/100:
-                    percent += 10
-
-        directory = dirs[i]
-        project = processor(os.path.join(path, directory), lib_name, lib_data)
-        projects.append(project)
-
-    if len(projects) > 0:
-        write_index(index_path, projects)
-
-    print(f"Indexing files for {lib_name}: created")
-
-    return projects
+    for dir in dirs_not_in_db:
+        project = processor(os.path.join(path, dir), lib_name, lib_data)
+        projects.add_project(project)
 
 
 def get_v_info(path: str) -> dict | bool:
