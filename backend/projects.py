@@ -9,7 +9,9 @@ class Projects:
     def __init__(self, ppg: int = 60):
         self.session = get_session()
         self.libs = utils.read_libs()
-        self.projects = self.session.query(Project).order_by(desc(Project.upload_date))
+        active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
+        self.all_projects = self.session.query(Project).where(Project.lib.in_(active_libs)).order_by(desc(Project.upload_date))
+        self.projects = self.all_projects
         self.search = ""
         self.ppg = ppg
 
@@ -60,24 +62,27 @@ class Projects:
     def len(self):
         return self.projects.count()
 
-    def _filter(self, search: str):
-        print("test")
+    def _filter(self, search: str | None):
         search = self._normalize_search(search)
 
         if self.search == search:
-            pass
-        else:
-            self.search = search
-            search = search.split(",")
-            search_query = [Project.search_body.icontains(item) for item in search]
-            print(search)
-            self.projects = self.session.query(Project).filter(and_(*search_query))
-            self.projects = self.projects.order_by(desc(Project.upload_date))
-            print(f"search: {search}")
+            return
+
+        if search is None or search == "":
+            self.search = ""
+            self.projects = self.all_projects
+            return
+
+        self.search = search
+        search = search.split(",")
+        search_query = [Project.search_body.icontains(item) for item in search]
+        print(search)
+        self.projects = self.session.query(Project).filter(and_(*search_query))
+        self.projects = self.projects.order_by(desc(Project.upload_date))
+        print(f"search: {search}")
 
     def get_page(self, page: int = 1, search: str = None):
-        if search is not None and self.search != search:
-            self._filter(search)
+        self._filter(search)
 
         selected_projects = self.projects.offset(((page - 1) * self.ppg)).limit(self.ppg)
         projects = []
