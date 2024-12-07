@@ -1,7 +1,4 @@
 {
-  "id": -1,
   "dir_name": "name",
-  "path": "path",
-  "preview_path": "preview_path",
   "lib": "example_lib"
 }

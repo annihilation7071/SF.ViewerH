@@ -5,6 +5,7 @@ import os
 from collections import defaultdict
 from backend.processors import general
 from backend import utils
+from backend import parser
 
 
 meta_file = "metadata.json"
@@ -14,7 +15,11 @@ def get_project(path: str, lib_name: str, lib_data: dict) -> dict:
     with open('./backend/project.json', 'r', encoding='utf-8') as f:
         project = json.load(f)
 
-    v_info = general.get_v_info(path)
+    if parser.args.rewrite_v_info is True:
+        v_info = False
+    else:
+        v_info = general.get_v_info(path)
+
     if v_info is False:
         make_v_info(path)
         v_info = general.get_v_info(path)
@@ -25,14 +30,8 @@ def get_project(path: str, lib_name: str, lib_data: dict) -> dict:
     _name = os.path.basename(path)
 
     project["dir_name"] = _name
-    project["path"] = path
+    # project["path"] = path
     project["lib"] = lib_name
-    project["source"] = "nhentai.net"
-
-    files = os.listdir(path)
-    files = sorted(files)
-
-    project["preview_path"] = os.path.join(path, files[0])
 
     return project
 
@@ -48,6 +47,10 @@ def make_v_info(path: str) -> None:
     v_info["lvariants"] = []
     v_info["source"] = "nhentai.net"
     v_info["downloader"] = "nhentai"
+
+    files = os.listdir(path)
+    files = sorted(files)
+    v_info["preview"] = files[0]
     
     _name = os.path.basename(path)
 
@@ -78,7 +81,11 @@ def make_v_info(path: str) -> None:
     v_info["category"] = f("category") or ["unknown"]
     v_info["pages"] = f("Pages") or "unknown"
 
-    with open(os.path.join(path, "v_info.json"), "w", encoding='utf-8') as f:
+    _path = os.path.join(path, "./sf.viewer/")
+    if os.path.exists(_path) is False:
+        os.makedirs(_path)
+
+    with open(os.path.join(_path, "v_info.json"), "w", encoding='utf-8') as f:
         json.dump(v_info, f, indent=4)
 
 

@@ -1,5 +1,5 @@
 {
-  "info_version": 1,
+  "info_version": 2,
   "lid": "-1",
   "lvariants": ["{{example_lid}}:{{example_description}}"],
   "source_id": "id",
@@ -9,6 +9,7 @@
   "title": "title",
   "subtitle": "subtitle",
   "upload_date": "1950-01-01T00:00:00",
+  "preview": "001.png",
   "parody": ["parody"],
   "character": ["character"],
   "tag": ["tag1", "tag2"],

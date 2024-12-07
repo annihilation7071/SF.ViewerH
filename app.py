@@ -1,17 +1,13 @@
 from flask import Flask, render_template, request, send_file, redirect, url_for
 from backend import search, utils, downloader, parser, extra
 from backend.editor import selector as edit_selector
+from backend.projects import Projects
 
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
 
-projects = {'search': "",
-            'data': []}
+projects = Projects(ppg=PPG)
 
-
-all_projects = utils.get_projects()
-projects['search'] = ""
-projects['data'] = all_projects
 
 app = Flask(__name__)
 
@@ -48,27 +44,13 @@ def index():
     global all_projects
     global projects
 
-    if len(all_projects) == 0:
-        all_projects = utils.get_projects()
-        projects['search'] = ""
-        projects['data'] = all_projects
-
     search_query = request.args.get("search", "").strip().lower()
     print(search_query)
-    if search_query == projects['search']:
-        _projects = projects['data']
-    else:
-        projects['search'] = search_query
-        projects['data'] = search.to_search(all_projects, search_query)
-        _projects = projects['data']
-
     page = int(request.args.get('page', 1))
-    start_index = (page - 1) * PPG
-    end_index = start_index + PPG
 
-    displayed_projects = _projects[start_index:end_index]
+    displayed_projects = projects.get_page(page=page, search=search_query)
 
-    total_pages = (len(_projects) + PPG - 1) // PPG
+    total_pages = (projects.len() + PPG - 1) // PPG
 
     visible_pages = get_visible_pages(page, total_pages)
 
@@ -83,16 +65,14 @@ def index():
 
 @app.route('/project/<int:project_id>')
 def detail_view(project_id):
-    project = all_projects[project_id]
+    project = projects.get_project_by_id(project_id)
     images = utils.get_pages(project)
-    # print(project)
-    # print(images)
     return render_template("detailview.html", project=project, images=images)
 
 
 @app.route('/project/<int:project_id>/<int:page_id>')
 def reader(project_id, page_id):
-    project = all_projects[project_id]
+    project = projects.get_project_by_id(project_id)
     images = utils.get_pages(project)
     page = page_id
     image = images[page - 1]["path"]

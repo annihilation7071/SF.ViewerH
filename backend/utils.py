@@ -3,6 +3,7 @@ import json
 from importlib import import_module
 from datetime import datetime
 from collections import defaultdict
+import uuid
 
 
 def get_pages(project: dict):
@@ -24,7 +25,7 @@ def get_pages(project: dict):
     return pages
 
 
-def read_libs():
+def read_libs() -> dict:
     files = os.listdir("./settings/libs/")
     files = [file for file in files if file.startswith('libs_') and file.endswith('.json') and file != "libs_example.json"]
 
@@ -83,17 +84,22 @@ def count_param(param: str, projects: list = None):
 
 
 def gen_lid():
-    number = int(datetime.now().strftime('%Y%m%d%H%M%S%f'))
+    num_1 = int(datetime.now().strftime('%Y%m%d%H%M%S%f'))
+    num_2 = int(uuid.uuid4().hex, 16)
 
-    base = 64
-    result = ""
-    letters = ("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-               "abcdefghijklmnopqrstuvwxyz"
-               "0123456789"
-               "-_")
+    def to_62(num):
+        base = 62
+        result = ""
+        letters = ("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                   "abcdefghijklmnopqrstuvwxyz"
+                   "0123456789")
 
-    while number != 0:
-        result += letters[number % base]
-        number //= base
+        while num != 0:
+            result += letters[num % base]
+            num //= base
 
-    return result[::-1]
+        return result[::-1]
+
+    d = to_62(num_1)
+    r = to_62(num_2)[0:10]
+    return f"{d}_{r}"

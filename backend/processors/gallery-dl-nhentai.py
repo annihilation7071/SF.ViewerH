@@ -5,7 +5,7 @@ import json
 import os
 from collections import defaultdict
 from backend.processors import general
-from backend import utils
+from backend import utils, parser
 
 meta_file = "info.json"
 
@@ -14,7 +14,11 @@ def get_project(path: str, lib_name: dict, lib_date: str) -> dict:
     with open('./backend/project.json', 'r', encoding='utf-8') as f:
         project = json.load(f)
 
-    v_info = general.get_v_info(path)
+    if parser.args.rewrite_v_info is True:
+        v_info = False
+    else:
+        v_info = general.get_v_info(path)
+
     if v_info is False:
         make_v_info(path)
         v_info = general.get_v_info(path)
@@ -25,7 +29,7 @@ def get_project(path: str, lib_name: dict, lib_date: str) -> dict:
     _name = os.path.basename(path)
 
     project["dir_name"] = _name
-    project["path"] = path
+    # project["path"] = path
     project["lib"] = lib_name
 
     files = os.listdir(path)
@@ -48,6 +52,11 @@ def make_v_info(path: str) -> None:
     v_info["lvariants"] = []
     v_info["source"] = "nhentai.net"
     v_info["downloader"] = "gallery-dl"
+
+    files = os.listdir(path)
+    files = [file for file in files if file.startswith("nhentai_")]
+    files = sorted(files)
+    v_info["preview"] = files[0]
 
     _name = os.path.basename(path)
 
@@ -88,7 +97,11 @@ def make_v_info(path: str) -> None:
     v_info["language"] = [f("language")] or ["unknown"]
     v_info["pages"] = f("count") or "unknown"
 
-    with open(os.path.join(path, "v_info.json"), "w", encoding='utf-8') as f:
+    _path = os.path.join(path, "./sf.viewer/")
+    if os.path.exists(_path) is False:
+        os.makedirs(_path)
+
+    with open(os.path.join(_path, "v_info.json"), "w", encoding='utf-8') as f:
         json.dump(v_info, f, indent=4)
 
 

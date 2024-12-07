@@ -18,3 +18,5 @@ saved_page.html
 __pycache__
 /.gitconfig
 /start.bat
+/data/DB/*
+!/data/DB

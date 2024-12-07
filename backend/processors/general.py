@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from backend import parser
 
 
 def get_dirs(path: str, meta_file: str) -> list[str]:
@@ -15,6 +16,8 @@ def get_dirs(path: str, meta_file: str) -> list[str]:
 
 
 def get_index(index_path: str, dirs: list[str]) -> bool | dict:
+    if parser.args.reindex is True:
+        return False
 
     with open(index_path, "r", encoding="utf-8") as f:
         index = json.load(f)
@@ -139,8 +142,8 @@ def get_v_info(path: str) -> dict | bool:
     with open('./backend/v_info.json', 'r', encoding='utf-8') as f:
         v_info = json.load(f)
 
-    if os.path.exists(os.path.join(path, "v_info.json")):
-        with open(os.path.join(path, "v_info.json"), "r", encoding='utf-8') as f:
+    if os.path.exists(os.path.join(path, "./sf.viewer/v_info.json")):
+        with open(os.path.join(path, "./sf.viewer/v_info.json"), "r", encoding='utf-8') as f:
             v_info_exist = json.load(f)
 
         if v_info_exist["info_version"] == v_info["info_version"]:
