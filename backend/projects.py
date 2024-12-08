@@ -3,6 +3,7 @@ from backend import utils
 from backend.db.connect import Project, get_session
 from sqlalchemy import select, text, desc, asc, and_
 from datetime import datetime
+from collections import defaultdict
 
 
 class Projects:
@@ -73,9 +74,15 @@ class Projects:
             self.projects = self.all_projects
             return
 
+        def f(item: str):
+            if item.find(":") > -1:
+                return f";;;{item};;;"
+            else:
+                return item
+
         self.search = search
         search = search.split(",")
-        search_query = [Project.search_body.icontains(item) for item in search]
+        search_query = [Project.search_body.icontains(f(item)) for item in search]
         print(search)
         self.projects = self.session.query(Project).filter(and_(*search_query))
         self.projects = self.projects.order_by(desc(Project.upload_date))
@@ -129,6 +136,18 @@ class Projects:
 
     def add_project(self, project: dict):
         add_to_db(self.session, project)
+
+    def count_item(self, item: str) -> list:
+        result = defaultdict(int)
+
+        items_strings = self.all_projects.with_entities(getattr(Project, item)).all()
+
+        for items_string in items_strings:
+            items = items_string[0].split(";;;")
+            for item in items:
+                result[item] += 1
+
+        return sorted(result.items(), key=lambda x: x[1], reverse=True)
 
 
 def add_to_db(session, project: dict):

@@ -100,7 +100,7 @@ def get_image(image_path):
 def tags_list():
     item = "tag"
     find = item
-    tags = utils.count_param(item, all_projects)
+    tags = projects.count_item(item)
     return render_template("items.html", items=tags, find=find)
 
 
@@ -108,7 +108,7 @@ def tags_list():
 def artists_list():
     item = "artist"
     find = item
-    tags = utils.count_param(item, all_projects)
+    tags = projects.count_item(item)
     return render_template("items.html", items=tags, find=find)
 
 
@@ -116,7 +116,7 @@ def artists_list():
 def characters_list():
     item = "character"
     find = item
-    tags = utils.count_param(item, all_projects)
+    tags = projects.count_item(item)
     return render_template("items.html", items=tags, find=find)
 
 
@@ -124,7 +124,7 @@ def characters_list():
 def parodies_list():
     item = "parody"
     find = item
-    tags = utils.count_param(item, all_projects)
+    tags = projects.count_item(item)
     return render_template("items.html", items=tags, find=find)
 
 
