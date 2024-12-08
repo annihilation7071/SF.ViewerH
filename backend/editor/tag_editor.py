@@ -1,22 +1,22 @@
 import json
 import os
+
+from backend.projects import Projects
 from backend.processors.general import tag_normalizer
 
+projects = Projects()
 
-def edit(lid: str, data: str, projects):
-    print(lid, data)
 
-    with open("./data/index/lids.json", "r", encoding="utf-8") as f:
-        lids = json.load(f)
-
-    project = projects[lids[lid]]
+def edit(data: str, project):
 
     tags = data.split("\n")
+    print(tags)
+    tags = [tag for tag in tags if tag != ""]
     tags = tag_normalizer(tags)
-
+    print(tags)
 
     # v_info.json
-    path = os.path.join(project["path"], "v_info.json")
+    path = os.path.join(project["path"], "sf.viewer/v_info.json")
 
     with open(path, "r", encoding="utf-8") as f:
         v_info = json.load(f)
@@ -32,24 +32,9 @@ def edit(lid: str, data: str, projects):
     if v_info["tag"] != tags:
         raise IOError("Failed to update data in v_info.json")
 
-    # index
-    lib = project["lib"] + ".json"
-    path = os.path.join("./data/index", lib)
-    print(lib)
-    print(project)
-
-    with open(path, "r", encoding="utf-8") as f:
-        index = json.load(f)
-
-    print(index)
-
-    index["projects"][project["dir_name"]]["tag"] = tags
-
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(index, f, indent=4)
-
-    # open_projects
+    # DB
     project["tag"] = tags
+    projects.update_item(project)
 
     return
 

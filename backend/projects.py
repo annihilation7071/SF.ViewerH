@@ -4,6 +4,7 @@ from backend.db.connect import Project, get_session
 from sqlalchemy import select, text, desc, asc, and_
 from datetime import datetime
 from collections import defaultdict
+from backend import utils
 
 
 class Projects:
@@ -54,6 +55,35 @@ class Projects:
             return item
 
         project = {column.name: f(getattr(project, column.name), column.name) for column in project.__table__.columns}
+
+        return project
+
+    def _prepare_to_update(self, project: dict) -> dict:
+        def f(item, column_name):
+            print(item)
+            target_columns = ["lvariants", "parody", "character",
+                              "tag", "artist", "group", "language",
+                              "category", "series"]
+
+            if isinstance(item, list):
+                if column_name in target_columns:
+                    return utils.list_to_str(item)
+
+            if isinstance(item, str):
+                try:
+                    return datetime.strptime(item, "%Y-%m-%dT%H:%M:%S")
+                except:
+                    pass
+
+            return item
+
+        project = {key: f(val, key) for key, val in project.items()}
+
+        project.pop("preview_path", None)
+        project.pop("path", None)
+        project.pop("id", None)
+
+        project["search_body"] = make_search_body(project)
 
         return project
 
@@ -113,6 +143,16 @@ class Projects:
 
         return dict_project
 
+
+    def get_project_by_lid(self, lid: str):
+        project = self.projects.filter_by(lid=lid).first()
+        dict_project = self._to_dict(project)
+        dict_project["path"] = self._get_project_path(project)
+        dict_project["id"] = dict_project["_id"]
+        dict_project["preview_path"] = self._get_project_preview_path(project)
+
+        return dict_project
+
     def get_dirs(self, lib_name: str = None):
         if lib_name is not None:
             selected_lib = self.all_projects.filter_by(lib=lib_name)
@@ -149,6 +189,14 @@ class Projects:
 
         return sorted(result.items(), key=lambda x: x[1], reverse=True)
 
+    def update_item(self, project: dict):
+        project = self._prepare_to_update(project)
+        print("UPDATE:")
+        print(project)
+        to_update = {getattr(Project, key): val for key, val in project.items()}
+        self.session.query(Project).filter_by(_id=project["_id"]).update(to_update)
+        self.session.commit()
+
 
 def add_to_db(session, project: dict):
     def f(x):
@@ -171,15 +219,7 @@ def add_to_db(session, project: dict):
     #                           project["tag"], project["artist"], project["group"], project["language"],
     #                           project["category"], project["series"]])
 
-    exclude = ["info_version", "lvariants", "url", "upload_date", "preview", "pages", "dir_name"]
-
-    search_body = ";;;"
-
-    for k, v in project.items():
-        if k not in exclude:
-            items = v.split(";;;")
-            for item in items:
-                search_body += f"{k}:{item.lower()};;;"
+    search_body = make_search_body(project)
 
     row = Project(info_version=project["info_version"],
                   lid=project["lid"],
@@ -208,3 +248,19 @@ def add_to_db(session, project: dict):
 
     session.add(row)
     session.commit()
+
+
+def make_search_body(project: dict):
+    exclude = ["info_version", "lvariants", "url", "upload_date",
+               "preview", "pages", "dir_name", "id",
+               "_id", "search_body", "lid"]
+
+    search_body = ";;;"
+
+    for k, v in project.items():
+        if k not in exclude:
+            items = v.split(";;;")
+            for item in items:
+                search_body += f"{k}:{item.lower()};;;"
+
+    return search_body

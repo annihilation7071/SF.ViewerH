@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, send_file, redirect, url_for
-from backend import search, utils, downloader, cmdargs, extra
+from backend import utils, downloader, cmdargs, extra
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
 
@@ -142,13 +142,16 @@ def update_tags():
     data = request.form.get('edit-data')
     url = request.form.get('url')
     lid = request.form.get('lid')
+    _id = request.form.get('id')
+    project = projects.get_project_by_id(int(_id))
 
     print(type)
     print(data)
     print(url)
     print(lid)
+    print(_id)
 
-    edit_selector.edit(lid, type, data, all_projects)
+    edit_selector.edit(type, data, project)
 
     return redirect(url)
 

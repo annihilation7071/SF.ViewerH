@@ -87,3 +87,14 @@ def gen_lid():
     d = to_62(num_1)
     r = to_62(num_2)[0:10]
     return f"{d}_{r}"
+
+
+def str_to_list(str_list: str) -> list:
+    result = str_list.split(';;;')
+    result = [item for item in result if len(item) > 0]
+    return result
+
+
+def list_to_str(list_str: list) -> str:
+    result = ";;;".join(list_str)
+    return result

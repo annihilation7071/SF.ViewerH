@@ -1,9 +1,9 @@
 from backend.editor import tag_editor
 
 
-def edit(lid: str, edit_type: str, data: str, projects: list):
+def edit(edit_type: str, data: str, project: dict):
     match edit_type:
         case "edit-tags":
-            tag_editor.edit(lid, data, projects)
+            tag_editor.edit(data, project)
         case _:
             print(f"{edit_type} is not supported")

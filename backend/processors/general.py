@@ -52,7 +52,9 @@ def tag_normalizer(tags: str | list | int):
     elif isinstance(tags, list):
         new_tags = []
         for tag in tags:
-            new_tags.append(normalize(tag))
+            new_tag = normalize(tag)
+            if new_tag != "":
+                new_tags.append(new_tag)
         return new_tags
 
 
