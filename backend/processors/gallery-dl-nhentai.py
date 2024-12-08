@@ -5,7 +5,7 @@ import json
 import os
 from collections import defaultdict
 from backend.processors import general
-from backend import utils, parser
+from backend import utils, cmdargs
 
 meta_file = "info.json"
 

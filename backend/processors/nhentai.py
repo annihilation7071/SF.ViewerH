@@ -5,7 +5,7 @@ import os
 from collections import defaultdict
 from backend.processors import general
 from backend import utils
-from backend import parser
+from backend import cmdargs
 
 
 meta_file = "metadata.json"

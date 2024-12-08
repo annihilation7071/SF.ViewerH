@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, send_file, redirect, url_for
-from backend import search, utils, downloader, parser, extra
+from backend import search, utils, downloader, cmdargs, extra
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
 
