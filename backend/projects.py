@@ -147,10 +147,20 @@ def add_to_db(session, project: dict):
 
     project = {k: f(v) for k, v in project.items()}
 
-    search_body = ";;;".join([project["lid"], project["source"], project["url"], project["downloader"],
-                              project["title"], project["subtitle"], project["parody"], project["character"],
-                              project["tag"], project["artist"], project["group"], project["language"],
-                              project["category"], project["series"]])
+    # search_body = ";;;".join([project["lid"], project["source"], project["url"], project["downloader"],
+    #                           project["title"], project["subtitle"], project["parody"], project["character"],
+    #                           project["tag"], project["artist"], project["group"], project["language"],
+    #                           project["category"], project["series"]])
+
+    exclude = ["info_version", "lvariants", "url", "upload_date", "preview", "pages", "dir_name"]
+
+    search_body = ";;;"
+
+    for k, v in project.items():
+        if k not in exclude:
+            items = v.split(";;;")
+            for item in items:
+                search_body += f"{k}:{item.lower()};;;"
 
     row = Project(info_version=project["info_version"],
                   lid=project["lid"],
