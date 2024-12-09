@@ -143,7 +143,6 @@ class Projects:
 
         return dict_project
 
-
     def get_project_by_lid(self, lid: str):
         project = self.projects.filter_by(lid=lid).first()
         dict_project = self._to_dict(project)
@@ -195,6 +194,10 @@ class Projects:
         print(project)
         to_update = {getattr(Project, key): val for key, val in project.items()}
         self.session.query(Project).filter_by(_id=project["_id"]).update(to_update)
+        self.session.commit()
+
+    def clear_old_versions(self, target_version: int):
+        self.session.query(Project).filter(Project.info_version < target_version).delete()
         self.session.commit()
 
 
