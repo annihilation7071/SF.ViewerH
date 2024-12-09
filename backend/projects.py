@@ -5,6 +5,7 @@ from sqlalchemy import select, text, desc, asc, and_
 from datetime import datetime
 from collections import defaultdict
 from backend import utils
+from backend import logger
 
 
 class Projects:
@@ -160,6 +161,7 @@ class Projects:
 
         selected_lib = selected_lib.with_entities(Project.dir_name).all()
         dirs = set([dir_name[0] for dir_name in selected_lib])
+        logger.log(f"Selected dirs count: {len(dirs)}")
 
         return dirs
 
@@ -198,6 +200,10 @@ class Projects:
 
     def clear_old_versions(self, target_version: int):
         self.session.query(Project).filter(Project.info_version < target_version).delete()
+        self.session.commit()
+
+    def delete_all_data(self):
+        self.session.query(Project).delete()
         self.session.commit()
 
 

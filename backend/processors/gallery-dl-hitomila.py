@@ -10,9 +10,7 @@ from backend import utils, cmdargs
 meta_file = "info.json"
 
 
-def get_project(path: str, lib_name: dict, lib_date: str) -> dict:
-    with open('./backend/project.json', 'r', encoding='utf-8') as f:
-        project = json.load(f)
+def get_project(path: str) -> dict:
 
     if cmdargs.args.rewrite_v_info is True:
         v_info = False
@@ -23,16 +21,7 @@ def get_project(path: str, lib_name: dict, lib_date: str) -> dict:
         make_v_info(path)
         v_info = general.get_v_info(path)
 
-    for k, v in v_info.items():
-        project[k] = v
-
-    _name = os.path.basename(path)
-
-    project["dir_name"] = _name
-    # project["path"] = path
-    project["lib"] = lib_name
-
-    return project
+    return v_info
 
 
 def make_v_info(path: str) -> None:

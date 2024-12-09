@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from backend import cmdargs
 from backend.projects import Projects
+from backend import logger
 
 projects = Projects()
 
@@ -23,7 +24,9 @@ def check_dirs(lib_name: str, dirs: list[str]) -> tuple:
     dirs_in_db = set(projects.get_dirs(lib_name))
 
     dirs_not_in_db = exist_dirs - dirs_in_db
+    logger.log(f"Directories not in DB: {len(dirs_not_in_db)}")
     dirs_not_exist = dirs_in_db - exist_dirs
+    logger.log(f"Directories in DB but not exist: {len(dirs_not_exist)}")
 
     return dirs_not_in_db, dirs_not_exist
 
@@ -77,6 +80,12 @@ def get_time(str_time: str | int, format: str = None) -> str | bool:
 
 
 def get_projects(lib_name: str, lib_data: dict, meta_file: str, processor) -> None:
+    logger.log(f"Processing: {lib_name}")
+    if cmdargs.args.reindex is True:
+        cmdargs.args.reindex = False
+        projects.delete_all_data()
+        logger.log(f"Deleted all data")
+
     with open("./backend/v_info.json", "r", encoding="utf-8") as f:
         v_info = json.load(f)
 
@@ -91,7 +100,9 @@ def get_projects(lib_name: str, lib_data: dict, meta_file: str, processor) -> No
         projects.delete_by_dir_and_lib(dir, lib_name)
 
     for dir in dirs_not_in_db:
-        project = processor(os.path.join(path, dir), lib_name, lib_data)
+        project = processor(os.path.join(path, dir))
+        project["lib"] = lib_name
+        project["dir_name"] = dir
         projects.add_project(project)
 
 

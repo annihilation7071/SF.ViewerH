@@ -2,13 +2,15 @@ from flask import Flask, render_template, request, send_file, redirect, url_for
 from backend import utils, downloader, cmdargs, extra
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
+from backend import logger
 
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
 
+logger.start()
+
 utils.get_projects()
 projects = Projects(ppg=PPG)
-
 
 app = Flask(__name__)
 
@@ -158,4 +160,4 @@ def update_tags():
 
 if __name__ == '__main__':
     with app.app_context():
-        app.run(debug=True, host='0.0.0.0', port=1707)
+        app.run(debug=True, use_reloader=False, host='0.0.0.0', port=1707)

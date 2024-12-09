@@ -54,19 +54,6 @@ def get_projects():
         proc.get_projects(name, data)
 
 
-def count_param(param: str, projects: list = None):
-    if projects is None:
-        projects = get_projects()
-
-    params = defaultdict(int)
-
-    for project in projects:
-        for artist in project[param]:
-            params[artist] += 1
-
-    return sorted(params.items(), key=lambda item: item[1], reverse=True)
-
-
 def gen_lid():
     num_1 = int(datetime.now().strftime('%Y%m%d%H%M%S%f'))
     num_2 = int(uuid.uuid4().hex, 16)
