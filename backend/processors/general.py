@@ -76,7 +76,11 @@ def get_time(str_time: str | int, format: str = None) -> str | bool:
         return date.strftime(target_format)
 
 
-def get_projects(lib_name: str, lib_data: dict, meta_file: str, processor) -> list:
+def get_projects(lib_name: str, lib_data: dict, meta_file: str, processor) -> None:
+    with open("./backend/v_info.json", "r", encoding="utf-8") as f:
+        v_info = json.load(f)
+
+    projects.clear_old_versions(v_info["info_version"])
 
     path = lib_data["path"]
     dirs = get_dirs(path, meta_file)
