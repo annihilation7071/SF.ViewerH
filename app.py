@@ -3,13 +3,14 @@ from backend import utils, downloader, cmdargs, extra
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
 from backend import logger
+from backend.processors import general
 
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
 
 logger.start()
 
-utils.get_projects()
+general.get_projects()
 projects = Projects(ppg=PPG)
 
 app = Flask(__name__)
@@ -146,6 +147,7 @@ def update_tags():
     lid = request.form.get('lid')
     _id = request.form.get('id')
     project = projects.get_project_by_id(int(_id))
+    print(project)
 
     print(type)
     print(data)

@@ -48,7 +48,9 @@ class Projects:
 
             if isinstance(item, str):
                 if column_name in target_columns:
-                    return item.split(";;;")
+                    items = item.split(";;;")
+                    items = [_item for _item in items if len(item) > 0]
+                    return items
 
             if isinstance(item, datetime):
                 return item.strftime("%Y-%m-%dT%H:%M:%S")
@@ -135,8 +137,21 @@ class Projects:
 
         return projects
 
-    def get_project_by_id(self, _id: int):
-        project = self.projects.filter_by(_id=_id).first()
+    def get_project(self, _id: int | str = None, lid: str = None) -> dict:
+        if _id is None and lid is None:
+            raise ValueError("Either id or lig must be provided")
+
+        if _id is not None and lid is not None:
+            raise ValueError("Only one of id or lig must be provided")
+
+        if isinstance(_id, str):
+            _id = int(_id)
+
+        if _id is not None:
+            project = self.session.query(Project).filter_by(_id=_id).first()
+        else:
+            project = self.session.query(Project).filter_by(lid=lid).first()
+
         dict_project = self._to_dict(project)
         dict_project["path"] = self._get_project_path(project)
         dict_project["id"] = dict_project["_id"]
@@ -144,14 +159,11 @@ class Projects:
 
         return dict_project
 
-    def get_project_by_lid(self, lid: str):
-        project = self.projects.filter_by(lid=lid).first()
-        dict_project = self._to_dict(project)
-        dict_project["path"] = self._get_project_path(project)
-        dict_project["id"] = dict_project["_id"]
-        dict_project["preview_path"] = self._get_project_preview_path(project)
+    def get_project_by_id(self, _id: int | str) -> dict:
+        return self.get_project(_id=_id)
 
-        return dict_project
+    def get_project_by_lid(self, lid: str) -> dict:
+        return self.get_project(lid=lid)
 
     def get_dirs(self, lib_name: str = None):
         if lib_name is not None:

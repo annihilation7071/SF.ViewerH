@@ -5,23 +5,9 @@ import json
 import os
 from collections import defaultdict
 from backend.processors import general
-from backend import utils, cmdargs
+from backend import utils
 
 meta_file = "info.json"
-
-
-def get_project(path: str) -> dict:
-
-    if cmdargs.args.rewrite_v_info is True:
-        v_info = False
-    else:
-        v_info = general.get_v_info(path)
-
-    if v_info is False:
-        make_v_info(path)
-        v_info = general.get_v_info(path)
-
-    return v_info
 
 
 def make_v_info(path: str) -> None:
@@ -84,8 +70,3 @@ def make_v_info(path: str) -> None:
 
     with open(os.path.join(_path, "v_info.json"), "w", encoding='utf-8') as f:
         json.dump(v_info, f, indent=4)
-
-
-def get_projects(lib_name: str, lib_data: dict):
-    general.get_projects(lib_name, lib_data, meta_file, processor=get_project)
-

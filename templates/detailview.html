@@ -117,6 +117,16 @@
             </div>
 
             <div class="label-tags-container">
+                <div class="label">Variants:</div>
+                <div class="tags-container">
+                    {% for variant in project.lvariants %}
+                    <a href="" class="tag">{{ variant }}</a>
+                    {% endfor %}
+                    <button class="edit-button" data-type="edit-variants" data-content="{{ '\n'.join(project.lvariants) }}">+</button>
+                </div>
+            </div>
+
+            <div class="label-tags-container">
                 <div class="label">Pages:</div>
                 <div class="tag-info">{{ project.pages }}</div>
             </div>

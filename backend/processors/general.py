@@ -1,9 +1,9 @@
 import json
 import os
 from datetime import datetime
-from backend import cmdargs
+from backend import cmdargs, logger, utils
 from backend.projects import Projects
-from backend import logger
+from importlib import import_module
 
 projects = Projects()
 
@@ -79,36 +79,55 @@ def get_time(str_time: str | int, format: str = None) -> str | bool:
         return date.strftime(target_format)
 
 
-def get_projects(lib_name: str, lib_data: dict, meta_file: str, processor) -> None:
-    logger.log(f"Processing: {lib_name}")
-    if cmdargs.args.reindex is True:
-        cmdargs.args.reindex = False
-        projects.delete_all_data()
-        logger.log(f"Deleted all data")
+def get_projects() -> None:
+    libs = utils.read_libs()
 
-    with open("./backend/v_info.json", "r", encoding="utf-8") as f:
-        v_info = json.load(f)
+    for lib_name, lib_data in libs.items():
+        if lib_data["active"] is False:
+            continue
 
-    projects.clear_old_versions(v_info["info_version"])
+        logger.log(f"Processing: {lib_name}")
+        if cmdargs.args.reindex is True:
+            cmdargs.args.reindex = False
+            projects.delete_all_data()
+            logger.log(f"Deleted all data")
 
-    path = lib_data["path"]
-    dirs = get_dirs(path, meta_file)
+        with open("./backend/v_info.json", "r", encoding="utf-8") as f:
+            v_info = json.load(f)
 
-    dirs_not_in_db, dirs_not_exist = check_dirs(lib_name, dirs)
+        projects.clear_old_versions(v_info["info_version"])
 
-    for dir in dirs_not_exist:
-        projects.delete_by_dir_and_lib(dir, lib_name)
+        processor = import_module(f"backend.processors.{lib_data['processor']}")
 
-    for dir in dirs_not_in_db:
-        project = processor(os.path.join(path, dir))
-        project["lib"] = lib_name
-        project["dir_name"] = dir
-        projects.add_project(project)
+        path = lib_data["path"]
+        dirs = get_dirs(path, processor.meta_file)
+
+        dirs_not_in_db, dirs_not_exist = check_dirs(lib_name, dirs)
+
+        for dir in dirs_not_exist:
+            projects.delete_by_dir_and_lib(dir, lib_name)
+
+        for dir in dirs_not_in_db:
+            project_path = str(os.path.join(path, dir))
+
+            if cmdargs.args.rewrite_v_info is True:
+                processor.make_v_info(project_path)
+
+            project = get_v_info(project_path)
+            if project is None:
+                processor.make_v_info(project_path)
+                project = get_v_info(project_path)
+
+            project["lib"] = lib_name
+            project["dir_name"] = dir
+            projects.add_project(project)
 
 
-def get_v_info(path: str) -> dict | bool:
+def get_v_info(path: str) -> dict | None:
     with open('./backend/v_info.json', 'r', encoding='utf-8') as f:
         v_info = json.load(f)
+
+    print(os.path.join(path, "./sf.viewer/v_info.json"))
 
     if os.path.exists(os.path.join(path, "./sf.viewer/v_info.json")):
         with open(os.path.join(path, "./sf.viewer/v_info.json"), "r", encoding='utf-8') as f:
@@ -120,5 +139,5 @@ def get_v_info(path: str) -> dict | bool:
             raise IOError("v_info version is not corrected")
 
     else:
-        return False
+        return None
 

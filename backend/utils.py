@@ -43,17 +43,6 @@ def read_libs() -> dict:
     return libs
 
 
-def get_projects():
-    libs = read_libs()
-
-    for name, data in libs.items():
-        if data["active"] is False:
-            continue
-
-        proc = import_module(f"backend.processors.{data['processor']}")
-        proc.get_projects(name, data)
-
-
 def gen_lid():
     num_1 = int(datetime.now().strftime('%Y%m%d%H%M%S%f'))
     num_2 = int(uuid.uuid4().hex, 16)
