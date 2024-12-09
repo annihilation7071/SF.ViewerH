@@ -14,7 +14,7 @@ def get_project(path: str, lib_name: dict, lib_date: str) -> dict:
     with open('./backend/project.json', 'r', encoding='utf-8') as f:
         project = json.load(f)
 
-    if parser.args.rewrite_v_info is True:
+    if cmdargs.args.rewrite_v_info is True:
         v_info = False
     else:
         v_info = general.get_v_info(path)
