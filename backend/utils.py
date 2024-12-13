@@ -74,3 +74,5 @@ def str_to_list(str_list: str) -> list:
 def list_to_str(list_str: list) -> str:
     result = ";;;".join(list_str)
     return result
+
+

@@ -31,21 +31,25 @@ def check_dirs(lib_name: str, dirs: list[str]) -> tuple:
     return dirs_not_in_db, dirs_not_exist
 
 
-def tag_normalizer(tags: str | list | int):
+def tag_normalizer(tags: str | list | int, lower: bool = True, ali: bool = True):
     if isinstance(tags, int):
         return tags
 
     with open('./data/aliases.json', 'r') as f:
         aliases = json.load(f)
 
-    def normalize(tag: str):
-        new_tag = tag.lower()
+    # noinspection PyShadowingNames
+    def normalize(tag: str) -> str:
+        if lower is True:
+            new_tag = tag.lower()
+        else:
+            new_tag = tag
         new_tag = new_tag.replace("♀", "")
         new_tag = new_tag.replace("♂", "")
         new_tag = new_tag.replace("\r", "")
         new_tag = new_tag.replace("\n", "")
         new_tag = new_tag.strip()
-        if new_tag in aliases:
+        if ali is True and new_tag in aliases:
             return aliases[new_tag]
         else:
             return new_tag

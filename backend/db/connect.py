@@ -39,12 +39,12 @@ class Project(Base):
     search_body = Column(String(length=3000))
 
 
-class PoolV(Base):
-    __tablename__ = 'pools_v'
-    _id = Column(Integer, primary_key=True)
-    pool_lid = Column(String)
-    updated_date = Column(DateTime)
-    project_lid = Column(String)
+# class PoolV(Base):
+#     __tablename__ = 'pools_v'
+#     _id = Column(Integer, primary_key=True)
+#     pool_lid = Column(String)
+#     updated_date = Column(DateTime)
+#     project_lid = Column(String)
 
 
 def get_session():

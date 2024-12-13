@@ -13,9 +13,8 @@ class Projects:
         self.session = get_session()
         self.libs = utils.read_libs()
         active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
-        self.all_projects = self.session.query(Project).where(Project.lib.in_(active_libs)).order_by(
-            desc(Project.upload_date))
-        self.projects = self.all_projects
+        self.all_projects = self.session.query(Project).where(Project.lib.in_(active_libs))
+        self.projects = self.all_projects.order_by(desc(Project.upload_date))
         self.search = ""
         self.ppg = ppg
 
@@ -85,6 +84,7 @@ class Projects:
         project.pop("preview_path", None)
         project.pop("path", None)
         project.pop("id", None)
+        project.pop("variants_view", None)
 
         project["search_body"] = make_search_body(project)
 
@@ -104,7 +104,7 @@ class Projects:
 
         if search is None or search == "":
             self.search = ""
-            self.projects = self.all_projects
+            self.projects = self.all_projects.order_by(desc(Project.upload_date))
             return
 
         def f(item: str):
@@ -153,10 +153,13 @@ class Projects:
             project = self.session.query(Project).filter_by(lid=lid).first()
 
         dict_project = self._to_dict(project)
+        dict_project["variants_view"] = [variant.split(":")[1] for variant in dict_project["lvariants"]]
+        # dict_project["variants_view"] = [variant for variant in dict_project["variants_view"] if len(variant) > 0]
         dict_project["path"] = self._get_project_path(project)
         dict_project["id"] = dict_project["_id"]
         dict_project["preview_path"] = self._get_project_preview_path(project)
 
+        print(dict_project)
         return dict_project
 
     def get_project_by_id(self, _id: int | str) -> dict:
@@ -218,6 +221,9 @@ class Projects:
         self.session.query(Project).delete()
         self.session.commit()
 
+    def check_lids(self, lids: list) -> int:
+        return self.all_projects.filter(Project.lid.in_(lids)).count()
+
 
 def add_to_db(session, project: dict):
     def f(x):
@@ -274,7 +280,7 @@ def add_to_db(session, project: dict):
 def make_search_body(project: dict):
     exclude = ["info_version", "lvariants", "url", "upload_date",
                "preview", "pages", "dir_name", "id",
-               "_id", "search_body", "lid"]
+               "_id", "search_body", "lid", "variants_view"]
 
     search_body = ";;;"
 

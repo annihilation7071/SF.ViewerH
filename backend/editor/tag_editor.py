@@ -3,11 +3,13 @@ import os
 
 from backend.projects import Projects
 from backend.processors.general import tag_normalizer
+from backend.editor import eutils
 
 projects = Projects()
 
 
 def edit(data: str, project):
+    print("edit-tags")
 
     tags = data.split("\n")
     print(tags)
@@ -15,26 +17,7 @@ def edit(data: str, project):
     tags = tag_normalizer(tags)
     print(tags)
 
-    # v_info.json
-    path = os.path.join(project["path"], "sf.viewer/v_info.json")
-
-    with open(path, "r", encoding="utf-8") as f:
-        v_info = json.load(f)
-
-    v_info["tag"] = tags
-
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(v_info, f, indent=4)
-
-    with open(path, "r", encoding="utf-8") as f:
-        v_info = json.load(f)
-
-    if v_info["tag"] != tags:
-        raise IOError("Failed to update data in v_info.json")
-
-    # DB
-    project["tag"] = tags
-    projects.update_item(project)
+    eutils.update_data(project, "tag", tags)
 
     return
 
