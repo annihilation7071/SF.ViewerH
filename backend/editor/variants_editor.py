@@ -25,9 +25,27 @@ def edit(data: str):
     if projects.check_lids(lids) != len(lids):
         raise Exception("Some projects not loaded")
 
+    priority = []
+    non_priority = []
+    for variant in variants:
+        variant = variant.split(":")
+        if len(variant) == 3:
+            if variant[2] in ["priority", "p"]:
+                priority.append(variant)
+            else:
+                raise Exception(f"Unknown marker {variant[2]}")
+        else:
+            non_priority.append(variant)
+
+    if len(priority) > 1:
+        raise Exception("Only one priority marker allowed")
+
     target_projects = [projects.get_project_by_lid(lid) for lid in lids]
 
     for t_project in target_projects:
         eutils.update_data(t_project, "lvariants", variants)
+
+    if len(priority) == 1:
+        projects.create_priority(priority, non_priority)
 
     return

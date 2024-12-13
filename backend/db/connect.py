@@ -1,6 +1,6 @@
 import os
 
-from sqlalchemy import Column, Integer, String, create_engine, DateTime, ForeignKey, text, MetaData
+from sqlalchemy import Column, Integer, String, create_engine, DateTime, ForeignKey, text, MetaData, Boolean
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from datetime import datetime
 from backend import utils
@@ -37,6 +37,7 @@ class Project(Base):
     dir_name = Column(String(length=500))
     lib = Column(String)
     search_body = Column(String(length=3000))
+    active = Column(Boolean, default=True)
 
 
 # class PoolV(Base):

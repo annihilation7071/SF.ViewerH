@@ -13,8 +13,9 @@ class Projects:
         self.session = get_session()
         self.libs = utils.read_libs()
         active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
-        self.all_projects = self.session.query(Project).where(Project.lib.in_(active_libs))
-        self.projects = self.all_projects.order_by(desc(Project.upload_date))
+        self.all_projects = self.session.query(Project).filter(Project.lib.in_(active_libs))
+        self.active_projects = self.all_projects.filter(Project.active == 1)
+        self.projects = self.active_projects.order_by(desc(Project.upload_date))
         self.search = ""
         self.ppg = ppg
 
@@ -104,7 +105,7 @@ class Projects:
 
         if search is None or search == "":
             self.search = ""
-            self.projects = self.all_projects.order_by(desc(Project.upload_date))
+            self.projects = self.active_projects.order_by(desc(Project.upload_date))
             return
 
         def f(item: str):
@@ -117,7 +118,7 @@ class Projects:
         search = search.split(",")
         search_query = [Project.search_body.icontains(f(item)) for item in search]
         print(search)
-        self.projects = self.session.query(Project).filter(and_(*search_query))
+        self.projects = self.active_projects.filter(and_(*search_query))
         self.projects = self.projects.order_by(desc(Project.upload_date))
         print(f"search: {search}")
 
@@ -196,7 +197,7 @@ class Projects:
     def count_item(self, item: str) -> list:
         result = defaultdict(int)
 
-        items_strings = self.all_projects.with_entities(getattr(Project, item)).all()
+        items_strings = self.active_projects.with_entities(getattr(Project, item)).all()
 
         for items_string in items_strings:
             items = items_string[0].split(";;;")
@@ -223,6 +224,27 @@ class Projects:
 
     def check_lids(self, lids: list) -> int:
         return self.all_projects.filter(Project.lid.in_(lids)).count()
+
+    def create_priority(self, priority: list, non_priority: list):
+        pool = self.get_project_by_lid(priority[0][0])
+        pool["lid"] = f"pool_{utils.gen_lid()}"
+        # upload_date = datetime.strftime(pool["upload_date"], "%Y-%m-%dT%H:%M:%S")
+
+        for lid in non_priority:
+            nproject = self.get_project_by_lid(lid[0])
+            pool["tag"] = list(set(pool["tag"]) | set(nproject["tag"]))
+            pool["language"] = list(set(pool["language"]) | set(nproject["language"]))
+            pool["group"] = list(set(pool["group"]) | set(nproject["group"]))
+            pool["artist"] = list(set(pool["artist"]) | set(nproject["artist"]))
+            pool["series"] = list(set(pool["series"]) | set(nproject["series"]))
+            pool["parody"] = list(set(pool["parody"]) | set(nproject["parody"]))
+
+        self.add_project(pool)
+
+        lids = [p[0] for p in (priority + non_priority)]
+
+        self.all_projects.filter(Project.lid.in_(lids)).update({Project.active: False})
+        self.session.commit()
 
 
 def add_to_db(session, project: dict):
@@ -280,7 +302,7 @@ def add_to_db(session, project: dict):
 def make_search_body(project: dict):
     exclude = ["info_version", "lvariants", "url", "upload_date",
                "preview", "pages", "dir_name", "id",
-               "_id", "search_body", "lid", "variants_view"]
+               "_id", "search_body", "lid", "variants_view", "active"]
 
     search_body = ";;;"
 
