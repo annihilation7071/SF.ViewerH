@@ -39,6 +39,14 @@ class Project(Base):
     search_body = Column(String(length=3000))
 
 
+class PoolV(Base):
+    __tablename__ = 'pools_v'
+    _id = Column(Integer, primary_key=True)
+    pool_lid = Column(String)
+    update_date = Column(DateTime)
+    project_lid = Column(String)
+
+
 def get_session():
     engine = create_engine(f'sqlite:///data/DB/dbv1.db')
     Base.metadata.create_all(engine)
