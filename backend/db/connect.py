@@ -43,7 +43,7 @@ class PoolV(Base):
     __tablename__ = 'pools_v'
     _id = Column(Integer, primary_key=True)
     pool_lid = Column(String)
-    update_date = Column(DateTime)
+    updated_date = Column(DateTime)
     project_lid = Column(String)
 
 
