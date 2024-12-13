@@ -120,10 +120,10 @@
                 <div class="label">Variants:</div>
                 <div class="tags-container">
                     {% if project.variants_view and project.variants_view[0] %}
-                    <a href="" class="tag-priority">{{ project.variants_view[0] }}</a>
+                    <a href="{{ url_for('detail_view_lid', project_lid=project.lvariants[0].split(':')[0]) }}?page={{ current_page }}&search={{ request.args.get('search', '') }}" class="tag-priority">{{ project.variants_view[0] }}</a>
                     {% endif %}
-                    {% for variant in project.variants_view[1:] %}
-                    <a href="" class="tag">{{ variant }}</a>
+                    {% for i in range(1, project.lvariants|length) %}
+                    <a href="{{ url_for('detail_view_lid', project_lid=project.lvariants[i].split(':')[0]) }}?page={{ current_page }}&search={{ request.args.get('search', '') }}" class="tag">{{ project.variants_view[i] }}</a>
                     {% endfor %}
                     <button class="edit-button" data-type="edit-variants" data-content="{{ '\n'.join(project.lvariants) }}">+</button>
                 </div>

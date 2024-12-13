@@ -74,6 +74,14 @@ def detail_view(project_id):
     return render_template("detailview.html", project=project, images=images)
 
 
+@app.route('/project/lid/<string:project_lid>')
+def detail_view_lid(project_lid):
+    print(project_lid)
+    project = projects.get_project_by_lid(project_lid)
+    images = utils.get_pages(project)
+    return render_template("detailview.html", project=project, images=images)
+
+
 @app.route('/project/<int:project_id>/<int:page_id>')
 def reader(project_id, page_id):
     project = projects.get_project_by_id(project_id)
