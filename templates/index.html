@@ -16,6 +16,13 @@
                class="project-item-container">
                 <div class="project-item-preview">
                     <img src="{{ url_for('get_image', image_path=project.preview_path) }}" alt="{{ project.title }}">
+                </div>
+                <div class="project-info-container">
+                    <div class="project-item-flag-container">
+                        {% for flag in project.flags %}
+                            <img src="{{ url_for('get_image', image_path=flag) }}" alt="F">
+                        {% endfor %}
+                    </div>
                     <div class="project-title-container">
                         <div class="project-title-text">{{ project.title }}</div>
                     </div>

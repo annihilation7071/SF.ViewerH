@@ -75,6 +75,7 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
+    z-index: 1;
 }
 
 .project-item-preview img {
@@ -83,14 +84,24 @@ main {
     background-color: #f4f4f4;
 }
 
+.project-item-flag-container {
+    display: inline-flex;
+}
+
+.project-item-flag-container img {
+    width: 10%;
+    object-fit: contain;
+    background-color: #f4f4f4;
+    border: 1px solid black;
+    border-radius: 3px;
+}
+
 .project-title-container {
     padding: 10px;
     width: 100%;
-    position: absolute;
-    bottom: 0;
     background-color: rgba(255,255,255,0.9);
     display: flex;
-    justify-content: center;
+    justify-content: start;
 }
 
 .project-title-text {
@@ -102,4 +113,13 @@ main {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.project-info-container {
+    width: 100%;
+    display: inline-flex;
+    position: absolute;
+    bottom: 0;
+    z-index: 2;
+    flex-direction: column;
 }

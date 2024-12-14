@@ -62,6 +62,24 @@ class Projects:
 
         return project
 
+    def _get_flags_paths(self, languages: list) -> list:
+        print(languages)
+        flags_path = os.path.join(os.getcwd(), f"data/flags")
+        supports = os.listdir(flags_path)
+        supports = [os.path.splitext(flag)[0] for flag in supports]
+        flags = []
+        for language in languages:
+            language = language.lower()
+            if language in supports:
+                path = os.path.join(os.getcwd(), f"data/flags/{language}.svg")
+                flags.append(path)
+            else:
+                if language != "translated":
+                    logger.log(f"Flags not found: {language}", file="log-flags.txt")
+
+        print(flags)
+        return flags
+
     def _prepare_to_update(self, project: dict) -> dict:
         def f(item, column_name):
             print(item)
@@ -136,8 +154,9 @@ class Projects:
                 "title": project.title,
                 "subtitle": project.subtitle,
                 "preview_path": self._get_project_preview_path(project),
+                "flags": self._get_flags_paths(project.language.split(";;;")),
             })
-
+        print(projects)
         return projects
 
     def get_project(self, _id: int | str = None, lid: str = None) -> dict:

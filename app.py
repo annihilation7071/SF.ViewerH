@@ -102,7 +102,12 @@ def reader(project_id, page_id):
 @app.route('/get_image/<path:image_path>')
 def get_image(image_path):
     try:
-        return send_file(image_path, mimetype='image/jpeg')
+        if image_path.endswith('.svg'):
+            mimetype = 'image/svg+xml'
+        else:
+            mimetype = 'image/jpeg'
+
+        return send_file(image_path, mimetype=mimetype)
     except FileNotFoundError:
         return "Image not found", 404
 
