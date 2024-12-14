@@ -64,6 +64,8 @@ class Projects:
 
     def _get_flags_paths(self, languages: list) -> list:
         print(languages)
+        exclude = ["rewrite", "translated"]
+        # exclude = []
         flags_path = os.path.join(os.getcwd(), f"data/flags")
         supports = os.listdir(flags_path)
         supports = [os.path.splitext(flag)[0] for flag in supports]
@@ -74,8 +76,10 @@ class Projects:
                 path = os.path.join(os.getcwd(), f"data/flags/{language}.svg")
                 flags.append(path)
             else:
-                if language != "translated":
+                if language not in exclude:
                     logger.log(f"Flags not found: {language}", file="log-flags.txt")
+                    path = os.path.join(os.getcwd(), f"data/flags/unknown.png")
+                    flags.append(path)
 
         print(flags)
         return flags
@@ -338,7 +342,7 @@ def add_to_db(session, project: dict):
 def make_search_body(project: dict):
     exclude = ["info_version", "lvariants", "url", "upload_date",
                "preview", "pages", "dir_name", "id",
-               "_id", "search_body", "lid", "variants_view", "active"]
+               "_id", "search_body", "lid", "variants_view", "active", "lvariants_count"]
 
     search_body = ";;;"
 

@@ -9,8 +9,9 @@ def edit(projects, data: str, separator: str = "\n"):
     variants = [variant for variant in variants if variant != "" and variant.find(":") != -1]
     variants = tag_normalizer(variants, lower=False, ali=False)
     print(variants)
+    variants_count = len(variants)
 
-    if len(variants) < 2:
+    if variants_count < 2:
         raise Exception("Too few variants")
 
     lids = [variant.split(":")[0] for variant in variants]
@@ -36,7 +37,7 @@ def edit(projects, data: str, separator: str = "\n"):
     target_projects = [projects.get_project_by_lid(lid) for lid in lids]
 
     for t_project in target_projects:
-        eutils.update_data(projects, t_project, "lvariants", variants)
+        eutils.update_data(projects, t_project, ["lvariants", "lvariants_count"], [variants, variants_count], multiple=True)
 
     if len(priority) == 1:
         projects.create_priority(priority, non_priority)
