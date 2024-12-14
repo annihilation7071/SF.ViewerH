@@ -159,6 +159,7 @@ class Projects:
                 "subtitle": project.subtitle,
                 "preview_path": self._get_project_preview_path(project),
                 "flags": self._get_flags_paths(project.language.split(";;;")),
+                "lvariants_count": len(project.lvariants.split(";;;")),
             })
         print(projects)
         return projects
@@ -313,13 +314,9 @@ def add_to_db(session, project: dict):
 
     search_body = make_search_body(project)
 
-    if "lvariants_count" not in project:
-        project["lvariants_count"] = 0
-
     row = Project(info_version=project["info_version"],
                   lid=project["lid"],
                   lvariants=project["lvariants"],
-                  lvariants_count=project["lvariants_count"],
                   source_id=project["source_id"],
                   source=project["source"],
                   url=project["url"],

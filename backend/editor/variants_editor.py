@@ -37,7 +37,7 @@ def edit(projects, data: str, separator: str = "\n"):
     target_projects = [projects.get_project_by_lid(lid) for lid in lids]
 
     for t_project in target_projects:
-        eutils.update_data(projects, t_project, ["lvariants", "lvariants_count"], [variants, variants_count], multiple=True)
+        eutils.update_data(projects, t_project, "lvariants", variants)
 
     if len(priority) == 1:
         projects.create_priority(priority, non_priority)

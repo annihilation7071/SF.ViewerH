@@ -12,7 +12,6 @@ class Project(Base):
     info_version = Column(Integer)
     lid = Column(String, unique=True)
     lvariants = Column(String(length=3000))
-    lvariants_count = Column(Integer, default=0)
     source_id = Column(String)
     source = Column(String)
     url = Column(String(length=500))
