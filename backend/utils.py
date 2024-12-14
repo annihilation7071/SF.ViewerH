@@ -76,3 +76,37 @@ def list_to_str(list_str: list) -> str:
     return result
 
 
+def tag_normalizer(tags: str | list | int, lower: bool = True, ali: bool = True):
+    if isinstance(tags, int):
+        return tags
+
+    with open('./data/aliases.json', 'r') as f:
+        aliases = json.load(f)
+
+    # noinspection PyShadowingNames
+    def normalize(tag: str) -> str:
+        if lower is True:
+            new_tag = tag.lower()
+        else:
+            new_tag = tag
+        new_tag = new_tag.replace("♀", "")
+        new_tag = new_tag.replace("♂", "")
+        new_tag = new_tag.replace("\r", "")
+        new_tag = new_tag.replace("\n", "")
+        new_tag = new_tag.strip()
+        if ali is True and new_tag in aliases:
+            return aliases[new_tag]
+        else:
+            return new_tag
+
+    if isinstance(tags, str):
+        return normalize(tags)
+    elif isinstance(tags, list):
+        new_tags = []
+        for tag in tags:
+            new_tag = normalize(tag)
+            if new_tag != "":
+                new_tags.append(new_tag)
+        return new_tags
+
+

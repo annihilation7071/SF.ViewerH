@@ -12,6 +12,7 @@ logger.start()
 
 general.get_projects()
 projects = Projects(ppg=PPG)
+projects.update_pools_v()
 
 app = Flask(__name__)
 
@@ -163,7 +164,7 @@ def update_tags():
     print(lid)
     print(_id)
 
-    edit_selector.edit(type, data, project)
+    edit_selector.edit(projects, type, data, project)
 
     return redirect(url)
 

@@ -43,7 +43,7 @@ def make_v_info(path: str) -> None:
     v_info["series"] = []
 
     def f(key: str) -> list | str:
-        return general.tag_normalizer(metadata[key])
+        return utils.tag_normalizer(metadata[key])
     
     v_info["parody"] = f("parody") or ["unknown"]
     v_info["character"] = f("character") or ["unknown"]

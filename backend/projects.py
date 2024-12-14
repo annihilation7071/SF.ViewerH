@@ -6,6 +6,7 @@ from datetime import datetime
 from collections import defaultdict
 from backend import utils
 from backend import logger
+from backend.editor import variants_editor
 
 
 class Projects:
@@ -245,6 +246,20 @@ class Projects:
 
         self.all_projects.filter(Project.lid.in_(lids)).update({Project.active: False})
         self.session.commit()
+
+    def update_pools_v(self, force: bool = False):
+        variants = self.session.query(Project.lvariants).filter(Project.lvariants != None, Project.lvariants != "").distinct().all()
+        variants = [variant[0] for variant in variants]
+        for variant in variants:
+            exist_pool = self.session.query(Project).filter(Project.lvariants == variant, Project.lid.icontains("pool_"))
+            if (count := exist_pool.count()) > 0:
+                if force is True or count > 1:
+                    exist_pool.delete()
+                    self.session.commit()
+                else:
+                    return
+
+            variants_editor.edit(self, variant, separator=";;;")
 
 
 def add_to_db(session, project: dict):

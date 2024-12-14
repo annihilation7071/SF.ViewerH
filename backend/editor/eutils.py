@@ -1,11 +1,8 @@
-from backend.projects import Projects
 import os
 import json
 
-projects = Projects()
 
-
-def update_data(project: dict, target: str, new_data):
+def update_data(projects, project: dict, target: str, new_data):
     # v_info.json
     path = os.path.join(project["path"], "sf.viewer/v_info.json")
 
