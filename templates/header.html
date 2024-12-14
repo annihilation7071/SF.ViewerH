@@ -4,11 +4,12 @@
     </div>
     <div class="search-bar">
         <form action="/" method="GET">
+            <!--suppress HtmlFormInputWithoutLabel -->
             <input
                     type="text"
                     name="search"
                     placeholder="Search project..."
-                    value="{{ request.args.get('search', '') }}">
+                    value="{{ request.args.get('search', '') }}" >
         </form>
     </div>
     <div class="nav-buttons">

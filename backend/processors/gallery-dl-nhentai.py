@@ -29,6 +29,7 @@ def make_v_info(path: str) -> None:
 
     _name = os.path.basename(path)
 
+    # noinspection PyBroadException
     try:
         if metadata["gallery_id"] is not False:
             _id = metadata["gallery_id"]

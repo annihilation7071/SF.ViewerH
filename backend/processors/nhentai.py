@@ -27,12 +27,14 @@ def make_v_info(path: str) -> None:
     
     _name = os.path.basename(path)
 
+    # noinspection PyBroadException
     try:
 
         _id = _name[1:_name.find("]")]
         _id = int(_id)
         v_info["source_id"] = str(_id)
     except Exception:
+        # noinspection PyUnresolvedReferences
         v_info["source_id"] = metadata["URL"].split("/")[-1] or metadata["url"].split("/")[-1] or "unknown"
             
     v_info["url"] = metadata["URL"] or metadata["url"] or "unknown"

@@ -1,3 +1,4 @@
+// noinspection JSUnresolvedReference
 chrome.action.onClicked.addListener ((tab) => {
     if (tab.url) {
         const currentUrl = tab.url

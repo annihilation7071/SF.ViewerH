@@ -6,6 +6,7 @@
             <input type="hidden" name="id" id="id" value="{{ project.id }}">
             <input type="hidden" name="edit-type" id="edit-type">
             <input type="hidden" name="hidden-data" id="hidden-data">
+            <!--suppress HtmlFormInputWithoutLabel -->
             <textarea name="edit-data" id="edit-data">{{ '\n'.join(project.tags) }}</textarea>
             <div class="modal-buttons">
                 <button type="submit" class="btn-ok">OK</button>

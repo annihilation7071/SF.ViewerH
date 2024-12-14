@@ -49,6 +49,7 @@ def get_time(str_time: str | int, format: str = None) -> str | bool:
         return date.strftime(target_format)
 
 
+# noinspection PyShadowingBuiltins
 def get_projects() -> None:
     libs = utils.read_libs()
 
@@ -110,4 +111,3 @@ def get_v_info(path: str) -> dict | None:
 
     else:
         return None
-

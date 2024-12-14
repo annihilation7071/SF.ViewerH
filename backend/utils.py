@@ -1,8 +1,6 @@
 import os
 import json
-from importlib import import_module
 from datetime import datetime
-from collections import defaultdict
 import uuid
 
 
@@ -108,5 +106,3 @@ def tag_normalizer(tags: str | list | int, lower: bool = True, ali: bool = True)
             if new_tag != "":
                 new_tags.append(new_tag)
         return new_tags
-
-

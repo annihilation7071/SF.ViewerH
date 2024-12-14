@@ -61,9 +61,8 @@
         function navigateToPage(page) {
 
             const baseUrl = window.location.pathname.split('/').slice(0, -1).join('/')
-            const newUrl = `${baseUrl}/${page}?${urlParams.toString()}`
 
-            window.location.href = newUrl
+            window.location.href = `${baseUrl}/${page}?${urlParams.toString()}`
         }
 
 

@@ -1,7 +1,6 @@
 import os
-from backend import utils
 from backend.db.connect import Project, get_session
-from sqlalchemy import select, text, desc, asc, and_
+from sqlalchemy import desc, and_
 from datetime import datetime
 from collections import defaultdict
 from backend import utils
@@ -9,6 +8,7 @@ from backend import logger
 from backend.editor import variants_editor
 
 
+# noinspection PyMethodMayBeStatic,PyProtectedMember
 class Projects:
     def __init__(self, ppg: int = 60):
         self.session = get_session()
@@ -74,6 +74,7 @@ class Projects:
                     return utils.list_to_str(item)
 
             if isinstance(item, str):
+                # noinspection PyBroadException
                 try:
                     return datetime.strptime(item, "%Y-%m-%dT%H:%M:%S")
                 except:
@@ -267,6 +268,7 @@ def add_to_db(session, project: dict):
         if isinstance(x, list):
             return ";;;".join(x)
         else:
+            # noinspection PyBroadException
             try:
                 d = datetime.strptime(x, '%Y-%m-%dT%H:%M:%S')
                 print(d)

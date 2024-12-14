@@ -1,10 +1,5 @@
-import os
-
-from sqlalchemy import Column, Integer, String, create_engine, DateTime, ForeignKey, text, MetaData, Boolean
+from sqlalchemy import Column, Integer, String, create_engine, DateTime, Boolean
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from datetime import datetime
-from backend import utils
-from dataclasses import dataclass
 
 
 class Base(DeclarativeBase):
@@ -52,10 +47,8 @@ def get_session():
     engine = create_engine(f'sqlite:///data/DB/dbv1.db')
     Base.metadata.create_all(engine)
 
+    # noinspection PyPep8Naming
     Session = sessionmaker(bind=engine)
     session = Session()
 
     return session
-
-
-

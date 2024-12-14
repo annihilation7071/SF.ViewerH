@@ -1,6 +1,3 @@
-import json
-import os
-
 from backend.utils import tag_normalizer
 from backend.editor import eutils
 
@@ -17,4 +14,3 @@ def edit(projects, data: str, project):
     eutils.update_data(projects, project, "tag", tags)
 
     return
-

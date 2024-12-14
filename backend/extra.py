@@ -25,4 +25,3 @@ elif os.environ.get("SFVH_BLUR") == "0" and styles.find(blur) != -1:
 
     with open("./static/styles.css", "w", encoding="utf-8") as f:
         f.write(styles)
-

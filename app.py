@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for
-from backend import utils, downloader, cmdargs, extra
+from flask import Flask, render_template, request, send_file, redirect
+from backend import utils, downloader
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
 from backend import logger
@@ -46,7 +46,6 @@ def get_visible_pages(current_page, total_pages):
 
 @app.route('/')
 def index():
-    global all_projects
     global projects
 
     search_query = request.args.get("search", "").strip().lower()
@@ -150,7 +149,7 @@ def load():
 
 @app.route('/edit_data', methods=['POST'])
 def update_tags():
-    type = request.form.get('edit-type')
+    _type = request.form.get('edit-type')
     data = request.form.get('edit-data')
     url = request.form.get('url')
     lid = request.form.get('lid')
@@ -158,13 +157,13 @@ def update_tags():
     project = projects.get_project_by_id(int(_id))
     print(project)
 
-    print(type)
+    print(_type)
     print(data)
     print(url)
     print(lid)
     print(_id)
 
-    edit_selector.edit(projects, type, data, project)
+    edit_selector.edit(projects, _type, data, project)
 
     return redirect(url)
 
