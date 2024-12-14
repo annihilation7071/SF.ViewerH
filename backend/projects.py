@@ -252,7 +252,9 @@ class Projects:
 
     def create_priority(self, priority: list, non_priority: list):
         pool = self.get_project_by_lid(priority[0][0])
+        logger.log(f"POOL: {pool}")
         pool["lid"] = f"pool_{utils.gen_lid()}"
+        pool.pop("_id", None)
         # upload_date = datetime.strftime(pool["upload_date"], "%Y-%m-%dT%H:%M:%S")
 
         for lid in non_priority:
@@ -264,6 +266,7 @@ class Projects:
             pool["series"] = list(set(pool["series"]) | set(nproject["series"]))
             pool["parody"] = list(set(pool["parody"]) | set(nproject["parody"]))
 
+        logger.log(f"POOL: {pool}")
         self.add_project(pool)
 
         lids = [p[0] for p in (priority + non_priority)]
@@ -310,9 +313,13 @@ def add_to_db(session, project: dict):
 
     search_body = make_search_body(project)
 
+    if "lvariants_count" not in project:
+        project["lvariants_count"] = 0
+
     row = Project(info_version=project["info_version"],
                   lid=project["lid"],
                   lvariants=project["lvariants"],
+                  lvariants_count=project["lvariants_count"],
                   source_id=project["source_id"],
                   source=project["source"],
                   url=project["url"],
