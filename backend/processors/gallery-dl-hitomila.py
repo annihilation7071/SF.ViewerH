@@ -4,7 +4,6 @@
 import json
 import os
 from collections import defaultdict
-from backend.processors import general
 from backend import utils
 
 meta_file = "info.json"
@@ -50,7 +49,7 @@ def make_v_info(path: str) -> None:
     v_info["title"] = metadata["title"] or _name
     v_info["subtitle"] = ""
     # noinspection PyTypeChecker
-    v_info["upload_date"] = general.get_time(metadata["date"], "%Y-%m-%d %H:%M:%S") or "unknown"
+    v_info["upload_date"] = utils.to_time(metadata["date"], "%Y-%m-%d %H:%M:%S") or "unknown"
     v_info["category"] = ["unknown"]
     v_info["series"] = []
 
@@ -65,7 +64,7 @@ def make_v_info(path: str) -> None:
     v_info["language"] = [f("language")] or ["unknown"]
     v_info["pages"] = f("count") or "unknown"
 
-    _path = os.path.join(path, "./sf.viewer/")
+    _path = os.path.join(path, "sf.viewer/")
     if os.path.exists(_path) is False:
         os.makedirs(_path)
 

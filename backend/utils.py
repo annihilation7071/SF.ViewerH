@@ -106,3 +106,21 @@ def tag_normalizer(tags: str | list | int, lower: bool = True, ali: bool = True)
             if new_tag != "":
                 new_tags.append(new_tag)
         return new_tags
+
+
+def to_time(str_time: str | int, format: str = None) -> str | bool:
+    if isinstance(str_time, str) and format is None:
+        raise IOError("Format must be specified")
+
+    target_format = "%Y-%m-%dT%H:%M:%S"
+
+    if isinstance(str_time, str):
+        try:
+            date = datetime.strptime(str_time, format)
+            return date.strftime(target_format)
+        except Exception as e:
+            print(e)
+            return False
+    elif isinstance(str_time, int):
+        date = datetime.fromtimestamp(1566440093)
+        return date.strftime(target_format)

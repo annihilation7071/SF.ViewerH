@@ -3,16 +3,14 @@ from backend import utils, downloader
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
 from backend import logger
-from backend.processors import general
 
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
 
 logger.start()
 
-general.get_projects()
 projects = Projects()
-projects.update_pools_v()
+projects.update_projects()
 
 app = Flask(__name__)
 
