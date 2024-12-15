@@ -41,14 +41,7 @@ class Projects:
         return search
 
     def _to_dict(self, project) -> dict:
-
-        def f(item):
-            if isinstance(item, datetime):
-                return item.strftime("%Y-%m-%dT%H:%M:%S")
-
-            return item
-
-        project = {column: f(getattr(project, column)) for column in self.get_columns()}
+        project = {column: getattr(project, column) for column in self.get_columns()}
         return project
 
     def _get_flags_paths(self, languages: list) -> list:
@@ -143,6 +136,7 @@ class Projects:
         dict_project["path"] = self._get_project_path(project)
         dict_project["id"] = dict_project["_id"]
         dict_project["preview_path"] = self._get_project_preview_path(project)
+        dict_project["upload_date_str"] = dict_project["upload_date"].strftime("%Y-%m-%dT%H:%M:%S")
 
         print(dict_project)
         return dict_project
@@ -249,10 +243,11 @@ class Projects:
         return columns
 
     def add_project(self, project: dict):
+        logger.log(project, file="log-3.txt")
         columns = self.get_columns(exclude=["_id", "active", "search_body"])
 
         project = {column: project[column] for column in columns}
-        project = prepare_to_db(project)
+        project["search_body"] = make_search_body(project)
         project = Project(**project)
 
         self.session.add(project)
@@ -264,7 +259,7 @@ class Projects:
         columns = self.get_columns(exclude=["_id"])
 
         project = {column: project[column] for column in columns}
-        project = prepare_to_db(project)
+        project["search_body"] = make_search_body(project)
 
         self.session.query(Project).filter_by(_id=_id).update(project)
         self.session.commit()

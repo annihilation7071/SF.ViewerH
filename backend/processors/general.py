@@ -91,6 +91,7 @@ def get_projects() -> None:
 
             project["lib"] = lib_name
             project["dir_name"] = dir
+            project["upload_date"] = datetime.strptime(project["upload_date"], "%Y-%m-%dT%H:%M:%S")
             projects.add_project(project)
 
 
