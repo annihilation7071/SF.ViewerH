@@ -63,10 +63,10 @@ def gen_lid():
     return f"{d}_{r}"
 
 
-def str_to_list(str_list: str) -> list:
-    result = str_list.split(';;;')
-    result = [item for item in result if len(item) > 0]
-    return result
+def str_to_list(str_list: str, separator=";;;") -> list:
+    items = str_list.split(separator)
+    items = [item for item in items if len(item) > 0]
+    return items
 
 
 def list_to_str(list_str: list) -> str:

@@ -41,16 +41,10 @@ class Projects:
 
     def _to_dict(self, project) -> dict:
 
-        def f(item, column_name):
-            print(item)
-            target_columns = ["lvariants", "parody", "character",
-                              "tag", "artist", "group", "language",
-                              "category", "series"]
-
+        def f(item):
             if isinstance(item, str):
-                if column_name in target_columns:
-                    items = item.split(";;;")
-                    items = [_item for _item in items if len(item) > 0]
+                if item.find(";;;") != -1:
+                    items = utils.str_to_list(item)
                     return items
 
             if isinstance(item, datetime):
@@ -58,8 +52,7 @@ class Projects:
 
             return item
 
-        project = {column.name: f(getattr(project, column.name), column.name) for column in project.__table__.columns}
-
+        project = {column.name: f(getattr(project, column.name)) for column in self.get_columns()}
         return project
 
     def _get_flags_paths(self, languages: list) -> list:
@@ -83,37 +76,6 @@ class Projects:
 
         print(flags)
         return flags
-
-    def _prepare_to_update(self, project: dict) -> dict:
-        def f(item, column_name):
-            print(item)
-            target_columns = ["lvariants", "parody", "character",
-                              "tag", "artist", "group", "language",
-                              "category", "series"]
-
-            if isinstance(item, list):
-                if column_name in target_columns:
-                    return utils.list_to_str(item)
-
-            if isinstance(item, str):
-                # noinspection PyBroadException
-                try:
-                    return datetime.strptime(item, "%Y-%m-%dT%H:%M:%S")
-                except:
-                    pass
-
-            return item
-
-        project = {key: f(val, key) for key, val in project.items()}
-
-        project.pop("preview_path", None)
-        project.pop("path", None)
-        project.pop("id", None)
-        project.pop("variants_view", None)
-
-        project["search_body"] = make_search_body(project)
-
-        return project
 
     def db(self):
         return self.session
@@ -158,8 +120,12 @@ class Projects:
                 "title": project.title,
                 "subtitle": project.subtitle,
                 "preview_path": self._get_project_preview_path(project),
-                "flags": self._get_flags_paths(project.language.split(";;;")),
-                "lvariants_count": len(project.lvariants.split(";;;")),
+                "flags": self._get_flags_paths(
+                    utils.str_to_list(project.language)
+                ),
+                "lvariants_count": len(
+                    utils.str_to_list(project.lvariants)
+                ),
             })
         print(projects)
         return projects
@@ -217,9 +183,6 @@ class Projects:
         else:
             print(f"Row not found: {lib_name}: {dir_name}")
 
-    def add_project(self, project: dict):
-        add_to_db(self.session, project)
-
     def count_item(self, item: str) -> list:
         result = defaultdict(int)
 
@@ -231,14 +194,6 @@ class Projects:
                 result[item] += 1
 
         return sorted(result.items(), key=lambda x: x[1], reverse=True)
-
-    def update_item(self, project: dict):
-        project = self._prepare_to_update(project)
-        print("UPDATE:")
-        print(project)
-        to_update = {getattr(Project, key): val for key, val in project.items()}
-        self.session.query(Project).filter_by(_id=project["_id"]).update(to_update)
-        self.session.commit()
 
     def clear_old_versions(self, target_version: int):
         self.session.query(Project).filter(Project.info_version < target_version).delete()
@@ -252,12 +207,13 @@ class Projects:
         return self.all_projects.filter(Project.lid.in_(lids)).count()
 
     def create_priority(self, priority: list, non_priority: list):
+        # priority and non_priority:
+        # [[lid, description], [lid, despription]]
         pool = self.get_project_by_lid(priority[0][0])
-        logger.log(f"POOL: {pool}")
         pool["lid"] = f"pool_{utils.gen_lid()}"
         pool.pop("_id", None)
-        # upload_date = datetime.strftime(pool["upload_date"], "%Y-%m-%dT%H:%M:%S")
 
+        # union some data
         for lid in non_priority:
             nproject = self.get_project_by_lid(lid[0])
             pool["tag"] = list(set(pool["tag"]) | set(nproject["tag"]))
@@ -267,19 +223,22 @@ class Projects:
             pool["series"] = list(set(pool["series"]) | set(nproject["series"]))
             pool["parody"] = list(set(pool["parody"]) | set(nproject["parody"]))
 
-        logger.log(f"POOL: {pool}")
+        # add pool to DB
         self.add_project(pool)
 
+        # deactivate original projects
         lids = [p[0] for p in (priority + non_priority)]
-
         self.all_projects.filter(Project.lid.in_(lids)).update({Project.active: False})
+
         self.session.commit()
 
     def update_pools_v(self, force: bool = False):
-        variants = self.session.query(Project.lvariants).filter(Project.lvariants != None, Project.lvariants != "").distinct().all()
+        variants = self.session.query(Project.lvariants).filter(Project.lvariants != None,
+                                                                Project.lvariants != "").distinct().all()
         variants = [variant[0] for variant in variants]
         for variant in variants:
-            exist_pool = self.session.query(Project).filter(Project.lvariants == variant, Project.lid.icontains("pool_"))
+            exist_pool = self.session.query(Project).filter(Project.lvariants == variant,
+                                                            Project.lid.icontains("pool_"))
             if (count := exist_pool.count()) > 0:
                 if force is True or count > 1:
                     exist_pool.delete()
@@ -289,11 +248,58 @@ class Projects:
 
             variants_editor.edit(self, variant, separator=";;;")
 
+    def get_columns(self, exclude: list | tuple = None):
+        # noinspection PyTypeChecker
+        columns = [column.name for column in Project.__table__.columns]
+        if exclude is not None:
+            columns = list(set(columns) - set(exclude))
+        return columns
 
-def add_to_db(session, project: dict):
+    def add_project(self, project: dict):
+        columns = self.get_columns(exclude=["_id", "active", "search_body"])
+
+        project = {column: project[column] for column in columns}
+        project = prepare_to_db(project)
+        project = Project(**project)
+
+        self.session.add(project)
+        self.session.commit()
+
+    def update_item(self, project: dict):
+        print(project)
+        _id = project["_id"]
+        columns = self.get_columns(exclude=["_id"])
+
+        project = {column: project[column] for column in columns}
+        project = prepare_to_db(project)
+
+        self.session.query(Project).filter_by(_id=_id).update(project)
+        self.session.commit()
+
+
+def make_search_body(project: dict):
+    include = ["source_id", "source", "url", "downloader", "title", "subtitle",
+               "parody", "character", "tag", "artist", "group", "language",
+               "category", "series"]
+
+    search_body = ";;;"
+
+    for k, v in project.items():
+        if k in include:
+            items = v.split(";;;")
+            for item in items:
+                search_body += f"{k}:{item.lower()};;;"
+
+    return search_body
+
+
+def prepare_to_db(project: dict) -> dict:
     def f(x):
         if isinstance(x, list):
-            return ";;;".join(x)
+            item = ";;;".join(x)
+            if len(item) > 0 and item.find(";;;") == -1:
+                item = item + ";;;"
+            return item
         else:
             # noinspection PyBroadException
             try:
@@ -307,53 +313,6 @@ def add_to_db(session, project: dict):
 
     project = {k: f(v) for k, v in project.items()}
 
-    # search_body = ";;;".join([project["lid"], project["source"], project["url"], project["downloader"],
-    #                           project["title"], project["subtitle"], project["parody"], project["character"],
-    #                           project["tag"], project["artist"], project["group"], project["language"],
-    #                           project["category"], project["series"]])
+    project["search_body"] = make_search_body(project)
 
-    search_body = make_search_body(project)
-
-    row = Project(info_version=project["info_version"],
-                  lid=project["lid"],
-                  lvariants=project["lvariants"],
-                  source_id=project["source_id"],
-                  source=project["source"],
-                  url=project["url"],
-                  downloader=project["downloader"],
-                  title=project["title"],
-                  subtitle=project["subtitle"],
-                  upload_date=project["upload_date"],
-                  preview=project["preview"],
-                  parody=project["parody"],
-                  character=project["character"],
-                  tag=project["tag"],
-                  artist=project["artist"],
-                  group=project["group"],
-                  language=project["language"],
-                  category=project["category"],
-                  series=project["series"],
-                  pages=project["pages"],
-                  dir_name=project["dir_name"],
-                  lib=project["lib"],
-                  search_body=search_body
-                  )
-
-    session.add(row)
-    session.commit()
-
-
-def make_search_body(project: dict):
-    exclude = ["info_version", "lvariants", "url", "upload_date",
-               "preview", "pages", "dir_name", "id",
-               "_id", "search_body", "lid", "variants_view", "active", "lvariants_count"]
-
-    search_body = ";;;"
-
-    for k, v in project.items():
-        if k not in exclude:
-            items = v.split(";;;")
-            for item in items:
-                search_body += f"{k}:{item.lower()};;;"
-
-    return search_body
+    return project
