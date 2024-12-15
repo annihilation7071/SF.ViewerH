@@ -1,13 +1,13 @@
 from backend.editor import tag_editor, variants_editor
 
 
-def edit(projects, edit_type: str, data: str, project: dict):
+def edit(projects, edit_type: str, data: str, project: dict, extra: dict = None):
     print("-----EDIT-----")
     match edit_type:
         case "edit-tags":
-            tag_editor.edit(projects, data, project)
+            return tag_editor.edit(projects, data, project)
         case "edit-variants":
-            variants_editor.edit(projects, data)
+            return variants_editor.edit(projects, data, extra["lvariants"])
         case _:
             print(edit_type)
             print(data)

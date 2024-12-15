@@ -157,6 +157,9 @@ def update_tags():
     url = request.form.get('url')
     lid = request.form.get('lid')
     _id = request.form.get('id')
+    page = request.form.get('page')
+    search = request.form.get('search')
+    lvariants = request.form.get('lvariants')
     project = projects.get_project_by_id(int(_id))
     print(project)
 
@@ -166,9 +169,13 @@ def update_tags():
     print(lid)
     print(_id)
 
-    edit_selector.edit(projects, _type, data, project)
+    r = edit_selector.edit(projects, _type, data, project, extra={"lvariants": lvariants})
+    print(r)
 
-    return redirect(url)
+    if r:
+        return redirect(f"/project/lid/{r}?page={page}&search={search}")
+    else:
+        return redirect(url)
 
 
 if __name__ == '__main__':

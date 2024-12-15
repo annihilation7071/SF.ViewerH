@@ -192,6 +192,14 @@ class Projects:
     def check_lids(self, lids: list) -> int:
         return self.all_projects.filter(Project.lid.in_(lids)).count()
 
+    def delete_pool(self, variants: list) -> None:
+        # lids = [variant.split(":")[0] for variant in variants]
+        #
+        # self.all_projects.filter(Project.lid.in_(lids)).update({Project.lvariants: []})
+        self.session.query(Project).filter(and_(Project.lid.icontains("pool_"), Project.lvariants == variants)).delete()
+
+        self.session.commit()
+
     def create_priority(self, priority: list, non_priority: list):
         # priority and non_priority:
         # [[lid, description], [lid, despription]]
@@ -217,6 +225,7 @@ class Projects:
         self.all_projects.filter(Project.lid.in_(lids)).update({Project.active: False})
 
         self.session.commit()
+        return pool["lid"]
 
     def update_pools_v(self, force: bool = False):
         variants = self.session.query(Project.lvariants).filter(
@@ -233,7 +242,7 @@ class Projects:
                 else:
                     return
 
-            variants_editor.edit(self, variant)
+            variants_editor.edit(self, variant, variant)
 
     def get_columns(self, exclude: list | tuple = None):
         # noinspection PyTypeChecker
