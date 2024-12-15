@@ -11,7 +11,7 @@ PPG = PROJECTS_PER_PAGE
 logger.start()
 
 general.get_projects()
-projects = Projects(ppg=PPG)
+projects = Projects()
 projects.update_pools_v()
 
 app = Flask(__name__)
@@ -52,7 +52,7 @@ def index():
     print(search_query)
     page = int(request.args.get('page', 1))
 
-    displayed_projects = projects.get_page(page=page, search=search_query)
+    displayed_projects = projects.get_page(PPG, page=page, search=search_query)
 
     total_pages = (projects.len() + PPG - 1) // PPG
 

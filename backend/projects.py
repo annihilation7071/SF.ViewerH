@@ -11,7 +11,7 @@ from sqlalchemy.dialects.sqlite import JSON
 
 # noinspection PyMethodMayBeStatic,PyProtectedMember
 class Projects:
-    def __init__(self, ppg: int = 60):
+    def __init__(self):
         self.session = get_session()
         self.libs = utils.read_libs()
         active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
@@ -19,7 +19,6 @@ class Projects:
         self.active_projects = self.all_projects.filter(Project.active == 1)
         self.projects = self.active_projects.order_by(desc(Project.upload_date))
         self.search = ""
-        self.ppg = ppg
 
     def _get_project_path(self, project: Project) -> str:
         lib = project.lib
@@ -93,10 +92,10 @@ class Projects:
         self.projects = self.projects.order_by(desc(Project.upload_date))
         print(f"search: {search}")
 
-    def get_page(self, page: int = 1, search: str = None):
+    def get_page(self, ppg: int, page: int = 1, search: str = None):
         self._filter(search)
 
-        selected_projects = self.projects.offset(((page - 1) * self.ppg)).limit(self.ppg)
+        selected_projects = self.projects.offset(((page - 1) * ppg)).limit(ppg)
         projects = []
         for project in selected_projects:
             projects.append({
