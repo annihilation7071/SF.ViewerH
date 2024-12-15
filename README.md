@@ -14,26 +14,26 @@ ___
 - [gallery-dl][2]
 
 ### Supports
-| Site        | Supported downloader           | Chrome extension                         |
-|-------------|--------------------------------|------------------------------------------|
-| nhentai.net | [nhentai][1] / [gallery-dl][2] | supported([nhentai][1] / [gallery-dl][2] |
-| hitomi.la   | [gallery-dl][2]                | supported([gallery-dl][2])               |
+| Site        | Supported downloader           | Chrome extension                          |
+|-------------|--------------------------------|-------------------------------------------|
+| nhentai.net | [nhentai][1] / [gallery-dl][2] | supported([nhentai][1] / [gallery-dl][2]) |
+| hitomi.la   | [gallery-dl][2]                | supported([gallery-dl][2])                |
 
 ### Install and run:
 #### Using system python
 ```bash
-git clone [this repository]
+git clone https://github.com/annihilation7071/SF.ViewerH.git
 cd SV.ViewerH
 pip install -r requirements.txt
 app.py
 ```
 #### Using venv
 ```bash
-git clone [this repository]
+git clone https://github.com/annihilation7071/SF.ViewerH.git
 cd SV.ViewerH
 python -m venv venv
 ./venv/scripts/activate
-qpp.py
+app.py
 ```
 ### How to start:
 1. Upload files using [nhentai][1] or [gallery-dl][2]. (```--write-info-json``` parameter **MUST** be used for [gallery-dl][2])

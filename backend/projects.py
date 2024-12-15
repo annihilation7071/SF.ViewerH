@@ -40,10 +40,6 @@ class Projects:
         search = ",".join(search)
         return search
 
-    def _to_dict(self, project) -> dict:
-        project = {column: getattr(project, column) for column in self.get_columns()}
-        return project
-
     def _get_flags_paths(self, languages: list) -> list:
         print(languages)
         exclude = ["rewrite", "translated"]
@@ -130,7 +126,7 @@ class Projects:
         else:
             project = self.session.query(Project).filter_by(lid=lid).first()
 
-        dict_project = self._to_dict(project)
+        dict_project = project.to_dict()
         dict_project["variants_view"] = [variant.split(":")[1] for variant in dict_project["lvariants"]]
         # dict_project["variants_view"] = [variant for variant in dict_project["variants_view"] if len(variant) > 0]
         dict_project["path"] = self._get_project_path(project)

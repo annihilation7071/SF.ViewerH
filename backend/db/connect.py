@@ -3,7 +3,14 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 
 class Base(DeclarativeBase):
-    pass
+    def get_columns(self):
+        # noinspection PyTypeChecker
+        columns = [column.name for column in self.__table__.columns]
+        return columns
+
+    def to_dict(self) -> dict:
+        project = {column: getattr(self, column) for column in self.get_columns()}
+        return project
 
 
 class Project(Base):
