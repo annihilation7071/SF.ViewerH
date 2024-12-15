@@ -1,11 +1,12 @@
 import os
 from backend.db.connect import Project, get_session
-from sqlalchemy import desc, and_
+from sqlalchemy import desc, and_, func
 from datetime import datetime
 from collections import defaultdict
 from backend import utils
 from backend import logger
 from backend.editor import variants_editor
+from sqlalchemy.dialects.sqlite import JSON
 
 
 # noinspection PyMethodMayBeStatic,PyProtectedMember
@@ -42,17 +43,12 @@ class Projects:
     def _to_dict(self, project) -> dict:
 
         def f(item):
-            if isinstance(item, str):
-                if item.find(";;;") != -1:
-                    items = utils.str_to_list(item)
-                    return items
-
             if isinstance(item, datetime):
                 return item.strftime("%Y-%m-%dT%H:%M:%S")
 
             return item
 
-        project = {column.name: f(getattr(project, column.name)) for column in self.get_columns()}
+        project = {column: f(getattr(project, column)) for column in self.get_columns()}
         return project
 
     def _get_flags_paths(self, languages: list) -> list:
@@ -120,12 +116,8 @@ class Projects:
                 "title": project.title,
                 "subtitle": project.subtitle,
                 "preview_path": self._get_project_preview_path(project),
-                "flags": self._get_flags_paths(
-                    utils.str_to_list(project.language)
-                ),
-                "lvariants_count": len(
-                    utils.str_to_list(project.lvariants)
-                ),
+                "flags": self._get_flags_paths(project.language),
+                "lvariants_count": len(project.lvariants),
             })
         print(projects)
         return projects
@@ -233,8 +225,9 @@ class Projects:
         self.session.commit()
 
     def update_pools_v(self, force: bool = False):
-        variants = self.session.query(Project.lvariants).filter(Project.lvariants != None,
-                                                                Project.lvariants != "").distinct().all()
+        variants = self.session.query(Project.lvariants).filter(
+            func.json_array_length(Project.lvariants) > 0).distinct().all()
+
         variants = [variant[0] for variant in variants]
         for variant in variants:
             exist_pool = self.session.query(Project).filter(Project.lvariants == variant,
@@ -246,7 +239,7 @@ class Projects:
                 else:
                     return
 
-            variants_editor.edit(self, variant, separator=";;;")
+            variants_editor.edit(self, variant)
 
     def get_columns(self, exclude: list | tuple = None):
         # noinspection PyTypeChecker
@@ -286,8 +279,7 @@ def make_search_body(project: dict):
 
     for k, v in project.items():
         if k in include:
-            items = v.split(";;;")
-            for item in items:
+            for item in v:
                 search_body += f"{k}:{item.lower()};;;"
 
     return search_body
@@ -295,21 +287,14 @@ def make_search_body(project: dict):
 
 def prepare_to_db(project: dict) -> dict:
     def f(x):
-        if isinstance(x, list):
-            item = ";;;".join(x)
-            if len(item) > 0 and item.find(";;;") == -1:
-                item = item + ";;;"
-            return item
-        else:
-            # noinspection PyBroadException
-            try:
-                d = datetime.strptime(x, '%Y-%m-%dT%H:%M:%S')
-                print(d)
-                return d
-            except:
-                print(x)
-                pass
-            return x
+        try:
+            d = datetime.strptime(x, '%Y-%m-%dT%H:%M:%S')
+            print(d)
+            return d
+        except:
+            print(x)
+            pass
+        return x
 
     project = {k: f(v) for k, v in project.items()}
 

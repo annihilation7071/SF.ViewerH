@@ -2,10 +2,14 @@ from backend.utils import tag_normalizer
 from backend.editor import eutils
 
 
-def edit(projects, data: str, separator: str = "\n"):
+def edit(projects, data: str | list, separator: str = "\n"):
     print("edit-variants")
 
-    variants = data.split(separator)
+    if isinstance(data, str):
+        variants = data.split(separator)
+    else:
+        variants = data
+
     variants = [variant for variant in variants if variant != "" and variant.find(":") != -1]
     variants = tag_normalizer(variants, lower=False, ali=False)
     print(variants)

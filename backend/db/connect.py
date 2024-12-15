@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, create_engine, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, create_engine, DateTime, Boolean, JSON
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 
@@ -11,7 +11,7 @@ class Project(Base):
     _id = Column(Integer, primary_key=True)
     info_version = Column(Integer)
     lid = Column(String, unique=True)
-    lvariants = Column(String(length=3000))
+    lvariants = Column(JSON)
     source_id = Column(String)
     source = Column(String)
     url = Column(String(length=500))
@@ -20,14 +20,14 @@ class Project(Base):
     subtitle = Column(String(length=500))
     upload_date = Column(DateTime)
     preview = Column(String(length=500))
-    parody = Column(String(length=500))
-    character = Column(String(length=500))
-    tag = Column(String)
-    artist = Column(String(length=500))
-    group = Column(String)
-    language = Column(String)
-    category = Column(String)
-    series = Column(String(length=3000))
+    parody = Column(JSON)
+    character = Column(JSON)
+    tag = Column(JSON)
+    artist = Column(JSON)
+    group = Column(JSON)
+    language = Column(JSON)
+    category = Column(JSON)
+    series = Column(JSON)
     pages = Column(Integer)
     dir_name = Column(String(length=500))
     lib = Column(String)
