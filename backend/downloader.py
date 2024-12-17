@@ -48,10 +48,11 @@ def download(url):
                 com = f"nhentai --user-agent={params['useragent']}"
                 os.system(com)
 
+            print(params)
             if "csrftoken" in params and \
                     "sessionid" in params and \
-                    "cf_clearence" in params:
-                com = f'nhentai --cookie="csrftoken={params["csrftoken"]}; sessionid={params["sessionid"]}; cf_clearence={params["cf_clearence"]}"'
+                    "cf_clearance" in params:
+                com = f'nhentai --cookie="csrftoken={params["csrftoken"]}; sessionid={params["sessionid"]}; cf_clearence={params["cf_clearance"]}"'
                 os.system(com)
 
             print(command)
