@@ -4,23 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SF.ViewerH</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles_index.css') }}">
+    <link rel="stylesheet" href="{{ request.url_for('static', path='styles.css') }}">
+    <link rel="stylesheet" href="{{ request.url_for('static', path='styles_index.css') }}">
 </head>
 <body>
     {% include 'header.html' %}
     <main>
         <div class="grid-container">
             {% for project in projects %}
-            <a href="{{ url_for('detail_view', project_id=project.id) }}?page={{ current_page }}&search={{ request.args.get('search', '') }}"
+            <a href="{{ request.url_for('detail_view', project_id=project.id) }}?page={{ current_page }}&search={{ request.query_params.get('search', '') }}"
                class="project-item-container">
                 <div class="project-item-preview">
-                    <img src="{{ url_for('get_image', image_path=project.preview_path) }}" alt="{{ project.title }}">
+                    <img src="{{ request.url_for('get_image', image_path=project.preview_path | urlencode) }}" alt="{{ project.title }}">
                 </div>
                 <div class="project-info-container">
                     <div class="project-item-flag-container">
                         {% for flag in project.flags %}
-                            <img src="{{ url_for('get_image', image_path=flag) }}" alt="F">
+                            <img src="{{ request.url_for('get_image', image_path=flag) }}" alt="F">
                         {% endfor %}
                     </div>
                     <div class="project-title-container">
@@ -34,7 +34,7 @@
         <div class="pagination">
             <!-- Prev button -->
             {% if current_page > 1 %}
-            <a href="?page={{ current_page - 1 }}&search={{ request.args.get('search', '') }}">&laquo; Prev</a>
+            <a href="?page={{ current_page - 1 }}&search={{ request.query_params.get('search', '') }}">&laquo; Prev</a>
             {% endif %}
 
             <!-- Show visible pages buttons -->
@@ -42,15 +42,15 @@
                 {% if page == '...' %}
                 <span class="ellipsis">...</span>
                 {% elif page == current_page %}
-                <a href="?page={{ page }}&search={{ request.args.get('search', '') }}" class="active">{{ page }}</a>
+                <a href="?page={{ page }}&search={{ request.query_params.get('search', '') }}" class="active">{{ page }}</a>
                 {% else %}
-                <a href="?page={{ page }}&search={{ request.args.get('search', '') }}">{{ page }}</a>
+                <a href="?page={{ page }}&search={{ request.query_params.get('search', '') }}">{{ page }}</a>
                 {% endif %}
             {% endfor %}
 
             <!-- Next button -->
             {% if current_page < total_pages %}
-            <a href="?page={{ current_page + 1 }}&search={{ request.args.get('search', '') }}">Next &raquo;</a>
+            <a href="?page={{ current_page + 1 }}&search={{ request.query_params.get('search', '') }}">Next &raquo;</a>
             {% endif %}
         </div>
     </main>

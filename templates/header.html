@@ -1,6 +1,6 @@
 <header>
     <div class="nav-buttons">
-        <a href="{{ url_for('index', search='', page=1) }}">Home</a>
+        <a href="{{ request.url_for('index') }}">Home</a>
     </div>
     <div class="search-bar">
         <form action="/" method="GET">
@@ -9,7 +9,7 @@
                     type="text"
                     name="search"
                     placeholder="Search project..."
-                    value="{{ request.args.get('search', '') }}" >
+                    value="{{ request.query_params.get('search', '') }}" >
         </form>
     </div>
     <div class="nav-buttons">

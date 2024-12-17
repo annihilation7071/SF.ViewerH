@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LocalViewer</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles_reader.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles_reader.css') }}">
 </head>
 <body>
     {% include 'header.html' %}
     <header class="extra_header">
         <div class="extra-nav-buttons">
-            <a href="{{ url_for('detail_view', project_id=project_id) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}">Back</a>
+            <a href="{{ url_for('detail_view', project_id=project_id) }}?{{ request.query_string }}">Back</a>
         </div>
     </header>
     <main>
         <div class="page-container">
             <div class="page-item">
-                <img src="{{ url_for('get_image', image_path=image) }}"
+                <img src="{{ url_for('get_image', image_path=image | urlencode) }}"
                      alt="ERROR"
                      id="project-page"
                      data-current-page="{{ current_page }}"
@@ -29,7 +29,7 @@
         <div class="pagination">
             <!-- Prev button -->
             {% if current_page > 1 %}
-            <a href="{{ url_for('reader', project_id=project_id, page_id=current_page - 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}">&laquo; Prev</a>
+            <a href="{{ url_for('reader', project_id=project_id, page_id=current_page - 1) }}?{{ request.query_string }}">&laquo; Prev</a>
             {% endif %}
 
             <!-- Show visible pages buttons -->
@@ -37,15 +37,15 @@
                 {% if page == '...' %}
                 <span class="ellipsis">...</span>
                 {% elif page == current_page %}
-                <a href="{{ url_for('reader', project_id=project_id, page_id=page) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}" class="active">{{ page }}</a>
+                <a href="{{ url_for('reader', project_id=project_id, page_id=page) }}?{{ request.query_string }}" class="active">{{ page }}</a>
                 {% else %}
-                <a href="{{ url_for('reader', project_id=project_id, page_id=page) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}">{{ page }}</a>
+                <a href="{{ url_for('reader', project_id=project_id, page_id=page) }}?{{ request.query_string }}">{{ page }}</a>
                 {% endif %}
             {% endfor %}
 
             <!-- Next button -->
             {% if current_page < total_pages %}
-            <a href="{{ url_for('reader', project_id=project_id, page_id=current_page + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}">Next &raquo;</a>
+            <a href="{{ url_for('reader', project_id=project_id, page_id=current_page + 1) }}?{{ request.query_string }}">Next &raquo;</a>
             {% endif %}
         </div>
     </main>

@@ -1,11 +1,13 @@
 from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from backend import utils, downloader
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
 from backend import logger
+import mimetypes
+from urllib.parse import quote, unquote
 
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
@@ -74,8 +76,13 @@ async def detail_view(request: Request, project_id: int):
     images = utils.get_pages(project)
     return templates.TemplateResponse(
         "detailview.html",
-        {"request": request, "project": project, "images": images},
+        {
+            "request": request,
+            "project": project,
+            "images": images
+        },
     )
+
 
 @app.get("/project/lid/{project_lid}", response_class=HTMLResponse)
 async def detail_view_lid(request: Request, project_lid: str):
@@ -83,7 +90,11 @@ async def detail_view_lid(request: Request, project_lid: str):
     images = utils.get_pages(project)
     return templates.TemplateResponse(
         "detailview.html",
-        {"request": request, "project": project, "images": images},
+        {
+            "request": request,
+            "project": project,
+            "images": images
+        },
     )
 
 @app.get("/project/{project_id}/{page_id}", response_class=HTMLResponse)
@@ -106,55 +117,83 @@ async def reader(request: Request, project_id: int, page_id: int):
         },
     )
 
+
 @app.get("/get_image/{image_path:path}")
 async def get_image(image_path: str):
+    print(image_path)
     try:
-        if image_path.endswith('.svg'):
-            mimetype = 'image/svg+xml'
-        else:
-            mimetype = 'image/jpeg'
+        decoded_path = unquote(image_path)
 
-        return utils.get_file_response(image_path, mimetype)
+        logger.log(f"Path: {image_path}", file="log-5.txt")
+        logger.log(f"Decoded path: {decoded_path}", file="log-5.txt")
+
+        mimetype, _ = mimetypes.guess_type(image_path)
+        return FileResponse(image_path, media_type=mimetype)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Image not found")
+
 
 @app.get("/items/tags", response_class=HTMLResponse)
 async def tags_list(request: Request):
     item = "tag"
     tags = projects.count_item(item)
     return templates.TemplateResponse(
-        "items.html", {"request": request, "items": tags, "find": item}
+        "items.html",
+        {
+            "request": request,
+            "items": tags,
+            "find": item
+        }
     )
+
 
 @app.get("/items/artists", response_class=HTMLResponse)
 async def artists_list(request: Request):
     item = "artist"
     tags = projects.count_item(item)
     return templates.TemplateResponse(
-        "items.html", {"request": request, "items": tags, "find": item}
+        "items.html", {
+            "request": request,
+            "items": tags,
+            "find": item
+        }
     )
+
 
 @app.get("/items/characters", response_class=HTMLResponse)
 async def characters_list(request: Request):
     item = "character"
     tags = projects.count_item(item)
     return templates.TemplateResponse(
-        "items.html", {"request": request, "items": tags, "find": item}
+        "items.html",
+        {
+            "request": request,
+            "items": tags,
+            "find": item
+        }
     )
+
 
 @app.get("/items/parodies", response_class=HTMLResponse)
 async def parodies_list(request: Request):
     item = "parody"
     tags = projects.count_item(item)
     return templates.TemplateResponse(
-        "items.html", {"request": request, "items": tags, "find": item}
+        "items.html",
+        {
+            "request": request,
+            "items": tags,
+            "find": item
+        }
     )
+
 
 @app.post("/load")
 async def load(data: dict):
     print("Received URL:", data.get("url"))
     downloader.download(data.get("url"))
     return JSONResponse({"status": "success"})
+
 
 @app.post("/edit_data")
 async def update_tags(

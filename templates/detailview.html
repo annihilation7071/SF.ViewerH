@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ project.title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles_detailview.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles_edit_window.css') }}">
+    <link rel="stylesheet" href="{{ request.url_for('static', path='styles.css') }}">
+    <link rel="stylesheet" href="{{ request.url_for('static', path='styles_detailview.css') }}">
+    <link rel="stylesheet" href="{{ request.url_for('static', path='styles_edit_window.css') }}">
 </head>
 <body>
     {% include 'header.html' %}
     <header class="extra_header">
         <div class="extra-nav-buttons">
-            <a href="{{ url_for('index', search=request.args.get('search', ''), page=request.args.get('page', 1)) }}">Back</a>
+            <a href="{{ request.url_for('index') }}?{{ request.query_params }}">Back</a>
         </div>
     </header>
 
     <main class="detail-view">
         <div class="project-image">
-            <img src="{{ url_for('get_image', image_path=project.preview_path) }}" alt="{{ project.title }}">
+            <img src="{{ request.url_for('get_image', image_path=project.preview_path | urlencode) }}" alt="{{ project.title }}">
         </div>
         <div class="project-info">
             <h1>{{ project.title }}</h1>
@@ -27,7 +27,7 @@
             <div class="label-tags-container">
                 <div class="label">Lib:</div>
                 <div class="tags-container">
-                    <a href="{{ url_for('index', search='lib:'+project.lib, page=1) }}" class="tag">{{ project.lib }}</a>
+                    <a href="{{ request.url_for('index') }}?search=lib:{{ project.lib }}&page=1" class="tag">{{ project.lib }}</a>
                 </div>
             </div>
 
@@ -41,7 +41,7 @@
             <div class="label-tags-container">
                 <div class="label">Source:</div>
                 <div class="tags-container">
-                    <a href="{{ url_for('index', search='source:'+project.source, page=1) }}" class="tag">{{ project.source }}</a>
+                    <a href="{{ request.url_for('index') }}?search=source:{{ project.source }}&page=1" class="tag">{{ project.source }}</a>
                 </div>
             </div>
 
@@ -56,7 +56,7 @@
                 <div class="label">Tag:</div>
                 <div class="tags-container">
                     {% for tag in project.tag %}
-                    <a href="{{ url_for('index', search='tag:'+tag, page=1) }}" class="tag">{{ tag }}</a>
+                    <a href="{{ request.url_for('index') }}?search=tag:{{ tag }}&page=1" class="tag">{{ tag }}</a>
                     {% endfor %}
                     <button class="edit-button" data-type="edit-tags" data-content="{{ '\n'.join(project.tag) }}">+</button>
                 </div>
@@ -66,7 +66,7 @@
                 <div class="label">Artist:</div>
                 <div class="tags-container">
                     {% for artist in project.artist %}
-                    <a href="{{ url_for('index', search='artist:'+artist, page=1) }}" class="tag">{{ artist }}</a>
+                    <a href="{{ request.url_for('index') }}?search=artist:{{ artist }}&page=1" class="tag">{{ artist }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -75,7 +75,7 @@
                 <div class="label">Group:</div>
                 <div class="tags-container">
                     {% for group in project.group %}
-                    <a href="{{ url_for('index', search='group:'+group, page=1) }}" class="tag">{{ group }}</a>
+                    <a href="{{ request.url_for('index') }}?search=group:{{ group }}&page=1" class="tag">{{ group }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -84,7 +84,7 @@
                 <div class="label">Parody:</div>
                 <div class="tags-container">
                     {% for parody in project.parody %}
-                    <a href="{{ url_for('index', search='parody:'+parody, page=1) }}" class="tag">{{ parody }}</a>
+                    <a href="{{ request.url_for('index') }}?search=parody:{{ parody }}&page=1" class="tag">{{ parody }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -93,7 +93,7 @@
                 <div class="label">Character:</div>
                 <div class="tags-container">
                     {% for character in project.character %}
-                    <a href="{{ url_for('index', search='character:'+character, page=1) }}" class="tag">{{ character }}</a>
+                    <a href="{{ request.url_for('index') }}?search=character:{{ character }}&page=1" class="tag">{{ character }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -102,7 +102,7 @@
                 <div class="label">Series:</div>
                 <div class="tags-container">
                     {% for series in project.series %}
-                    <a href="{{ url_for('index', search='series:'+series, page=1) }}" class="tag">{{ series }}</a>
+                    <a href="{{ request.url_for('index') }}?search=series:{{ series }}&page=1" class="tag">{{ series }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -111,7 +111,7 @@
                 <div class="label">Language:</div>
                 <div class="tags-container">
                     {% for language in project.language %}
-                    <a href="{{ url_for('index', search='language:'+language, page=1) }}" class="tag">{{ language }}</a>
+                    <a href="{{ request.url_for('index') }}?search=language:{{ language }}&page=1" class="tag">{{ language }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -120,10 +120,10 @@
                 <div class="label">Variants:</div>
                 <div class="tags-container">
                     {% if project.variants_view and project.variants_view[0] %}
-                    <a href="{{ url_for('detail_view_lid', project_lid=project.lvariants[0].split(':')[0]) }}?page={{ request.args.get('page', 1) }}&search={{ request.args.get('search', '') }}" class="tag-priority">{{ project.variants_view[0] }}</a>
+                    <a href="{{ request.url_for('detail_view_lid', project_lid=project.lvariants[0].split(':')[0]) }}?page={{ request.query_params }}" class="tag-priority">{{ project.variants_view[0] }}</a>
                     {% endif %}
                     {% for i in range(1, project.lvariants|length) %}
-                    <a href="{{ url_for('detail_view_lid', project_lid=project.lvariants[i].split(':')[0]) }}?page={{ request.args.get('page', 1) }}&search={{ request.args.get('search', '') }}" class="tag">{{ project.variants_view[i] }}</a>
+                    <a href="{{ request.url_for('detail_view_lid', project_lid=project.lvariants[i].split(':')[0]) }}?page={{ request.query_params }}" class="tag">{{ project.variants_view[i] }}</a>
                     {% endfor %}
                     <button class="edit-button" data-type="edit-variants" data-content="{{ '\n'.join(project.lvariants) }}">+</button>
                 </div>
@@ -139,9 +139,9 @@
     <main class="detail-view-pages">
         <div class="grid-container-pages">
             {% for image in images %}
-            <a href="{{ url_for('reader', project_id=project.id, page_id=image.idx + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}"
+            <a href="{{ request.url_for('reader', project_id=project.id, page_id=image.idx + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}"
                class="image-item">
-                <img src="{{ url_for('get_image', image_path=image.path) }}" alt="Error">
+                <img src="{{ request.url_for('get_image', image_path=image.path | urlencode) }}" alt="Error">
             </a>
             {% endfor %}
         </div>
