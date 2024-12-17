@@ -97,6 +97,7 @@ async def detail_view_lid(request: Request, project_lid: str):
         },
     )
 
+
 @app.get("/project/{project_id}/{page_id}", response_class=HTMLResponse)
 async def reader(request: Request, project_id: int, page_id: int):
     project = projects.get_project_by_id(project_id)
@@ -198,17 +199,18 @@ async def load(data: dict):
 @app.post("/edit_data")
 async def update_tags(
     request: Request,
-    edit_type: str = Form(...),
-    edit_data: str = Form(...),
+    edit_type: str = Form(..., alias="edit-type"),
+    edit_data: str = Form(..., alias="edit-data"),
     url: str = Form(...),
     lid: str = Form(...),
-    id: int = Form(...),
+    id_: int = Form(..., alias="id"),
     page: int = Form(...),
     search: str = Form(...),
     lvariants: str = Form(...),
 ):
-    project = projects.get_project_by_id(int(id))
-    print(project, edit_type, edit_data, url, lid, id)
+    project = projects.get_project_by_id(int(id_))
+    temp = (project, edit_type, edit_data, url, lid, id_)
+    logger.log(str(temp), file="log-6.txt")
 
     r = edit_selector.edit(
         projects, edit_type, edit_data, project, extra={"lvariants": lvariants}
@@ -221,10 +223,14 @@ async def update_tags(
         return RedirectResponse(url, status_code=303)
 
 
+# @app.post("/edit_data")
+# async def update_tags(request: Request):
+#     form_data = await request.form()
+#     logger.log(form_data, file="log-7.txt")
+#     return {"received": form_data}
+
+
 if __name__ == "__main__":
     import uvicorn
-
-    for route in app.routes:
-        print(route.path, route.name)
 
     uvicorn.run(app, host="127.0.0.1", port=1707, log_level="debug")
