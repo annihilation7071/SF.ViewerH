@@ -1,8 +1,13 @@
-from flask import Flask, render_template, request, send_file, redirect
+from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from backend import utils, downloader
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
 from backend import logger
+import mimetypes
+from urllib.parse import quote, unquote
 
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
@@ -12,7 +17,13 @@ logger.start()
 projects = Projects()
 projects.update_projects()
 
-app = Flask(__name__)
+app = FastAPI()
+
+# Подключение шаблонов
+templates = Jinja2Templates(directory="templates")
+
+# Подключение статики
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 def get_visible_pages(current_page, total_pages):
@@ -20,13 +31,10 @@ def get_visible_pages(current_page, total_pages):
         return list(range(1, total_pages + 1))
 
     visible_pages = []
-
-    # Start pagination
     if current_page > 7:
         visible_pages.append(1)
         visible_pages.append('...')
 
-    # Main diapazon
     start_page = max(1, current_page - 7)
     end_page = min(total_pages, start_page + 15 - 1)
 
@@ -35,7 +43,6 @@ def get_visible_pages(current_page, total_pages):
 
     visible_pages.extend(range(start_page, end_page + 1))
 
-    # End pagination
     if end_page < total_pages:
         visible_pages.append('...')
         visible_pages.append(total_pages)
@@ -43,142 +50,187 @@ def get_visible_pages(current_page, total_pages):
     return visible_pages
 
 
-@app.route('/')
-def index():
-    global projects
-
-    search_query = request.args.get("search", "").strip().lower()
-    print(search_query)
-    page = int(request.args.get('page', 1))
-
+@app.get("/", response_class=HTMLResponse, name="index")
+async def index(request: Request, page: int = 1, search: str = ""):
+    search_query = search.strip().lower()
     displayed_projects = projects.get_page(PPG, page=page, search=search_query)
 
     total_pages = (projects.len() + PPG - 1) // PPG
-
     visible_pages = get_visible_pages(page, total_pages)
 
-    return render_template(
-        'index.html',
-        projects=displayed_projects,
-        current_page=page,
-        total_pages=total_pages,
-        visible_pages=visible_pages,
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "projects": displayed_projects,
+            "current_page": page,
+            "total_pages": total_pages,
+            "visible_pages": visible_pages,
+        },
     )
 
 
-@app.route('/project/<int:project_id>')
-def detail_view(project_id):
+@app.get("/project/{project_id}", response_class=HTMLResponse)
+async def detail_view(request: Request, project_id: int):
     project = projects.get_project_by_id(project_id)
     images = utils.get_pages(project)
-    return render_template("detailview.html", project=project, images=images)
+    return templates.TemplateResponse(
+        "detailview.html",
+        {
+            "request": request,
+            "project": project,
+            "images": images
+        },
+    )
 
 
-@app.route('/project/lid/<string:project_lid>')
-def detail_view_lid(project_lid):
-    print(project_lid)
+@app.get("/project/lid/{project_lid}", response_class=HTMLResponse)
+async def detail_view_lid(request: Request, project_lid: str):
     project = projects.get_project_by_lid(project_lid)
     images = utils.get_pages(project)
-    return render_template("detailview.html", project=project, images=images)
+    return templates.TemplateResponse(
+        "detailview.html",
+        {
+            "request": request,
+            "project": project,
+            "images": images
+        },
+    )
 
 
-@app.route('/project/<int:project_id>/<int:page_id>')
-def reader(project_id, page_id):
+@app.get("/project/{project_id}/{page_id}", response_class=HTMLResponse)
+async def reader(request: Request, project_id: int, page_id: int):
     project = projects.get_project_by_id(project_id)
     images = utils.get_pages(project)
     page = page_id
     image = images[page - 1]["path"]
     total_pages = len(images)
     visible_pages = get_visible_pages(page, total_pages)
-    return render_template("reader.html",
-                           image=image,
-                           current_page=page,
-                           project_id=project_id,
-                           total_pages=total_pages,
-                           visible_pages=visible_pages,
-                           )
+    return templates.TemplateResponse(
+        "reader.html",
+        {
+            "request": request,
+            "image": image,
+            "current_page": page,
+            "project_id": project_id,
+            "total_pages": total_pages,
+            "visible_pages": visible_pages,
+        },
+    )
 
 
-@app.route('/get_image/<path:image_path>')
-def get_image(image_path):
+@app.get("/get_image/{image_path:path}")
+async def get_image(image_path: str):
+    print(image_path)
     try:
-        if image_path.endswith('.svg'):
-            mimetype = 'image/svg+xml'
-        else:
-            mimetype = 'image/jpeg'
+        decoded_path = unquote(image_path)
 
-        return send_file(image_path, mimetype=mimetype)
+        logger.log(f"Path: {image_path}", file="log-5.txt")
+        logger.log(f"Decoded path: {decoded_path}", file="log-5.txt")
+
+        mimetype, _ = mimetypes.guess_type(image_path)
+        return FileResponse(image_path, media_type=mimetype)
     except FileNotFoundError:
-        return "Image not found", 404
+        raise HTTPException(status_code=404, detail="Image not found")
 
 
-@app.route('/items/tags')
-def tags_list():
+@app.get("/items/tags", response_class=HTMLResponse)
+async def tags_list(request: Request):
     item = "tag"
-    find = item
     tags = projects.count_item(item)
-    return render_template("items.html", items=tags, find=find)
+    return templates.TemplateResponse(
+        "items.html",
+        {
+            "request": request,
+            "items": tags,
+            "find": item
+        }
+    )
 
 
-@app.route('/items/artists')
-def artists_list():
+@app.get("/items/artists", response_class=HTMLResponse)
+async def artists_list(request: Request):
     item = "artist"
-    find = item
     tags = projects.count_item(item)
-    return render_template("items.html", items=tags, find=find)
+    return templates.TemplateResponse(
+        "items.html", {
+            "request": request,
+            "items": tags,
+            "find": item
+        }
+    )
 
 
-@app.route('/items/characters')
-def characters_list():
+@app.get("/items/characters", response_class=HTMLResponse)
+async def characters_list(request: Request):
     item = "character"
-    find = item
     tags = projects.count_item(item)
-    return render_template("items.html", items=tags, find=find)
+    return templates.TemplateResponse(
+        "items.html",
+        {
+            "request": request,
+            "items": tags,
+            "find": item
+        }
+    )
 
 
-@app.route('/items/parodies')
-def parodies_list():
+@app.get("/items/parodies", response_class=HTMLResponse)
+async def parodies_list(request: Request):
     item = "parody"
-    find = item
     tags = projects.count_item(item)
-    return render_template("items.html", items=tags, find=find)
+    return templates.TemplateResponse(
+        "items.html",
+        {
+            "request": request,
+            "items": tags,
+            "find": item
+        }
+    )
 
 
-@app.route('/load', methods=['POST'])
-def load():
-    data = request.json
-    print("Received URL:", data.get('url'))
-    downloader.download(data.get('url'))
-    return {"status": "success"}
+@app.post("/load")
+async def load(data: dict):
+    print("Received URL:", data.get("url"))
+    downloader.download(data.get("url"))
+    return JSONResponse({"status": "success"})
 
 
-@app.route('/edit_data', methods=['POST'])
-def update_tags():
-    _type = request.form.get('edit-type')
-    data = request.form.get('edit-data')
-    url = request.form.get('url')
-    lid = request.form.get('lid')
-    _id = request.form.get('id')
-    page = request.form.get('page')
-    search = request.form.get('search')
-    lvariants = request.form.get('lvariants')
-    project = projects.get_project_by_id(int(_id))
-    print(project)
+@app.post("/edit_data")
+async def update_tags(
+    request: Request,
+    edit_type: str = Form(..., alias="edit-type"),
+    edit_data: str = Form(..., alias="edit-data"),
+    url: str = Form(...),
+    lid: str = Form(...),
+    id_: int = Form(..., alias="id"),
+    page: int = Form(...),
+    search: str = Form(...),
+    lvariants: str = Form(...),
+):
+    project = projects.get_project_by_id(int(id_))
+    temp = (project, edit_type, edit_data, url, lid, id_)
+    logger.log(str(temp), file="log-6.txt")
 
-    print(_type)
-    print(data)
-    print(url)
-    print(lid)
-    print(_id)
-
-    r = edit_selector.edit(projects, _type, data, project, extra={"lvariants": lvariants})
-    print(r)
-
+    r = edit_selector.edit(
+        projects, edit_type, edit_data, project, extra={"lvariants": lvariants}
+    )
     if r:
-        return redirect(f"/project/lid/{r}?page={page}&search={search}")
+        return RedirectResponse(
+            f"/project/lid/{r}?page={page}&search={search}", status_code=303
+        )
     else:
-        return redirect(url)
+        return RedirectResponse(url, status_code=303)
 
 
-if __name__ == '__main__':
-    with app.app_context():
-        app.run(debug=True, use_reloader=False, host='0.0.0.0', port=1707)
+# @app.post("/edit_data")
+# async def update_tags(request: Request):
+#     form_data = await request.form()
+#     logger.log(form_data, file="log-7.txt")
+#     return {"received": form_data}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=1707, log_level="debug")
