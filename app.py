@@ -9,6 +9,7 @@ from backend import logger
 import mimetypes
 from urllib.parse import quote, unquote
 
+
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
 
