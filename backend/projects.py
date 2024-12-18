@@ -29,12 +29,6 @@ class Projects:
         project_path = os.path.abspath(os.path.join(lib_dir, project_dir))
         return project_path
 
-    def _get_project_preview_path(self, project: Project) -> str:
-        project_path = self._get_project_path(project)
-        preview_name = project.preview
-        preview_path = os.path.abspath(os.path.join(project_path, preview_name))
-        return preview_path
-
     def _normalize_search(self, search: str) -> str:
         search = search.split(",")
         search = [item.strip().lower().replace("\r", "").replace("\n", "").replace("_", " ").strip() for item in search]
@@ -60,6 +54,21 @@ class Projects:
                     flags.append(path)
 
         return flags
+
+    def _get_project_preview_path(self, project: Project) -> str:
+        project_path = self._get_project_path(project)
+        preview_name = ""
+
+        for file in os.listdir(project_path):
+            if file.startswith("preview") or file.startswith("_preview"):
+                preview_name = file
+                break
+
+        if preview_name == "":
+            preview_name = project.preview
+
+        preview_path = os.path.abspath(os.path.join(project_path, preview_name))
+        return preview_path
 
     def db(self):
         return self.session
