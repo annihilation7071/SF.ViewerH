@@ -174,8 +174,8 @@ class Projects:
 
         items_strings = self.active_projects.with_entities(getattr(Project, item)).all()
 
-        for items_string in items_strings:
-            items = items_string[0].split(";;;")
+        for items in items_strings:
+            items = items[0]
             for item in items:
                 result[item] += 1
 

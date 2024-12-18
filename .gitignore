@@ -20,4 +20,6 @@ __pycache__
 /start.bat
 /data/DB/*
 !/data/DB
+/logs/*
+!/logs/
 log*.txt

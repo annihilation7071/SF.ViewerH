@@ -5,15 +5,13 @@ from fastapi.templating import Jinja2Templates
 from backend import utils, downloader
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
-from backend import logger
+from backend import logger as l
 import mimetypes
 from urllib.parse import quote, unquote
 
 
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
-
-logger.start()
 
 projects = Projects()
 projects.update_projects()
@@ -31,11 +29,13 @@ def get_visible_pages(current_page, total_pages):
     if total_pages <= 15:
         return list(range(1, total_pages + 1))
 
+    # Start pagination
     visible_pages = []
     if current_page > 7:
         visible_pages.append(1)
         visible_pages.append('...')
 
+    # Center pagination
     start_page = max(1, current_page - 7)
     end_page = min(total_pages, start_page + 15 - 1)
 
@@ -44,6 +44,7 @@ def get_visible_pages(current_page, total_pages):
 
     visible_pages.extend(range(start_page, end_page + 1))
 
+    # End pagination
     if end_page < total_pages:
         visible_pages.append('...')
         visible_pages.append(total_pages)
@@ -122,69 +123,29 @@ async def reader(request: Request, project_id: int, page_id: int):
 
 @app.get("/get_image/{image_path:path}")
 async def get_image(image_path: str):
-    print(image_path)
     try:
         decoded_path = unquote(image_path)
-
-        logger.log(f"Path: {image_path}", file="log-5.txt")
-        logger.log(f"Decoded path: {decoded_path}", file="log-5.txt")
-
         mimetype, _ = mimetypes.guess_type(image_path)
         return FileResponse(image_path, media_type=mimetype)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Image not found")
 
 
-@app.get("/items/tags", response_class=HTMLResponse)
-async def tags_list(request: Request):
-    item = "tag"
-    tags = projects.count_item(item)
+@app.get("/items/{item}", response_class=HTMLResponse)
+async def tags_list(request: Request, item: str):
+    support = ["tag", "character", "series",
+               "parody", "artist"]
+
+    if item in support:
+        items_count = projects.count_item(item)
+    else:
+        raise Exception(f"{item} is not supported")
+
     return templates.TemplateResponse(
         "items.html",
         {
             "request": request,
-            "items": tags,
-            "find": item
-        }
-    )
-
-
-@app.get("/items/artists", response_class=HTMLResponse)
-async def artists_list(request: Request):
-    item = "artist"
-    tags = projects.count_item(item)
-    return templates.TemplateResponse(
-        "items.html", {
-            "request": request,
-            "items": tags,
-            "find": item
-        }
-    )
-
-
-@app.get("/items/characters", response_class=HTMLResponse)
-async def characters_list(request: Request):
-    item = "character"
-    tags = projects.count_item(item)
-    return templates.TemplateResponse(
-        "items.html",
-        {
-            "request": request,
-            "items": tags,
-            "find": item
-        }
-    )
-
-
-@app.get("/items/parodies", response_class=HTMLResponse)
-async def parodies_list(request: Request):
-    item = "parody"
-    tags = projects.count_item(item)
-    return templates.TemplateResponse(
-        "items.html",
-        {
-            "request": request,
-            "items": tags,
+            "items": items_count,
             "find": item
         }
     )
@@ -192,7 +153,6 @@ async def parodies_list(request: Request):
 
 @app.post("/load")
 async def load(data: dict):
-    print("Received URL:", data.get("url"))
     downloader.download(data.get("url"))
     return JSONResponse({"status": "success"})
 
@@ -210,8 +170,6 @@ async def update_tags(
     lvariants: str = Form(...),
 ):
     project = projects.get_project_by_id(int(id_))
-    temp = (project, edit_type, edit_data, url, lid, id_)
-    logger.log(str(temp), file="log-6.txt")
 
     r = edit_selector.edit(
         projects, edit_type, edit_data, project, extra={"lvariants": lvariants}
@@ -224,14 +182,6 @@ async def update_tags(
         return RedirectResponse(url, status_code=303)
 
 
-# @app.post("/edit_data")
-# async def update_tags(request: Request):
-#     form_data = await request.form()
-#     logger.log(form_data, file="log-7.txt")
-#     return {"received": form_data}
-
-
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="127.0.0.1", port=1707, log_level="debug")
