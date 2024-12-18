@@ -119,11 +119,14 @@
             <div class="label-tags-container">
                 <div class="label">Variants:</div>
                 <div class="tags-container">
-                    {% if project.variants_view and project.variants_view[0] %}
-                    <a href="{{ request.url_for('detail_view_lid', project_lid=project.lvariants[0].split(':')[0]) }}?page={{ request.query_params }}" class="tag tag-priority">{{ project.variants_view[0] }}</a>
-                    {% endif %}
-                    {% for i in range(1, project.lvariants|length) %}
-                    <a href="{{ request.url_for('detail_view_lid', project_lid=project.lvariants[i].split(':')[0]) }}?page={{ request.query_params }}" class="tag tag-click">{{ project.variants_view[i] }}</a>
+                    {% for i in range(0, project.lvariants|length) %}
+                        {% if project.lvariants[i].split(':')[0] == project.lid %}
+                            <a href="{{ request.url_for('detail_view_lid', project_lid=project.lvariants[i].split(':')[0]) }}?{{ request.query_params }}"
+                               class="tag tag-click tag-priority">{{ project.variants_view[i] }}</a>
+                        {% else %}
+                            <a href="{{ request.url_for('detail_view_lid', project_lid=project.lvariants[i].split(':')[0]) }}?{{ request.query_params }}"
+                               class="tag tag-click">{{ project.variants_view[i] }}</a>
+                        {% endif %}
                     {% endfor %}
                     <button class="edit-button" data-type="edit-variants" data-content="{{ '\n'.join(project.lvariants) }}">+</button>
                 </div>

@@ -3,7 +3,7 @@ from backend.editor import eutils
 from backend.logger import log
 
 
-def edit(projects, data: str | list, lvariants: str | list, separator: str = "\n"):
+def edit(projects, data: str | list, project: dict, separator: str = "\n"):
 
     # New variants
     if isinstance(data, str):
@@ -22,14 +22,7 @@ def edit(projects, data: str | list, lvariants: str | list, separator: str = "\n
     lids = [variant.split(":")[0] for variant in variants]
 
     # Old variants
-    if isinstance(data, str):
-        old_variants = lvariants.split("\n")
-    else:
-        old_variants = lvariants
-
-    print(old_variants)
-    old_variants = [variant for variant in old_variants if variant != "" and variant.find(":") != -1]
-    old_variants = tag_normalizer(old_variants, lower=False, ali=False)
+    old_variants = project["lvariants"]
     old_lids = [variant.split(":")[0] for variant in old_variants]
 
     # Check availability projects
@@ -62,7 +55,7 @@ def edit(projects, data: str | list, lvariants: str | list, separator: str = "\n
 
     # Sorting variants:
     # Priority first others sorting
-    variants = [":".join(priority[0])] + [":".join(variant) for variant in sorted(non_priority)]
+    variants = [":".join(priority[0])] + [":".join(variant) for variant in sorted(non_priority, key=lambda x: x[1])]
     variants = [variant for variant in variants if len(variant) > 0]
 
     # Update data in info file and DB
