@@ -8,6 +8,7 @@ from backend.editor import variants_editor
 from sqlalchemy.dialects.sqlite import JSON
 from backend import cmdargs, logger, utils
 from importlib import import_module
+from backend.logger import log
 
 
 # noinspection PyMethodMayBeStatic,PyProtectedMember
@@ -41,7 +42,6 @@ class Projects:
         return search
 
     def _get_flags_paths(self, languages: list) -> list:
-        print(languages)
         exclude = ["rewrite", "translated"]
         # exclude = []
         flags_path = os.path.join(os.getcwd(), f"data/flags")
@@ -59,7 +59,6 @@ class Projects:
                     path = os.path.join(os.getcwd(), f"data/flags/unknown.png")
                     flags.append(path)
 
-        print(flags)
         return flags
 
     def db(self):
@@ -92,10 +91,9 @@ class Projects:
         self.search = search
         search = search.split(",")
         search_query = [Project.search_body.icontains(f(item)) for item in search]
-        print(search)
+
         self.projects = self.active_projects.filter(and_(*search_query))
         self.projects = self.projects.order_by(desc(Project.upload_date))
-        print(f"search: {search}")
 
     def get_page(self, ppg: int, page: int = 1, search: str = None):
         self._filter(search)
@@ -112,7 +110,7 @@ class Projects:
                 "flags": self._get_flags_paths(project.language),
                 "lvariants_count": len(project.lvariants),
             })
-        print(projects)
+
         return projects
 
     def get_project(self, _id: int | str = None, lid: str = None) -> dict:
@@ -138,7 +136,6 @@ class Projects:
         dict_project["preview_path"] = self._get_project_preview_path(project)
         dict_project["upload_date_str"] = dict_project["upload_date"].strftime("%Y-%m-%dT%H:%M:%S")
 
-        print(dict_project)
         return dict_project
 
     def get_project_by_id(self, _id: int | str) -> dict:
@@ -165,9 +162,9 @@ class Projects:
         if selected_lib:
             self.session.delete(selected_lib)
             self.session.commit()
-            print(f"Row deleted: {lib_name}: {dir_name}")
+            log(f"Row deleted: {lib_name}: {dir_name}", "DB")
         else:
-            print(f"Row not found: {lib_name}: {dir_name}")
+            log(f"Trying to delete; Row not found: {lib_name}: {dir_name}", "DB")
 
     def count_item(self, item: str) -> list:
         result = defaultdict(int)
@@ -263,7 +260,6 @@ class Projects:
         self.session.commit()
 
     def update_item(self, project: dict):
-        print(project)
         _id = project["_id"]
         columns = self.get_columns(exclude=["_id"])
 
@@ -290,7 +286,6 @@ def make_search_body(project: dict):
 
 
 def update_projects(projects: Projects) -> None:
-
     libs = utils.read_libs()
 
     for lib_name, lib_data in libs.items():
@@ -316,6 +311,7 @@ def update_projects(projects: Projects) -> None:
         dirs_not_in_db, dirs_not_exist = check_dirs(projects, lib_name, dirs)
 
         for dir in dirs_not_exist:
+            log(f"Dir not exist: {dir}", "check-dirs")
             projects.delete_by_dir_and_lib(dir, lib_name)
 
         for dir in dirs_not_in_db:
@@ -361,8 +357,6 @@ def check_dirs(projects: Projects, lib_name: str, dirs: list[str]) -> tuple:
 def get_v_info(path: str) -> dict | None:
     with open('./backend/v_info.json', 'r', encoding='utf-8') as f:
         v_info = json.load(f)
-
-    print(os.path.join(path, "sf.viewer/v_info.json"))
 
     if os.path.exists(os.path.join(path, "sf.viewer/v_info.json")):
         with open(os.path.join(path, "sf.viewer/v_info.json"), "r", encoding='utf-8') as f:

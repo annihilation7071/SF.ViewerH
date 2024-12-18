@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from backend import utils, downloader
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
-from backend import logger as l
+from backend.logger import log
 import mimetypes
 from urllib.parse import quote, unquote
 
