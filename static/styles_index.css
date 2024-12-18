@@ -123,3 +123,16 @@ main {
     z-index: 2;
     flex-direction: column;
 }
+
+.project-item-preview-lvariants-count {
+    color: black;
+    display: inline-flex;
+    position: absolute;
+    z-index: 2;
+    right: 0;
+    padding: 5px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 0 0 0 50%;
+    border-left: 1px solid;
+    border-bottom: 1px solid;
+}
