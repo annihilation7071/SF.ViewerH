@@ -23,7 +23,12 @@ def edit(projects, data: str | list, project: dict, separator: str = "\n"):
     lids = [variant.split(":")[0] for variant in variants]
 
     # Old variants
-    old_variants = project["lvariants"]
+    old_variants = set()
+    old_variants = old_variants | set(project["lvariants"])
+    for lid in lids:
+        old_variants = old_variants | set(projects.get_project_by_lid(lid)["lvariants"])
+    old_variants = list(old_variants)
+
     log(f"Old variants: {old_variants}", "variants-3")
     old_lids = [variant.split(":")[0] for variant in old_variants]
 
@@ -32,13 +37,22 @@ def edit(projects, data: str | list, project: dict, separator: str = "\n"):
         raise Exception("Some projects not loaded")
     log(f"Availability checked", "variants-3")
 
-    # Clear old variants
-    projects.delete_pool(old_variants)
+    # Clear old variants (pools)
+    unique_variants = [project["lvariants"]]
+    unique_chesk = {str(project["lvariants"])}
+    for lid in lids + old_lids:
+        prjv = projects.get_project_by_lid(lid)["lvariants"]
+        if str(prjv) not in unique_chesk:
+            unique_variants.append(prjv)
+            unique_chesk.add(str(prjv))
+
+    for variant in unique_variants:
+        projects.delete_pool(variant)
 
     old_projects = [projects.get_project_by_lid(lid) for lid in old_lids]
 
     for t_project in old_projects:
-        eutils.update_data(projects, t_project, ["lvariants", "active"], [[], True])
+        eutils.update_data(projects, t_project, ["lvariants", "active"], [[], True], multiple=True)
 
     # Find priority project
     priority = []

@@ -284,6 +284,9 @@ class Projects:
             variants_editor.edit(self, variant, dict_project)
             log(f"Project: {project.lid}: received from variant-editor", "variants-3")
 
+    def update_aliases(self):
+        pass
+
     def get_columns(self, exclude: list | tuple = None):
         # noinspection PyTypeChecker
         columns = [column.name for column in Project.__table__.columns]

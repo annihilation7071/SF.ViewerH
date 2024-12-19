@@ -124,3 +124,11 @@ def to_time(str_time: str | int, format: str = None) -> str | bool:
     elif isinstance(str_time, int):
         date = datetime.fromtimestamp(1566440093)
         return date.strftime(target_format)
+
+
+def get_aliases():
+    files = os.listdir("./data/aliases/")
+    files = [file for file in files if (file.startswith("aliases") and file.startswith(".json"))]
+
+    with open('./data/aliases.json', 'r') as f:
+        aliases = json.load(f)
