@@ -21,22 +21,23 @@ def start(file):
             f"---------\n")
 
     if file not in files:
-        with open(os.path.join(path, file), 'w', encoding="utf-8") as f:
+        with open(os.path.join(path, file), 'a+', encoding="utf-8") as f:
             f.write(text)
         files.add(file)
 
 
 def log(message, file: str = "log.txt"):
 
-    start(file)
-
     if file.endswith(".txt") is False:
         file = file + ".txt"
+
+    start(file)
 
     text = f"    <LOG: {datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}>    {message}\n"
 
     with open(os.path.join(path, "log.txt"), "a+", encoding="utf-8") as f:
         f.write(text)
 
-    with open(os.path.join(path, file), "a+", encoding="utf-8") as f:
-        f.write(text)
+    if file != "log.txt":
+        with open(os.path.join(path, file), "a+", encoding="utf-8") as f:
+            f.write(text)

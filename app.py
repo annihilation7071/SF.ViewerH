@@ -14,6 +14,7 @@ PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
 
 projects = Projects()
+
 projects.update_projects()
 
 app = FastAPI()

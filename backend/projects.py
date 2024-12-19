@@ -70,6 +70,40 @@ class Projects:
         preview_path = os.path.abspath(os.path.join(project_path, preview_name))
         return preview_path
 
+    def _gen_extra_parameters(self, project: Project) -> dict:
+        project_path = self._get_project_path(project)
+        files = os.listdir(project_path)
+
+        # Preview
+        preview_name = ""
+
+        for file in files:
+            if file.startswith("preview") or file.startswith("_preview"):
+                preview_name = file
+                break
+
+        if preview_name == "":
+            preview_name = project.preview
+
+        preview_path = os.path.abspath(os.path.join(project_path, preview_name))
+
+        # Pages
+        exts = {".png", ".jpg", ".jpeg", ".gif", ".avif", ".webp",
+                ".bmp", ".tif", ".tiff", ".apng",
+                ".mng", ".flif", ".bpg", ".jxl", ".qoi", ".hif"}
+        pages = len([file for file in files if os.path.splitext(file)[1] in exts])
+
+        return {
+            "path": self._get_project_path(project),
+            "preview_path": preview_path,
+            "pages": pages,
+            "id": project._id,
+            "upload_date_str": project.upload_date.strftime("%Y-%m-%dT%H:%M:%S"),
+            "variants_view": [variant.split(":")[1] for variant in project.lvariants],
+            "flags": self._get_flags_paths(project.language),
+            "lvariants_count": len(project.lvariants),
+        }
+
     def db(self):
         return self.session
 
@@ -110,15 +144,7 @@ class Projects:
         selected_projects = self.projects.offset(((page - 1) * ppg)).limit(ppg)
         projects = []
         for project in selected_projects:
-            projects.append({
-                "id": project._id,
-                "lid": project.lid,
-                "title": project.title,
-                "subtitle": project.subtitle,
-                "preview_path": self._get_project_preview_path(project),
-                "flags": self._get_flags_paths(project.language),
-                "lvariants_count": len(project.lvariants),
-            })
+            projects.append({**project.to_dict(), **self._gen_extra_parameters(project)})
 
         return projects
 
@@ -137,13 +163,7 @@ class Projects:
         else:
             project = self.session.query(Project).filter_by(lid=lid).first()
 
-        dict_project = project.to_dict()
-        dict_project["variants_view"] = [variant.split(":")[1] for variant in dict_project["lvariants"]]
-        # dict_project["variants_view"] = [variant for variant in dict_project["variants_view"] if len(variant) > 0]
-        dict_project["path"] = self._get_project_path(project)
-        dict_project["id"] = dict_project["_id"]
-        dict_project["preview_path"] = self._get_project_preview_path(project)
-        dict_project["upload_date_str"] = dict_project["upload_date"].strftime("%Y-%m-%dT%H:%M:%S")
+        dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
 
         return dict_project
 
@@ -230,21 +250,39 @@ class Projects:
         return pool["lid"]
 
     def update_pools_v(self, force: bool = False):
-        variants = self.session.query(Project.lvariants).filter(
-            func.json_array_length(Project.lvariants) > 0).distinct().all()
+        projects_with_variants = self.session.query(Project).filter(
+            func.json_array_length(Project.lvariants) > 0).all()
 
-        variants = [variant[0] for variant in variants]
-        for variant in variants:
+        unique_variants = []
+        unique_check = set()
+        for project in projects_with_variants:
+            if str(project.lvariants) not in unique_check:
+                unique_check.add(str(project.lvariants))
+                unique_variants.append(project)
+        projects_with_variants = unique_variants
+
+        log(f"Selected projects with variants: {len(projects_with_variants)}", "variants-3")
+        for project in projects_with_variants:
+            log(f"Selected projects: {project.lid}: {project.title}: {project.lvariants}", "variants-3")
+
+        for project in projects_with_variants:
+            log(f"Project: {project.lid}: start", "variants-3")
+            variant = project.lvariants
             exist_pool = self.session.query(Project).filter(Project.lvariants == variant,
                                                             Project.lid.icontains("pool_"))
+            log(f"Exist pools: {[pool.lid for pool in exist_pool]}", "variants-3")
             if (count := exist_pool.count()) > 0:
                 if force is True or count > 1:
                     exist_pool.delete()
                     self.session.commit()
                 else:
-                    return
+                    continue
 
-            variants_editor.edit(self, variant, variant)
+            dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
+
+            log(f"Project: {project.lid}: send to variant-editor", "variants-3")
+            variants_editor.edit(self, variant, dict_project)
+            log(f"Project: {project.lid}: received from variant-editor", "variants-3")
 
     def get_columns(self, exclude: list | tuple = None):
         # noinspection PyTypeChecker
@@ -284,8 +322,11 @@ def make_search_body(project: dict):
 
     for k, v in project.items():
         if k in include:
-            for item in v:
-                search_body += f"{k}:{item.lower()};;;"
+            if isinstance(v, list):
+                for item in v:
+                    search_body += f"{k}:{item.lower()};;;"
+            else:
+                search_body += f"{k}:{v};;;"
 
     return search_body
 

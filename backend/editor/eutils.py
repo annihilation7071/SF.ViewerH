@@ -14,7 +14,8 @@ def update_data(projects, project: dict, target: str | list, new_data, multiple:
         v_info = json.load(f)
 
     for i in range(0, len(target)):
-        v_info[target[i]] = new_data[i]
+        if target[i] in v_info:
+            v_info[target[i]] = new_data[i]
 
     with open(path, "w", encoding="utf-8") as f:
         json.dump(v_info, f, indent=4)
@@ -23,8 +24,9 @@ def update_data(projects, project: dict, target: str | list, new_data, multiple:
         v_info = json.load(f)
 
     for i in range(0, len(target)):
-        if v_info[target[i]] != new_data[i]:
-            raise IOError("Failed to update data in v_info.json")
+        if target[i] in v_info:
+            if v_info[target[i]] != new_data[i]:
+                raise IOError("Failed to update data in v_info.json")
 
     # DB
     for i in range(0, len(target)):
