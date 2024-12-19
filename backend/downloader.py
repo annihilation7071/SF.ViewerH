@@ -20,8 +20,12 @@ def download(url):
         print(f"Site {site} not allowed")
         return
 
-    with open("./settings/download/download_targets.json", "r", encoding="utf-8") as f:
-        targets = json.load(f)
+    if os.path.exists("./settings/download/download_targets.json"):
+        with open("./settings/download/download_targets.json", "r", encoding="utf-8") as f:
+            targets = json.load(f)
+    else:
+        with open("./settings/download/download_targets_default.json", "r", encoding="utf-8") as f:
+            targets = json.load(f)
 
     if site not in targets:
         print(f"Not found setting for {site} in download_targets.json")

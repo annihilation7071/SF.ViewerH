@@ -7,7 +7,7 @@ misc.xml
 /settings/download/*
 !/settings/download/config_nhentai_example.json
 !/settings/download/config_gallery-dl_example.json
-!/settings/download/download_targets.json
+!/settings/download/download_targets_default.json
 /settings/libs/*
 !/settings/libs/libs_default.json
 saved_page
