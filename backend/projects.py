@@ -319,7 +319,7 @@ class Projects:
 def make_search_body(project: dict):
     include = ["source_id", "source", "url", "downloader", "title", "subtitle",
                "parody", "character", "tag", "artist", "group", "language",
-               "category", "series"]
+               "category", "series", "lib"]
 
     search_body = ";;;"
 
