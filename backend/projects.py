@@ -1,7 +1,7 @@
 import os
 import json
 from backend.db.connect import Project, get_session
-from sqlalchemy import desc, and_, func
+from sqlalchemy import desc, and_, func, or_
 from datetime import datetime
 from collections import defaultdict
 from backend.editor import variants_editor
@@ -9,6 +9,7 @@ from sqlalchemy.dialects.sqlite import JSON
 from backend import cmdargs, logger, utils
 from importlib import import_module
 from backend.logger import log
+from backend.editor import eutils
 
 
 # noinspection PyMethodMayBeStatic,PyProtectedMember
@@ -285,7 +286,29 @@ class Projects:
             log(f"Project: {project.lid}: received from variant-editor", "variants-3")
 
     def update_aliases(self):
-        pass
+        aliases = utils.get_aliases()
+        search_query = [
+            or_(
+                func.json_each_text(Project.tag) == alias,
+                func.json_each_text(Project.artist) == alias,
+                func.json_each_text(Project.character) == alias,
+                func.json_each_text(Project.group) == alias,
+                func.json_each_text(Project.parody) == alias
+            )
+            for alias in aliases.keys()
+        ]
+        incorrect_aliases = self.active_projects.filter(or_(*search_query)).all()
+
+        for project in incorrect_aliases:
+            dict_project = project.to_dict()
+            update = defaultdict(list)
+
+            for category in ["tag", "artist", "group", "parody", "character"]:
+                items = dict_project[category]
+                items = [item if (item not in aliases) else item for item in items if item]
+                update[category] = items
+
+                eutils.update_data(self, dict_project, list(update.keys()), update.values())
 
     def get_columns(self, exclude: list | tuple = None):
         # noinspection PyTypeChecker

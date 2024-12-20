@@ -130,5 +130,15 @@ def get_aliases():
     files = os.listdir("./data/aliases/")
     files = [file for file in files if (file.startswith("aliases") and file.startswith(".json"))]
 
-    with open('./data/aliases.json', 'r') as f:
-        aliases = json.load(f)
+    aliases = {}
+    for file in files:
+        with open(os.path.join("./data/aliases/", file), 'r', encoding="utf-8") as f:
+            aliases_file = json.load(f)
+
+        a = len(aliases)
+        if len(aliases.keys() - aliases_file.keys()) > a:
+            raise IOError(f"ERROR: Aliases files contain the same names")
+
+        aliases.update(aliases_file)
+
+    return aliases
