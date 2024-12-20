@@ -308,7 +308,18 @@ class Projects:
                 items = [item if (item not in aliases) else item for item in items if item]
                 update[category] = items
 
+            update = dict(update)
+            # noinspection PyDictCreation
+            dict_project = {**dict_project, **update}
+            update["search_body"] = make_search_body(dict_project)
+            dict_project["search_body"] = update["search_body"]
+
+            if project.lid.startswith("pool_") is False:
                 eutils.update_data(self, dict_project, list(update.keys()), update.values())
+            else:
+
+                self.session.query(Project).filter_by(_id=project._id).update(update)
+                self.session.commit()
 
     def get_columns(self, exclude: list | tuple = None):
         # noinspection PyTypeChecker
