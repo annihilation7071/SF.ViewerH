@@ -55,17 +55,7 @@ def edit(projects, data: str | list, project: dict, separator: str = "\n"):
         eutils.update_data(projects, t_project, ["lvariants", "active"], [[], True], multiple=True)
 
     # Find priority project
-    priority = []
-    non_priority = []
-    for variant in variants:
-        variant = variant.split(":")
-        if len(variant) == 3:
-            if variant[2] in ["priority", "p"]:
-                priority.append(variant)
-            else:
-                raise Exception(f"Unknown marker {variant[2]}")
-        else:
-            non_priority.append(variant)
+    priority, non_priority = separate_priority(variants)
 
     log(f"Priority: {priority}", "variants-3")
     log(f"Non priority: {non_priority}", "variants-3")
@@ -91,3 +81,19 @@ def edit(projects, data: str | list, project: dict, separator: str = "\n"):
         return projects.create_priority(priority, non_priority)
 
     return
+
+
+def separate_priority(variants: list) -> tuple[list, list]:
+    priority = []
+    non_priority = []
+    for variant in variants:
+        variant = variant.split(":")
+        if len(variant) == 3:
+            if variant[2] in ["priority", "p"]:
+                priority.append(variant)
+            else:
+                raise Exception(f"Unknown marker {variant[2]}")
+        else:
+            non_priority.append(variant)
+
+    return priority, non_priority

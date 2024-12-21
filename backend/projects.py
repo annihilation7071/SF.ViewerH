@@ -224,11 +224,16 @@ class Projects:
         self.session.query(Project).filter(and_(Project.lid.icontains("pool_"), Project.lvariants == variants)).delete()
         self.session.commit()
 
-    def create_priority(self, priority: list, non_priority: list):
+    def create_priority(self, priority: list, non_priority: list, lid: str = None, update: bool = False) -> None:
+        if update is True and lid is None:
+            raise ValueError("For update priority lid must be provided")
+        elif update is False and lid is not None:
+            raise ValueError("Lid should be provided only if update is True")
+
         # priority and non_priority:
         # [[lid, description], [lid, despription]]
         pool = self.get_project_by_lid(priority[0][0])
-        pool["lid"] = f"pool_{utils.gen_lid()}"
+        pool["lid"] = f"pool_{utils.gen_lid()}" if lid is None else lid
         pool.pop("_id", None)
 
         # union some data
@@ -241,8 +246,13 @@ class Projects:
             pool["series"] = list(set(pool["series"]) | set(nproject["series"]))
             pool["parody"] = list(set(pool["parody"]) | set(nproject["parody"]))
 
+        pool["search_body"] = make_search_body(pool)
+
         # add pool to DB
-        self.add_project(pool)
+        if lid is None:
+            self.add_project(pool)
+        else:
+            self.update_item(pool, key=lid)
 
         # deactivate original projects
         lids = [p[0] for p in (priority + non_priority)]
@@ -250,6 +260,23 @@ class Projects:
 
         self.session.commit()
         return pool["lid"]
+
+    def update_priority(self, project: dict):
+        pool = self.session.query(Project).filter(
+            Project.lvariants == project["lvariants"],
+            Project.lid.startswith("pool_")
+        ).all
+
+        if len(pool) == 0:
+            raise ValueError("No pool found")
+        elif len(pool) > 2:
+            raise ValueError("Too many pool found")
+
+        pool = pool[0]
+
+        priority, non_priority = variants_editor.separate_priority(pool.to_dict)
+
+        self.create_priority(priority, non_priority, lid=pool.lid, update=True)
 
     def update_pools_v(self, force: bool = False):
         projects_with_variants = self.session.query(Project).filter(
@@ -340,14 +367,21 @@ class Projects:
         self.session.add(project)
         self.session.commit()
 
-    def update_item(self, project: dict):
-        _id = project["_id"]
+    def update_item(self, project: dict, key: str = "_id"):
+        if key == "_id":
+            _id = project["_id"]
+        elif key == "lid":
+            lid = project["lid"]
+
         columns = self.get_columns(exclude=["_id"])
 
-        project = {column: project[column] for column in columns}
         project["search_body"] = make_search_body(project)
+        project = {column: project[column] for column in columns}
 
-        self.session.query(Project).filter_by(_id=_id).update(project)
+        if key == "_id":
+            self.session.query(Project).filter_by(_id=_id).update(project)
+        elif key == "lid":
+            self.session.query(Project).filter_by(lid=lid).update(project)
         self.session.commit()
 
 
