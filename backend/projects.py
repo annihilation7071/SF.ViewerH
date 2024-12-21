@@ -114,6 +114,7 @@ class Projects:
     def update_projects(self):
         update_projects(self)
         self.update_pools_v()
+        self.update_aliases()
 
     def _filter(self, search: str | None):
         search = self._normalize_search(search)
@@ -287,25 +288,26 @@ class Projects:
 
     def update_aliases(self):
         aliases = utils.get_aliases()
+        aliases["nothing"] = "nothing"
         search_query = [
             or_(
-                func.json_each_text(Project.tag) == alias,
-                func.json_each_text(Project.artist) == alias,
-                func.json_each_text(Project.character) == alias,
-                func.json_each_text(Project.group) == alias,
-                func.json_each_text(Project.parody) == alias
+                Project.tag.icontains(f'"{alias}"'),
+                Project.artist.icontains(f'"{alias}"'),
+                Project.character.icontains(f'"{alias}"'),
+                Project.parody.icontains(f'"{alias}"'),
+                Project.group.icontains(f'"{alias}"'),
             )
             for alias in aliases.keys()
         ]
         incorrect_aliases = self.active_projects.filter(or_(*search_query)).all()
 
         for project in incorrect_aliases:
-            dict_project = project.to_dict()
+            dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
             update = defaultdict(list)
 
             for category in ["tag", "artist", "group", "parody", "character"]:
                 items = dict_project[category]
-                items = [item if (item not in aliases) else item for item in items if item]
+                items = [item if (item not in aliases) else aliases[item] for item in items if item]
                 update[category] = items
 
             update = dict(update)
@@ -315,9 +317,8 @@ class Projects:
             dict_project["search_body"] = update["search_body"]
 
             if project.lid.startswith("pool_") is False:
-                eutils.update_data(self, dict_project, list(update.keys()), update.values(), multiple=True)
+                eutils.update_data(self, dict_project, list(update.keys()), list(update.values()), multiple=True)
             else:
-
                 self.session.query(Project).filter_by(_id=project._id).update(update)
                 self.session.commit()
 

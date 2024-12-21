@@ -127,7 +127,7 @@ def to_time(str_time: str | int, format: str = None) -> str | bool:
 
 def get_aliases():
     files = os.listdir("./settings/aliases/")
-    files = [file for file in files if (file.startswith("aliases") and file.startswith(".json"))]
+    files = [file for file in files if (file.startswith("aliases") and file.endswith(".json"))]
 
     aliases = {}
     for file in files:
