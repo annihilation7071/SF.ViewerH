@@ -3,7 +3,7 @@ from backend.editor import eutils
 from backend.logger import log
 
 
-def edit(projects, data: str | list, project: dict, separator: str = "\n"):
+def edit(projects, project: dict, data: str | list, separator: str = "\n"):
     log(f"Project received by project_editor: {project['lid']}", "variants-3")
     # New variants
     if isinstance(data, str):
@@ -73,7 +73,7 @@ def edit(projects, data: str | list, project: dict, separator: str = "\n"):
     target_projects = [projects.get_project_by_lid(lid) for lid in lids]
 
     for t_project in target_projects:
-        eutils.update_data(projects, t_project, "lvariants", variants)
+        eutils.update_data(projects, t_project, "lvariants", variants, update_priority=False)
 
     # Create priority
     if len(priority) == 1:

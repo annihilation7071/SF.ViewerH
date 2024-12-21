@@ -237,8 +237,8 @@ class Projects:
         pool.pop("_id", None)
 
         # union some data
-        for lid in non_priority:
-            nproject = self.get_project_by_lid(lid[0])
+        for _lid in non_priority:
+            nproject = self.get_project_by_lid(_lid[0])
             pool["tag"] = list(set(pool["tag"]) | set(nproject["tag"]))
             pool["language"] = list(set(pool["language"]) | set(nproject["language"]))
             pool["group"] = list(set(pool["group"]) | set(nproject["group"]))
@@ -251,6 +251,7 @@ class Projects:
         # add pool to DB
         if lid is None:
             self.add_project(pool)
+            self.session.commit()
         else:
             self.update_item(pool, key=lid)
 
@@ -265,7 +266,7 @@ class Projects:
         pool = self.session.query(Project).filter(
             Project.lvariants == project["lvariants"],
             Project.lid.startswith("pool_")
-        ).all
+        ).all()
 
         if len(pool) == 0:
             raise ValueError("No pool found")
@@ -274,7 +275,7 @@ class Projects:
 
         pool = pool[0]
 
-        priority, non_priority = variants_editor.separate_priority(pool.to_dict)
+        priority, non_priority = variants_editor.separate_priority(pool.lvariants)
 
         self.create_priority(priority, non_priority, lid=pool.lid, update=True)
 
@@ -310,7 +311,7 @@ class Projects:
             dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
 
             log(f"Project: {project.lid}: send to variant-editor", "variants-3")
-            variants_editor.edit(self, variant, dict_project)
+            variants_editor.edit(self, dict_project, variant)
             log(f"Project: {project.lid}: received from variant-editor", "variants-3")
 
     def update_aliases(self):

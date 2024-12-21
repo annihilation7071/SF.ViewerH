@@ -104,6 +104,7 @@
                     {% for series in project.series %}
                     <a href="{{ request.url_for('index') }}?search=series:{{ series }}&page=1" class="tag tag-click">{{ series }}</a>
                     {% endfor %}
+                    <button class="edit-button" data-type="edit-series" data-content="{{ '\n'.join(project.series) }}">+</button>
                 </div>
             </div>
 
