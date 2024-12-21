@@ -32,3 +32,9 @@ def update_data(projects, project: dict, target: str | list, new_data, multiple:
     for i in range(0, len(target)):
         project[target[i]] = new_data[i]
     projects.update_item(project)
+
+
+def update_data_2(projects, project: dict):
+    target_columns = list(project.keys())
+    new_data = list(project.values())
+    update_data(projects, project, target_columns, new_data)
