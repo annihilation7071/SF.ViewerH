@@ -315,7 +315,7 @@ class Projects:
             dict_project["search_body"] = update["search_body"]
 
             if project.lid.startswith("pool_") is False:
-                eutils.update_data(self, dict_project, list(update.keys()), update.values())
+                eutils.update_data(self, dict_project, list(update.keys()), update.values(), multiple=True)
             else:
 
                 self.session.query(Project).filter_by(_id=project._id).update(update)

@@ -23,3 +23,5 @@ __pycache__
 /logs/*
 !/logs/
 log*.txt
+/settings/aliases/*
+!/settings/aliases/aliases_default.json

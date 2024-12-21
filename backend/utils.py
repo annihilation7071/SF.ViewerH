@@ -78,8 +78,7 @@ def tag_normalizer(tags: str | list | int, lower: bool = True, ali: bool = True)
     if isinstance(tags, int):
         return tags
 
-    with open('./data/aliases.json', 'r') as f:
-        aliases = json.load(f)
+    aliases = get_aliases()
 
     # noinspection PyShadowingNames
     def normalize(tag: str) -> str:
@@ -127,12 +126,12 @@ def to_time(str_time: str | int, format: str = None) -> str | bool:
 
 
 def get_aliases():
-    files = os.listdir("./data/aliases/")
+    files = os.listdir("./settings/aliases/")
     files = [file for file in files if (file.startswith("aliases") and file.startswith(".json"))]
 
     aliases = {}
     for file in files:
-        with open(os.path.join("./data/aliases/", file), 'r', encoding="utf-8") as f:
+        with open(os.path.join("./settings/aliases/", file), 'r', encoding="utf-8") as f:
             aliases_file = json.load(f)
 
         a = len(aliases)
