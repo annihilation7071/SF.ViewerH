@@ -88,12 +88,14 @@ header {
 }
 
 .extra_header {
+    min-height: 2.5vh;
     background-color: #393939;
     color: white;
     padding: 5px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
 }
 
 .extra-nav-buttons {

@@ -9,6 +9,21 @@
 </head>
 <body>
     {% include 'header.html' %}
+    <div class="extra_header">
+        <div class="sorting-container">
+            <label class="sorting-label">Sorting method</label>
+            <form action="/sorting" method="POST" class="sorting-form">
+                <input type="hidden" name="sorting-method" value="upload_date">
+                <input type="hidden" name="search" value="{{ request.query_params.get('search', '') }}">
+                <button type="submit" class="sorting-button">Upload Date</button>
+            </form>
+            <form action="/sorting" method="POST" class="sorting-form">
+                <input type="hidden" name="sorting-method" value="preview_hash">
+                <input type="hidden" name="search" value="{{ request.query_params.get('search', '') }}">
+                <button type="submit" class="sorting-button">Preview Hash</button>
+            </form>
+        </div>
+    </div>
     <main>
         <div class="grid-container">
             {% for project in projects %}

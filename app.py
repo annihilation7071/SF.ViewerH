@@ -186,6 +186,20 @@ async def update_tags(
         return RedirectResponse(url, status_code=303)
 
 
+@app.post("/sorting")
+async def update_tags(
+    request: Request,
+    sorting_method: str = Form(..., alias="sorting-method"),
+    search: str = Form(...)
+):
+
+    projects.select_sorting_method(sorting_method)
+
+    return RedirectResponse(
+        f"/?page=1&search={search}", status_code=303
+    )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=1707, log_level="debug")
