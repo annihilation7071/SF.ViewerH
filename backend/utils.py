@@ -6,6 +6,7 @@ from PIL import Image
 import imagehash
 from pathlib import Path
 from icecream import ic
+ic.configureOutput(includeContext=True)
 
 def get_pages(project: dict):
     extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.avif', '.webp']

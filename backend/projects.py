@@ -13,6 +13,7 @@ from backend.editor import eutils
 from backend.upgrade import vinfo
 from icecream import ic
 from pathlib import Path
+ic.configureOutput(includeContext=True)
 
 
 # noinspection PyMethodMayBeStatic,PyProtectedMember
@@ -23,7 +24,8 @@ class Projects:
         active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
         self.all_projects = self.session.query(Project).filter(Project.lib.in_(active_libs))
         self.active_projects = self.all_projects.filter(Project.active == 1)
-        self.projects = self.active_projects.order_by(desc(Project.upload_date))
+        self.sorting_method = Project.upload_date
+        self.projects = self.active_projects.order_by(desc(self.sorting_method))
         self.search = ""
 
     def _get_project_path(self, project: Project) -> str:
@@ -136,7 +138,7 @@ class Projects:
 
         if search is None or search == "":
             self.search = ""
-            self.projects = self.active_projects.order_by(desc(Project.upload_date))
+            self.projects = self.active_projects.order_by(desc(self.sorting_method))
             return
 
         def f(item: str):
@@ -150,10 +152,20 @@ class Projects:
         search_query = [Project.search_body.icontains(f(item)) for item in search]
 
         self.projects = self.active_projects.filter(and_(*search_query))
-        self.projects = self.projects.order_by(desc(Project.upload_date))
+        self.projects = self.projects.order_by(desc(self.sorting_method))
+
+    def select_sorting_method(self, method: str):
+        available = {"upload_date", "preview_hash"}
+        if method in available:
+            self.sorting_method = getattr(Project, method)
+            self.projects = self.projects.order_by(None).order_by(desc(self.sorting_method))
+            ic(f"Sorting method {method} selected")
+        else:
+            raise Exception(f"Method {method} not supported")
 
     def get_page(self, ppg: int, page: int = 1, search: str = None):
         self._filter(search)
+        ic(str(self.projects))
 
         selected_projects = self.projects.offset(((page - 1) * ppg)).limit(ppg)
         projects = []

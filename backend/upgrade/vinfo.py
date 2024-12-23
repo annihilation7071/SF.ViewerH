@@ -2,6 +2,7 @@ import json
 from backend import utils
 from pathlib import Path
 from icecream import ic
+ic.configureOutput(includeContext=True)
 
 
 def upgrade(project_path: str | Path) -> None:

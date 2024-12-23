@@ -18,6 +18,7 @@ PPG = PROJECTS_PER_PAGE
 projects = Projects()
 
 projects.update_projects()
+# projects.select_sorting_method("preview_hash")
 
 app = FastAPI()
 
