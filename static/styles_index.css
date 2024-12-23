@@ -149,21 +149,27 @@ main {
     border-bottom: 1px solid;
 }
 
+.pages-count-container {
+    display: inline-flex;
+    position: absolute;
+    left: 0;
+}
+
 .sorting-container {
     display: inline-flex;
     position: absolute;
     right: 0;
 }
 
-.sorting-label {
+.button-label {
     padding-right: 0.25vw;
 }
 
-.sorting-form {
+.form-1 {
     padding: 0 0.25vw 0 0.25vw;
 }
 
-.sorting-button {
+.button-1 {
     border-radius: 5px;
     padding: 0.1vw 0.5vw;
     background-color: #DFDFDF;

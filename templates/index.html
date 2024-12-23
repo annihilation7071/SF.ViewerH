@@ -10,17 +10,41 @@
 <body>
     {% include 'header.html' %}
     <div class="extra_header">
+        <div class="pages-count-container">
+            <label class="button-label">Project per page</label>
+            <form action="/pages_count" method="POST" class="form-1">
+                <input type="hidden" name="pages-count" value="60">
+                <input type="hidden" name="search" value="{{ request.query_params.get('search', '') }}">
+                <button type="submit" class="button-1">60</button>
+            </form>
+            <form action="/pages_count" method="POST" class="form-1">
+                <input type="hidden" name="pages-count" value="120">
+                <input type="hidden" name="search" value="{{ request.query_params.get('search', '') }}">
+                <button type="submit" class="button-1">120</button>
+            </form>
+            <form action="/pages_count" method="POST" class="form-1">
+                <input type="hidden" name="pages-count" value="180">
+                <input type="hidden" name="search" value="{{ request.query_params.get('search', '') }}">
+                <button type="submit" class="button-1">180</button>
+            </form>
+            <form action="/pages_count" method="POST" class="form-1">
+                <input type="hidden" name="pages-count" value="240">
+                <input type="hidden" name="search" value="{{ request.query_params.get('search', '') }}">
+                <button type="submit" class="button-1">240</button>
+            </form>
+
+        </div>
         <div class="sorting-container">
-            <label class="sorting-label">Sorting method</label>
-            <form action="/sorting" method="POST" class="sorting-form">
+            <label class="button-label">Sorting method</label>
+            <form action="/sorting" method="POST" class="form-1">
                 <input type="hidden" name="sorting-method" value="upload_date">
                 <input type="hidden" name="search" value="{{ request.query_params.get('search', '') }}">
-                <button type="submit" class="sorting-button">Upload Date</button>
+                <button type="submit" class="button-1">Upload Date</button>
             </form>
-            <form action="/sorting" method="POST" class="sorting-form">
+            <form action="/sorting" method="POST" class="form-1">
                 <input type="hidden" name="sorting-method" value="preview_hash">
                 <input type="hidden" name="search" value="{{ request.query_params.get('search', '') }}">
-                <button type="submit" class="sorting-button">Preview Hash</button>
+                <button type="submit" class="button-1">Preview Hash</button>
             </form>
         </div>
     </div>

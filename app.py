@@ -200,6 +200,21 @@ async def update_tags(
     )
 
 
+@app.post("/pages_count")
+async def update_tags(
+    request: Request,
+    pages_count: str = Form(..., alias="pages-count"),
+    search: str = Form(...)
+):
+
+    global PPG
+    PPG = int(pages_count)
+
+    return RedirectResponse(
+        f"/?page=1&search={search}", status_code=303
+    )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=1707, log_level="debug")
