@@ -40,6 +40,7 @@ class Project(Base):
     lib = Column(String)
     search_body = Column(String(length=3000))
     active = Column(Boolean, default=True)
+    preview_hash = Column(String(length=500))
 
 
 # class PoolV(Base):
@@ -51,7 +52,7 @@ class Project(Base):
 
 
 def get_session():
-    engine = create_engine(f'sqlite:///data/DB/dbv1.db')
+    engine = create_engine(f'sqlite:///data/DB/dbv2.db')
     Base.metadata.create_all(engine)
 
     # noinspection PyPep8Naming

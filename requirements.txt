@@ -3,3 +3,6 @@ SQLAlchemy~=2.0.36
 playwright~=1.49.0
 uvicorn~=0.34.0
 fastapi~=0.115.6
+ImageHash~=4.3.1
+pillow~=11.0.0
+icecream~=2.1.3

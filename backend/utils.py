@@ -2,7 +2,10 @@ import os
 import json
 from datetime import datetime
 import uuid
-
+from PIL import Image
+import imagehash
+from pathlib import Path
+from icecream import ic
 
 def get_pages(project: dict):
     extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.avif', '.webp']
@@ -141,3 +144,33 @@ def get_aliases():
         aliases.update(aliases_file)
 
     return aliases
+
+
+def get_imagehash(path: str | Path) -> str:
+    realpatch_original = os.path.realpath
+    os.path.realpath = os.path.abspath
+
+    image = Image.open(path)
+    hash_ = str(imagehash.phash(image))
+    ic(f"Hash for {path}: {hash_}")
+
+    os.path.realpath = realpatch_original
+
+    return hash_
+
+
+def update_vinfo(project_path: str | Path, keys: list, values: list):
+    path = Path(project_path)
+    path = path / "sf.viewer/v_info.json"
+
+    with open(path, 'r', encoding="utf-8") as f:
+        vinfo = json.load(f)
+
+    for i in range(len(keys)):
+        if keys[i] in vinfo:
+            vinfo[keys[i]] = values[i]
+        else:
+            raise IOError(f"ERROR: Key {keys[i]} not in vinfo")
+
+    with open(path, 'w', encoding="utf-8") as f:
+        json.dump(vinfo, f, indent=4)

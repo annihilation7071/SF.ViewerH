@@ -8,6 +8,8 @@ from backend.projects import Projects
 from backend.logger import log
 import mimetypes
 from urllib.parse import quote, unquote
+from icecream import ic
+ic.configureOutput(includeContext=True)
 
 
 PROJECTS_PER_PAGE = 60

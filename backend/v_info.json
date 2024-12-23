@@ -1,5 +1,5 @@
 {
-  "info_version": 2,
+  "info_version": 3,
   "lid": "-1",
   "lvariants": ["{{example_lid}}:{{example_description}}"],
   "source_id": "id",
@@ -18,5 +18,6 @@
   "language": ["language"],
   "category": ["doujinshi"],
   "series": ["example"],
-  "pages": 999
+  "pages": 999,
+  "preview_hash": "cxzvnsdfsdalkfjvcxznkvlkxczvlvcxlzvxczlkhjfds"
 }

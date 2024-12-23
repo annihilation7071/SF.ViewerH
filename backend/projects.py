@@ -10,6 +10,9 @@ from backend import cmdargs, logger, utils
 from importlib import import_module
 from backend.logger import log
 from backend.editor import eutils
+from backend.upgrade import vinfo
+from icecream import ic
+from pathlib import Path
 
 
 # noinspection PyMethodMayBeStatic,PyProtectedMember
@@ -83,8 +86,17 @@ class Projects:
                 preview_name = file
                 break
 
-        if preview_name == "":
+        if preview_name == "" or preview_name == project.preview:
             preview_name = project.preview
+        else:
+            preview_path = os.path.abspath(os.path.join(project_path, preview_name))
+            preview_hash = utils.get_imagehash(preview_path)
+
+            utils.update_vinfo(project_path, ["preview", "preview_hash"], [preview_name, preview_hash])
+
+            project.preview = preview_name
+            project.preview_hash = preview_hash
+            self.session.commit()
 
         preview_path = os.path.abspath(os.path.join(project_path, preview_name))
 
@@ -364,6 +376,7 @@ class Projects:
         project = {column: project[column] for column in columns}
         project["search_body"] = make_search_body(project)
         project = Project(**project)
+        ic(f"Project added to DB: {project.title}")
 
         self.session.add(project)
         self.session.commit()
@@ -442,6 +455,8 @@ def update_projects(projects: Projects) -> None:
             project = get_v_info(project_path)
             if project is None:
                 processor.make_v_info(project_path)
+                utils.update_vinfo(project_path, ["info_version"], [2])
+                vinfo.upgrade(project_path)
                 project = get_v_info(project_path)
 
             project["lib"] = lib_name
@@ -473,7 +488,8 @@ def check_dirs(projects: Projects, lib_name: str, dirs: list[str]) -> tuple:
     return dirs_not_in_db, dirs_not_exist
 
 
-def get_v_info(path: str) -> dict | None:
+def get_v_info(path: str | Path) -> dict | None:
+    ic(f"Getting vinfo from {path}")
     with open('./backend/v_info.json', 'r', encoding='utf-8') as f:
         v_info = json.load(f)
 
@@ -484,7 +500,8 @@ def get_v_info(path: str) -> dict | None:
         if v_info_exist["info_version"] == v_info["info_version"]:
             return v_info_exist
         else:
-            raise IOError("v_info version is not corrected")
+            vinfo.upgrade(path)
+            return get_v_info(path)
 
     else:
         return None
