@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "SF.ViewerH.Downloader.Extended",
+  "version": "1.0",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "http://127.0.0.1:1707/*",
+    "https://hitomi.la/"
+  ],
+  "action": {
+    "default_title": "Send URL to Server"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://hitomi.la/*"],
+      "js": ["content-hl.js"],
+      "css": ["styles-hl.css"]
+    }
+  ]
+}

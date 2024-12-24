@@ -9,6 +9,7 @@ from backend.logger import log
 import mimetypes
 from urllib.parse import quote, unquote
 from icecream import ic
+from fastapi.middleware.cors import CORSMiddleware
 ic.configureOutput(includeContext=True)
 
 
@@ -21,6 +22,13 @@ projects.update_projects()
 # projects.select_sorting_method("preview_hash")
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Подключение шаблонов
 templates = Jinja2Templates(directory="templates")
@@ -214,6 +222,17 @@ async def update_tags(
         f"/?page=1&search={search}", status_code=303
     )
 
+
+@app.post("/get-status")
+async def get_status(request: Request):
+    data = await request.json()
+    url = data.get("url")
+    ic(url)
+
+    if not url:
+        raise HTTPException(status_code=400, detail="URL not received")
+
+    return {"status": "success"}
 
 if __name__ == "__main__":
     import uvicorn

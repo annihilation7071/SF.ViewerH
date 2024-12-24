@@ -1,0 +1,16 @@
+.success-style {
+  border: 2px solid green;
+  background-color: #e6ffe6;
+}
+
+.error-style {
+  border: 2px solid red;
+  background-color: #ffe6e6;
+}
+
+.status-message {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}

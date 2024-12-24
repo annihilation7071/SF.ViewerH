@@ -175,3 +175,22 @@ def update_vinfo(project_path: str | Path, keys: list, values: list):
 
     with open(path, 'w', encoding="utf-8") as f:
         json.dump(vinfo, f, indent=4)
+
+
+def separate_url(url: str):
+    allowed_sites = {
+        "nhentai.net",
+        "hitomi.la"
+    }
+
+    url = url.split('//')
+    url = [url[0]] + url[1].split('/')
+    print(url)
+    protocol = url[0]
+    site = url[1]
+    address = url[2:]
+
+    if site not in allowed_sites:
+        print(f"Site {site} not allowed")
+        return
+
