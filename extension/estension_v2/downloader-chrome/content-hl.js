@@ -48,15 +48,11 @@ function executeScript() {
             console.log('cp-2')
 
             if (status === "success") {
-                console.log('applying success style')
                 item.classList.add("success-style")
-                console.log('applying success element')
-                addStatusElement(item, "Succes!")
+                addStatusElement(item, "found", "Succes!")
             } else if (status === "error") {
-                console.log('applying error style')
                 item.classList.add("error-style")
-                console.log('applying errof element')
-                addStatusElement(item, "Error!")
+                addStatusElement(item, "", "Error!")
             }
         } catch (error) {
             console.error("Error!", error)
@@ -64,9 +60,9 @@ function executeScript() {
     })
 }
 
-function addStatusElement(parent, text) {
+function addStatusElement(parent, style, text) {
     const statusElement = document.createElement("div")
-    statusElement.className = "status-message"
+    statusElement.className = `status ${style}`
     statusElement.textContent = text
     parent.appendChild(statusElement)
 }
