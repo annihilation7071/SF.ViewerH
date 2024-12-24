@@ -3,22 +3,9 @@ import os
 
 from backend import utils
 
-allowed_sites = {
-    "nhentai.net",
-    "hitomi.la"
-}
 
-
-def download(url):
-    separate_url = url.split('//')
-    separate_url = [separate_url[0]] + separate_url[1].split('/')
-    print(separate_url)
-    protocol = separate_url[0]
-    site = separate_url[1]
-    address = separate_url[2:]
-    if site not in allowed_sites:
-        print(f"Site {site} not allowed")
-        return
+def download(url: str):
+    url, site, id_ = utils.separate_url(url)
 
     if os.path.exists("./settings/download/download_targets.json"):
         with open("./settings/download/download_targets.json", "r", encoding="utf-8") as f:
@@ -38,7 +25,7 @@ def download(url):
     if site == "nhentai.net":
         if libs[targets[site]]["processor"] == "nhentai":
             output = os.path.abspath(libs[targets[site]]["path"])
-            command = f"nhentai --download --id {address[1]} -o {output}"
+            command = f"nhentai --download --id {id_} -o {output}"
 
             if os.path.exists("./settings/download/config_nhentai.json"):
                 with open("./settings/download/config_nhentai.json", "r", encoding="utf-8") as f:
@@ -63,8 +50,7 @@ def download(url):
             os.system(command)
         elif libs[targets[site]]["processor"] == "gallery-dl-nhentai":
             output = os.path.abspath(libs[targets[site]]["path"])
-            _id: str = address[1]
-            output += f"\\{_id}"
+            output += f"\\{id_}"
             command = f"gallery-dl --write-info-json --directory={output}"
 
             if os.path.exists("./settings/download/config_gallery-dl.json"):
@@ -90,7 +76,6 @@ def download(url):
                     com = f' --cookies="{params["nhentai.net"]["cookies"]}"'
                     command += com
 
-            url = f"{protocol}//{site}/{address[0]}/{address[1]}.html"
             command += f" {url}"
 
             print(command)
@@ -99,9 +84,7 @@ def download(url):
     elif site == "hitomi.la":
         output = os.path.abspath(libs[targets[site]]["path"])
 
-        _id: str = address[1][address[1].rfind("-") + 1:].replace('#1', '').replace(".html", "")
-
-        output += f"\\{_id}"
+        output += f"\\{id_}"
 
         command = f"gallery-dl --write-info-json --directory={output}"
 
@@ -128,7 +111,6 @@ def download(url):
                 com = f' --cookies="{params["hitomi.la"]["cookies"]}"'
                 command += com
 
-        url = f"{protocol}//{site}/{address[0]}/{_id}.html"
         command += f" {url}"
 
         print(command)

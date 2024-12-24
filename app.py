@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from backend import utils, downloader
+from backend.db.connect import Project
 from backend.editor import selector as edit_selector
 from backend.projects import Projects
 from backend.logger import log
@@ -232,7 +233,21 @@ async def get_status(request: Request):
     if not url:
         raise HTTPException(status_code=400, detail="URL not received")
 
-    return {"status": "success"}
+    url, site, id_ = utils.separate_url(url)
+    ic(url, site, id_)
+
+    find_projects = projects.session.query(Project).filter(
+        Project.source == site,
+        Project.source_id == int(id_)
+    ).all()
+
+    ic(len(find_projects))
+
+    if len(find_projects) > 0:
+        ic(url)
+        return {"status": "success"}
+    else:
+        return {"status": "error"}
 
 if __name__ == "__main__":
     import uvicorn

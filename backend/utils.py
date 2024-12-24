@@ -191,6 +191,19 @@ def separate_url(url: str):
     address = url[2:]
 
     if site not in allowed_sites:
-        print(f"Site {site} not allowed")
-        return
+        raise Exception(f"{site} is not allowed")
 
+    # 'https://hitomi.la/cg/city-no.109-futago-hen-ichi-%E4%B8%AD%E6%96%87-1401507.html'
+
+    if site == "hitomi.la":
+        id_ = address[1].split("-")[-1].split(".")[0]
+
+        url = f"{protocol}://{site}/{address[0]}/{id_}.html"
+
+        return url, site, id_
+
+    if site == "nhentai.net":
+        id_ = address[1]
+        url = f"{protocol}://{site}/{address[0]}/{id_}"
+
+        return url, site, id_
