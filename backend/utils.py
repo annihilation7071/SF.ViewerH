@@ -175,6 +175,7 @@ def update_vinfo(project_path: str | Path, keys: list, values: list):
             raise IOError(f"ERROR: Key {keys[i]} not in vinfo")
 
     with open(path, 'w', encoding="utf-8") as f:
+        # noinspection PyTypeChecker
         json.dump(vinfo, f, indent=4)
 
 

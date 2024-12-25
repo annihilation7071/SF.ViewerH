@@ -23,6 +23,7 @@ projects.update_projects()
 # projects.select_sorting_method("preview_hash")
 
 app = FastAPI()
+# noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

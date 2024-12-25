@@ -3,7 +3,7 @@ console.log("hitomi.la")
 
 
 setTimeout(async () => {
-    console.log("wait 1 sec")
+    console.log("wait 0.5 sec")
     const serverUrl = "http://127.0.0.1:1707/get-status"
     const serverAvailable = await isServerAvailable(serverUrl)
 
@@ -13,11 +13,12 @@ setTimeout(async () => {
     }
 
     await executeScript()
-}, 1000)
+}, 500)
 
 
 async function executeScript() {
     let elements_count = -1
+    let count = 0
 
     async function find_elements() {
         const galleryItems = document.querySelectorAll(".gallery-content > div")

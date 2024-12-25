@@ -1,5 +1,8 @@
 import os
 import json
+
+from pydantic_core.core_schema import NoneSchema
+
 from backend.db.connect import Project, get_session
 from sqlalchemy import desc, and_, func, or_
 from datetime import datetime
@@ -119,17 +122,6 @@ class Projects:
             "lvariants_count": len(project.lvariants),
         }
 
-    def db(self):
-        return self.session
-
-    def len(self):
-        return self.projects.count()
-
-    def update_projects(self):
-        update_projects(self)
-        self.update_pools_v()
-        self.update_aliases()
-
     def _filter(self, search: str | None):
         search = self._normalize_search(search)
 
@@ -174,6 +166,53 @@ class Projects:
 
         return projects
 
+    def db(self):
+        return self.session
+
+    def len(self):
+        return self.projects.count()
+
+    def update_projects(self):
+        update_projects(self)
+        self.update_pools_v()
+        self.update_aliases()
+
+    def update_aliases(self):
+        aliases = utils.get_aliases()
+        aliases["nothing"] = "nothing"
+        search_query = [
+            or_(
+                Project.tag.icontains(f'"{alias}"'),
+                Project.artist.icontains(f'"{alias}"'),
+                Project.character.icontains(f'"{alias}"'),
+                Project.parody.icontains(f'"{alias}"'),
+                Project.group.icontains(f'"{alias}"'),
+            )
+            for alias in aliases.keys()
+        ]
+        incorrect_aliases = self.active_projects.filter(or_(*search_query)).all()
+
+        for project in incorrect_aliases:
+            dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
+            update = defaultdict(list)
+
+            for category in ["tag", "artist", "group", "parody", "character"]:
+                items = dict_project[category]
+                items = [item if (item not in aliases) else aliases[item] for item in items if item]
+                update[category] = items
+
+            update = dict(update)
+            # noinspection PyDictCreation
+            dict_project = {**dict_project, **update}
+            update["search_body"] = make_search_body(dict_project)
+            dict_project["search_body"] = update["search_body"]
+
+            if project.lid.startswith("pool_") is False:
+                eutils.update_data(self, dict_project, list(update.keys()), list(update.values()), multiple=True)
+            else:
+                self.session.query(Project).filter_by(_id=project._id).update(update)
+                self.session.commit()
+
     def get_project(self, _id: int | str = None, lid: str = None) -> dict:
         if _id is None and lid is None:
             raise ValueError("Either id or lig must be provided")
@@ -211,6 +250,13 @@ class Projects:
 
         return dirs
 
+    def get_columns(self, exclude: list | tuple = None):
+        # noinspection PyTypeChecker
+        columns = [column.name for column in Project.__table__.columns]
+        if exclude is not None:
+            columns = list(set(columns) - set(exclude))
+        return columns
+
     def delete_by_dir_and_lib(self, dir_name: str, lib_name: str):
         selected_lib = self.all_projects.filter_by(dir_name=dir_name, lib=lib_name).first()
 
@@ -220,6 +266,14 @@ class Projects:
             log(f"Row deleted: {lib_name}: {dir_name}", "DB")
         else:
             log(f"Trying to delete; Row not found: {lib_name}: {dir_name}", "DB")
+
+    def delete_pool(self, variants: list) -> None:
+        self.session.query(Project).filter(and_(Project.lid.icontains("pool_"), Project.lvariants == variants)).delete()
+        self.session.commit()
+
+    def delete_all_data(self):
+        self.session.query(Project).delete()
+        self.session.commit()
 
     def count_item(self, item: str) -> list:
         result = defaultdict(int)
@@ -237,16 +291,8 @@ class Projects:
         self.session.query(Project).filter(Project.info_version < target_version).delete()
         self.session.commit()
 
-    def delete_all_data(self):
-        self.session.query(Project).delete()
-        self.session.commit()
-
     def check_lids(self, lids: list) -> int:
         return self.all_projects.filter(Project.lid.in_(lids)).count()
-
-    def delete_pool(self, variants: list) -> None:
-        self.session.query(Project).filter(and_(Project.lid.icontains("pool_"), Project.lvariants == variants)).delete()
-        self.session.commit()
 
     def create_priority(self, priority: list, non_priority: list, lid: str = None, update: bool = False) -> None:
         if update is True and lid is None:
@@ -338,61 +384,6 @@ class Projects:
             variants_editor.edit(self, dict_project, variant)
             log(f"Project: {project.lid}: received from variant-editor", "variants-3")
 
-    def update_aliases(self):
-        aliases = utils.get_aliases()
-        aliases["nothing"] = "nothing"
-        search_query = [
-            or_(
-                Project.tag.icontains(f'"{alias}"'),
-                Project.artist.icontains(f'"{alias}"'),
-                Project.character.icontains(f'"{alias}"'),
-                Project.parody.icontains(f'"{alias}"'),
-                Project.group.icontains(f'"{alias}"'),
-            )
-            for alias in aliases.keys()
-        ]
-        incorrect_aliases = self.active_projects.filter(or_(*search_query)).all()
-
-        for project in incorrect_aliases:
-            dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
-            update = defaultdict(list)
-
-            for category in ["tag", "artist", "group", "parody", "character"]:
-                items = dict_project[category]
-                items = [item if (item not in aliases) else aliases[item] for item in items if item]
-                update[category] = items
-
-            update = dict(update)
-            # noinspection PyDictCreation
-            dict_project = {**dict_project, **update}
-            update["search_body"] = make_search_body(dict_project)
-            dict_project["search_body"] = update["search_body"]
-
-            if project.lid.startswith("pool_") is False:
-                eutils.update_data(self, dict_project, list(update.keys()), list(update.values()), multiple=True)
-            else:
-                self.session.query(Project).filter_by(_id=project._id).update(update)
-                self.session.commit()
-
-    def get_columns(self, exclude: list | tuple = None):
-        # noinspection PyTypeChecker
-        columns = [column.name for column in Project.__table__.columns]
-        if exclude is not None:
-            columns = list(set(columns) - set(exclude))
-        return columns
-
-    def add_project(self, project: dict):
-        logger.log(project, file="log-3.txt")
-        columns = self.get_columns(exclude=["_id", "active", "search_body"])
-
-        project = {column: project[column] for column in columns}
-        project["search_body"] = make_search_body(project)
-        project = Project(**project)
-        ic(f"Project added to DB: {project.title}")
-
-        self.session.add(project)
-        self.session.commit()
-
     def update_item(self, project: dict, key: str = "_id"):
         if key == "_id":
             _id = project["_id"]
@@ -405,9 +396,23 @@ class Projects:
         project = {column: project[column] for column in columns}
 
         if key == "_id":
+            # noinspection PyUnboundLocalVariable
             self.session.query(Project).filter_by(_id=_id).update(project)
         elif key == "lid":
+            # noinspection PyUnboundLocalVariable
             self.session.query(Project).filter_by(lid=lid).update(project)
+        self.session.commit()
+
+    def add_project(self, project: dict):
+        logger.log(project, file="log-3.txt")
+        columns = self.get_columns(exclude=["_id", "active", "search_body"])
+
+        project = {column: project[column] for column in columns}
+        project["search_body"] = make_search_body(project)
+        project = Project(**project)
+        ic(f"Project added to DB: {project.title}")
+
+        self.session.add(project)
         self.session.commit()
 
 

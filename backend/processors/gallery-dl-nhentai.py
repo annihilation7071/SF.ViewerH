@@ -71,4 +71,5 @@ def make_v_info(path: str) -> None:
         os.makedirs(_path)
 
     with open(os.path.join(_path, "v_info.json"), "w", encoding='utf-8') as f:
+        # noinspection PyTypeChecker
         json.dump(v_info, f, indent=4)
