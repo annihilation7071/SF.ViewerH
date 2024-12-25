@@ -1,10 +1,13 @@
 import json
 import os
-
+import subprocess
 from backend import utils
+from importlib import import_module
 
 
 def download(url: str):
+    projects = import_module('backend.projects').Projects()
+    update_projects = import_module('backend.projects').update_projects
     url, site, id_ = utils.separate_url(url)
 
     if os.path.exists("./settings/download/download_targets.json"):
@@ -47,7 +50,10 @@ def download(url: str):
                 os.system(com)
 
             print(command)
-            os.system(command)
+            result = subprocess.run(command, check=True, shell=True)
+            if result.returncode == 0:
+                update_projects(projects)
+
         elif libs[targets[site]]["processor"] == "gallery-dl-nhentai":
             output = os.path.abspath(libs[targets[site]]["path"])
             output += f"\\{id_}"
@@ -79,7 +85,9 @@ def download(url: str):
             command += f" {url}"
 
             print(command)
-            os.system(command)
+            result = subprocess.run(command, check=True, shell=True)
+            if result.returncode == 0:
+                update_projects(projects)
 
     elif site == "hitomi.la":
         output = os.path.abspath(libs[targets[site]]["path"])
@@ -114,4 +122,6 @@ def download(url: str):
         command += f" {url}"
 
         print(command)
-        os.system(command)
+        result = subprocess.run(command, check=True, shell=True)
+        if result.returncode == 0:
+            update_projects(projects)
