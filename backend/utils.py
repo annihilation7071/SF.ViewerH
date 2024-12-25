@@ -8,6 +8,7 @@ from pathlib import Path
 from icecream import ic
 ic.configureOutput(includeContext=True)
 
+
 def get_pages(project: dict):
     extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.avif', '.webp']
 
@@ -198,12 +199,14 @@ def separate_url(url: str):
     if site == "hitomi.la":
         id_ = address[1].split("-")[-1].split(".")[0]
 
-        url = f"{protocol}://{site}/{address[0]}/{id_}.html"
+        url = f"{protocol}//{site}/{address[0]}/{id_}.html"
 
+        ic(url, site, id_)
         return url, site, id_
 
     if site == "nhentai.net":
         id_ = address[1]
-        url = f"{protocol}://{site}/{address[0]}/{id_}"
+        url = f"{protocol}//{site}/{address[0]}/{id_}"
 
+        ic(url, site, id_)
         return url, site, id_
