@@ -239,15 +239,15 @@ async def get_status(request: Request):
     find_projects = projects.session.query(Project).filter(
         Project.source == site,
         Project.source_id == int(id_)
-    ).all()
+    ).count()
 
-    ic(len(find_projects))
+    ic(find_projects)
 
-    if len(find_projects) > 0:
+    if find_projects > 0:
         ic(url)
-        return {"status": "success"}
+        return {"status": "found"}
     else:
-        return {"status": "error"}
+        return {"status": "not found"}
 
 if __name__ == "__main__":
     import uvicorn

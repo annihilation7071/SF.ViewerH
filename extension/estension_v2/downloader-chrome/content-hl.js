@@ -1,21 +1,32 @@
-    console.log("hitomi.la")
+console.log("script-start")
+console.log("hitomi.la")
 
-if (document.readyState === "loading") {
-    console.log("test-1");
-} else {
-    console.log("test-2");
-    setTimeout(() => {
-        console.log("wait 5 sec")
-        executeScript()
-    }, 2000)
-}
 
-function executeScript() {
-    console.log("script start")
-    const galleryItems = document.querySelectorAll(".gallery-content > div")
-    console.log("Elements found: ", galleryItems.length);
+setTimeout(() => {
+    console.log("wait 1 sec")
+    executeScript()
+}, 1000)
 
-    galleryItems.forEach(async (item) => {
+
+async function executeScript() {
+    let elements_count = -1
+
+    async function find_elements() {
+        const galleryItems = document.querySelectorAll(".gallery-content > div")
+        if (galleryItems.length > elements_count) {
+            elements_count = galleryItems.length
+            await wait(500)
+            return find_elements()
+        } else if (galleryItems.length === elements_count) {
+            return galleryItems
+        }
+    }
+
+    const galleryItems = await find_elements()
+
+    console.log("Elements found: ", galleryItems.length)
+
+    for (const item of galleryItems) {
 
         console.log(item)
         const link = item.querySelector("a")?.href
@@ -47,22 +58,29 @@ function executeScript() {
             console.log(status)
             console.log('cp-2')
 
-            if (status === "success") {
-                item.classList.add("success-style")
-                addStatusElement(item, "found", "Succes!")
-            } else if (status === "error") {
-                item.classList.add("error-style")
-                addStatusElement(item, "", "Error!")
+            if (status === "found") {
+                addStatusElement(item, "found", "Downloaded!")
+            } else if (status === "deleted") {
+                addStatusElement(item, "deleted", "Prevorus deleted!")
             }
         } catch (error) {
             console.error("Error!", error)
         }
-    })
+    }
 }
 
 function addStatusElement(parent, style, text) {
     const statusElement = document.createElement("div")
     statusElement.className = `status ${style}`
-    statusElement.textContent = text
+
+    const statusText = document.createElement("div")
+    statusText.className = "status-text"
+    statusText.textContent = text
+
+    statusElement.appendChild(statusText)
     parent.appendChild(statusElement)
+}
+
+function wait(millliseconds) {
+    return new Promise(resolve => {setTimeout(resolve, millliseconds)})
 }
