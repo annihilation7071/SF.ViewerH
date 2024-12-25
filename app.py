@@ -233,6 +233,9 @@ async def get_status(request: Request):
     if not url:
         raise HTTPException(status_code=400, detail="URL not received")
 
+    if url == "test":
+        return {"statur": "test"}
+
     url, site, id_ = utils.separate_url(url)
     ic(url, site, id_)
 

@@ -2,9 +2,17 @@ console.log("script-start")
 console.log("hitomi.la")
 
 
-setTimeout(() => {
+setTimeout(async () => {
     console.log("wait 1 sec")
-    executeScript()
+    const serverUrl = "http://127.0.0.1:1707/get-status"
+    const serverAvailable = await isServerAvailable(serverUrl)
+
+    if (!serverAvailable) {
+        console.log("server not available")
+        return
+    }
+
+    await executeScript()
 }, 1000)
 
 
@@ -33,7 +41,6 @@ async function executeScript() {
         console.log(link)
 
         if (!link) return
-        console.log('cp-0')
 
         try {
             const response = await fetch("http://127.0.0.1:1707/get-status", {
@@ -51,12 +58,9 @@ async function executeScript() {
                 return
             }
 
-            console.log('cp-1')
-
             const {status} = await response.json()
 
             console.log(status)
-            console.log('cp-2')
 
             if (status === "found") {
                 addStatusElement(item, "found", "Downloaded!")
@@ -81,6 +85,5 @@ function addStatusElement(parent, style, text) {
     parent.appendChild(statusElement)
 }
 
-function wait(millliseconds) {
-    return new Promise(resolve => {setTimeout(resolve, millliseconds)})
-}
+
+

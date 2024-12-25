@@ -19,7 +19,8 @@
   "content_scripts": [
     {
       "matches": ["https://hitomi.la/*"],
-      "js": ["content-hl.js"],
+      "exclude_matches": ["https://hitomi.la/reader*"],
+      "js": ["content-general.js", "content-hl.js"],
       "css": ["styles-hl.css"]
     }
   ]
