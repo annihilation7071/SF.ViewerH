@@ -5,7 +5,8 @@ from fastapi.templating import Jinja2Templates
 from backend import utils, downloader
 from backend.db.connect import Project
 from backend.editor import selector as edit_selector
-from backend.projects import Projects
+from backend.projects.cls import Projects
+from backend.projects.putils import update_projects
 from backend.logger import log
 import mimetypes
 from urllib.parse import quote, unquote
@@ -18,8 +19,9 @@ PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
 
 projects = Projects()
+update_projects(projects)
+projects.checking()
 
-projects.update_projects()
 # projects.select_sorting_method("preview_hash")
 
 app = FastAPI()
