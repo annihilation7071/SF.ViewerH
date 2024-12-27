@@ -23,9 +23,9 @@ ic.configureOutput(includeContext=True)
 class Projects:
     def __init__(self):
         self.session = get_session()
-        self.libs = utils.read_libs()
-        active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
-        self.all_projects = self.session.query(Project).filter(Project.lib.in_(active_libs))
+        self.libs = utils.read_libs(only_active=True, check=True)
+        # active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
+        self.all_projects = self.session.query(Project).filter(Project.lib.in_(self.libs))
         self.active_projects = self.all_projects.filter(Project.active == 1)
         self.sorting_method = Project.upload_date
         self.projects = self.active_projects.order_by(desc(self.sorting_method))
@@ -359,30 +359,31 @@ class Projects:
             if str(project.lvariants) not in unique_check:
                 unique_check.add(str(project.lvariants))
                 unique_variants.append(project)
+
         projects_with_variants = unique_variants
-
-        log(f"Selected projects with variants: {len(projects_with_variants)}", "variants-3")
-        for project in projects_with_variants:
-            log(f"Selected projects: {project.lid}: {project.title}: {project.lvariants}", "variants-3")
+        ic(projects_with_variants)
 
         for project in projects_with_variants:
-            log(f"Project: {project.lid}: start", "variants-3")
+            ic(project.lid, project.title)
             variant = project.lvariants
             exist_pool = self.session.query(Project).filter(Project.lvariants == variant,
-                                                            Project.lid.icontains("pool_"))
-            log(f"Exist pools: {[pool.lid for pool in exist_pool]}", "variants-3")
-            if (count := exist_pool.count()) > 0:
-                if force is True or count > 1:
+                                                            Project.lid.istartswith("pool")).all()
+
+            if len(exist_pool) > 0:
+                ic("Pool is found")
+                if force is True or len(exist_pool) > 1:
+                    ic("More than one pool found")
                     exist_pool.delete()
                     self.session.commit()
                 else:
+                    self.session.query(Project).filter(Project.lvariants == variant).update({Project.active: False})
+                    exist_pool[0].active = True
+                    self.session.commit()
                     continue
 
             dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
 
-            log(f"Project: {project.lid}: send to variant-editor", "variants-3")
             variants_editor.edit(self, dict_project, variant)
-            log(f"Project: {project.lid}: received from variant-editor", "variants-3")
 
     def update_item(self, project: dict, key: str = "_id"):
         if key == "_id":
