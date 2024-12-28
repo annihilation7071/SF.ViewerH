@@ -225,3 +225,30 @@ def separate_url(url: str):
 
         ic(url, site, id_)
         return url, site, id_
+
+
+def get_visible_pages(current_page, total_pages):
+    if total_pages <= 15:
+        return list(range(1, total_pages + 1))
+
+    # Start pagination
+    visible_pages = []
+    if current_page > 7:
+        visible_pages.append(1)
+        visible_pages.append('...')
+
+    # Center pagination
+    start_page = max(1, current_page - 7)
+    end_page = min(total_pages, start_page + 15 - 1)
+
+    if end_page == total_pages:
+        start_page = max(1, total_pages - 15 + 1)
+
+    visible_pages.extend(range(start_page, end_page + 1))
+
+    # End pagination
+    if end_page < total_pages:
+        visible_pages.append('...')
+        visible_pages.append(total_pages)
+
+    return visible_pages
