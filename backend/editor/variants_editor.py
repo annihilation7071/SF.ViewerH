@@ -17,7 +17,7 @@ def edit(projects, project: dict, data: str | list, separator: str = "\n"):
 
     variants_count = len(variants)
 
-    if variants_count < 2:
+    if variants_count == 1:
         raise Exception("Too few variants")
 
     lids = [variant.split(":")[0] for variant in variants]
@@ -53,6 +53,10 @@ def edit(projects, project: dict, data: str | list, separator: str = "\n"):
 
     for t_project in old_projects:
         eutils.update_data(projects, t_project, ["lvariants", "active"], [[], True], multiple=True)
+
+    # Stop if new variants not provided
+    if len(variants) == 0:
+        return
 
     # Find priority project
     priority, non_priority = separate_priority(variants)

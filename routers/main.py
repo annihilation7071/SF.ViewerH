@@ -137,7 +137,14 @@ async def edit_data(
             f"/project/lid/{r}?page={page}&search={search}", status_code=303
         )
     else:
-        return RedirectResponse(url, status_code=303)
+        if lid.startswith("pool_") is False:
+            return RedirectResponse(
+                f"/project/lid/{lid}?page={page}&search={search}", status_code=303
+            )
+        else:
+            return RedirectResponse(
+                f"/?page={page}&search={search}", status_code=303
+            )
 
 
 @router.post("/sorting")

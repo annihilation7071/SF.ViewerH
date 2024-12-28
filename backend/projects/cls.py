@@ -212,7 +212,7 @@ class Projects:
                 self.session.query(Project).filter_by(_id=project._id).update(update)
                 self.session.commit()
 
-    def get_project(self, _id: int | str = None, lid: str = None) -> dict:
+    def get_project(self, _id: int | str = None, lid: str = None) -> dict | None:
         ic(_id, lid)
         if _id is None and lid is None:
             raise ValueError("Either id or lig must be provided")
@@ -230,14 +230,17 @@ class Projects:
             project = self.session.query(Project).filter_by(lid=lid).first()
             ic(project.title)
 
+        if project is None:
+            return None
+
         dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
 
         return dict_project
 
-    def get_project_by_id(self, _id: int | str) -> dict:
+    def get_project_by_id(self, _id: int | str) -> dict | None:
         return self.get_project(_id=_id)
 
-    def get_project_by_lid(self, lid: str) -> dict:
+    def get_project_by_lid(self, lid: str) -> dict | None:
         return self.get_project(lid=lid)
 
     def get_dirs(self, lib_name: str = None):
