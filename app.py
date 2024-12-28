@@ -5,7 +5,11 @@ from backend.projects.cls import Projects
 from backend.projects.putils import update_projects
 from fastapi.middleware.cors import CORSMiddleware
 from routers import main, extra
+import os
+import asyncio
 
+if os.name == 'nt':  # Только для Windows
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 projects = Projects()
 main.projects = projects

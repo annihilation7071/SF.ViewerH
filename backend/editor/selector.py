@@ -1,7 +1,7 @@
 from backend.editor import item_editor, variants_editor
 
 
-def edit(projects, edit_type: str, data: str, project: dict, extra: dict = None):
+def edit(projects, project: dict, edit_type: str, data: str, extra: dict = None):
     match edit_type:
         case "edit-tags" | "edit-series":
             return item_editor.edit(projects, project, edit_type, data)

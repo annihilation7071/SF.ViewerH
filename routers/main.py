@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Form, HTTPException
+from fastapi import APIRouter, Request, Form, HTTPException, Body
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from backend.projects.cls import Projects
@@ -126,16 +126,12 @@ async def edit_data(
     data: str = Form(..., alias="edit-data"),
     url: str = Form(...),
     lid: str = Form(...),
-    id_: int = Form(..., alias="id"),
     page: int = Form(...),
     search: str = Form(...),
-    lvariants: str = Form(...),
 ):
-    project = projects.get_project_by_id(int(id_))
+    project = projects.get_project_by_lid(lid)
 
-    r = edit_selector.edit(
-        projects, edit_type, data, project, extra={"lvariants": lvariants}
-    )
+    r = edit_selector.edit(projects, project, edit_type, data)
     if r:
         return RedirectResponse(
             f"/project/lid/{r}?page={page}&search={search}", status_code=303

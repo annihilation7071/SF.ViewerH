@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Request, Form, HTTPException
+from fastapi import APIRouter, Request, Form, HTTPException, Body
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
 from backend.projects.cls import Projects, Project
 from backend import utils, downloader
+from pydantic import BaseModel
 from icecream import ic
 ic.configureOutput(includeContext=True)
 
@@ -12,22 +13,25 @@ router = APIRouter()
 
 
 @router.post("/load")
-async def load(data: dict):
-    downloader.download(data.get("url"))
-    return JSONResponse({"status": "success"})
+async def load(request: Request,
+               url: str = Body(..., embed=True)):
+    await downloader.download(url)
+    # return JSONResponse({"status": "success"})
 
 
 @router.post("/get-status")
-async def get_status(request: Request):
-    data = await request.json()
-    url = data.get("url")
+async def get_status(
+        request: Request,
+        url: str = Body(..., embed=True),
+):
+    # data = await request.json()
     ic(url)
 
     if not url:
         raise HTTPException(status_code=400, detail="URL not received")
 
     if url == "test":
-        return {"statur": "test"}
+        return {"status": "test"}
 
     url, site, id_ = utils.separate_url(url)
     ic(url, site, id_)

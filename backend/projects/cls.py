@@ -213,6 +213,7 @@ class Projects:
                 self.session.commit()
 
     def get_project(self, _id: int | str = None, lid: str = None) -> dict:
+        ic(_id, lid)
         if _id is None and lid is None:
             raise ValueError("Either id or lig must be provided")
 
@@ -224,8 +225,10 @@ class Projects:
 
         if _id is not None:
             project = self.session.query(Project).filter_by(_id=_id).first()
+            ic(project.title)
         else:
             project = self.session.query(Project).filter_by(lid=lid).first()
+            ic(project.title)
 
         dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
 
