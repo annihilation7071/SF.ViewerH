@@ -10,9 +10,6 @@ def upgrade(project_path: str | Path) -> None:
 
     vinfo_path = Path(project_path) / 'sf.viewer/v_info.json'
 
-    with open('./backend/v_info.json', 'r', encoding='utf-8') as f:
-        v_info = json.load(f)
-
     with open(vinfo_path, 'r', encoding='utf-8') as f:
         old_vinfo = json.load(f)
 
