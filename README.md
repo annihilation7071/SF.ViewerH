@@ -69,6 +69,7 @@ click **install***). The extension simply downloads the open project to the libr
 *You can specify some additional downloader parameters by creating
 a ```config_nhentai.json```/```config_gallery-dl.json``` file in the ```./settings/download directory```, an example
 file is there under the name ```config_nhentai_example.json```/```config_gallery-dl_example.json```.*
+
 ---
 There are two versions of the extension: **Lite** and **Extended**.
 
