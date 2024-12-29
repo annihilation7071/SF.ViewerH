@@ -301,6 +301,7 @@ class Projects:
 
     # noinspection da
     def create_priority(self, priority: list, non_priority: list, lid: str = None, update: bool = False) -> None:
+        ic()
         if update is True and lid is None:
             raise ValueError("For update priority lid must be provided")
         elif update is False and lid is not None:
@@ -311,6 +312,7 @@ class Projects:
         pool = self.get_project_by_lid(priority[0][0])
         pool["lid"] = f"pool_{utils.gen_lid()}" if lid is None else lid
         pool.pop("_id", None)
+        ic(pool["lid"])
 
         # union some data
         for _lid in non_priority:
@@ -326,9 +328,11 @@ class Projects:
 
         # add pool to DB
         if lid is None:
+            ic("Add new pool")
             self.add_project(pool)
             self.session.commit()
         else:
+            ic("Update existing pool")
             self.update_item(pool, key=lid)
 
         # deactivate original projects
@@ -387,6 +391,7 @@ class Projects:
                     self.session.commit()
                     continue
 
+            ic("create new pool")
             dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
 
             variants_editor.edit(self, dict_project, variant)
@@ -411,7 +416,6 @@ class Projects:
         self.session.commit()
 
     def add_project(self, project: dict):
-        logger.log(project, file="log-3.txt")
         columns = self.get_columns(exclude=["_id", "active", "search_body"])
 
         project = {column: project[column] for column in columns}
