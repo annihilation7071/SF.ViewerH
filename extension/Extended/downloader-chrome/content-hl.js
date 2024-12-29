@@ -1,9 +1,9 @@
 console.log("script-start")
 console.log("hitomi.la")
 
+window.addEventListener("load", async () => {
+    console.log("Page loaded, check server available...")
 
-setTimeout(async () => {
-    console.log("wait 0.5 sec")
     const serverUrl = "http://127.0.0.1:1707/get-status"
     const serverAvailable = await isServerAvailable(serverUrl)
 
@@ -12,28 +12,36 @@ setTimeout(async () => {
         return
     }
 
-    await executeScript()
-}, 500)
+    console.log("server available")
+    console.log("waiting for elements")
 
+    await checkElements()
 
-async function executeScript() {
-    let elements_count = -1
-    let count = 0
+    const interval = 5000
+    const timeout = 20000
+    const startTime = Date.now()
 
-    async function find_elements() {
-        const galleryItems = document.querySelectorAll(".gallery-content > div")
-        if (galleryItems.length > elements_count) {
-            elements_count = galleryItems.length
-            await wait(500)
-            return find_elements()
-        } else if (galleryItems.length === elements_count) {
-            return galleryItems
+    const intervalId = setInterval(async () => {
+        console.log("checking elements")
+        if (Date.now() - startTime >= timeout) {
+            clearInterval(intervalId)
+        }
+        await checkElements()
+    }, interval)
+
+    async function checkElements() {
+        const elements = await waitForElements(".gallery-content > div:not(.checked)", 500, 5000)
+        if (elements) {
+            console.log("Elements found: " + elements.length)
+            await executeScript(elements)
+        } else {
+            console.log("Elements not found")
         }
     }
 
-    const galleryItems = await find_elements()
+})
 
-    console.log("Elements found: ", galleryItems.length)
+async function executeScript(galleryItems) {
 
     for (const item of galleryItems) {
 
@@ -68,6 +76,7 @@ async function executeScript() {
             } else if (status === "deleted") {
                 addStatusElement(item, "deleted", "Prevorus deleted!")
             }
+            item.classList.add("checked")
         } catch (error) {
             console.error("Error!", error)
         }
