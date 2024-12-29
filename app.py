@@ -8,7 +8,7 @@ from routers import main, extra
 import os
 import asyncio
 
-if os.name == 'nt':  # Только для Windows
+if os.name == 'nt':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 projects = Projects()
