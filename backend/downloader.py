@@ -74,6 +74,7 @@ async def download(url: str):
                 ic()
                 update_projects(projects)
             else:
+                downloader_is_working = False
                 raise RuntimeError(f"Command failed with return code: {process.returncode}")
 
             # result = subprocess.run(command, check=True, shell=True)
@@ -118,6 +119,7 @@ async def download(url: str):
                 ic()
                 update_projects(projects)
             else:
+                downloader_is_working = False
                 raise RuntimeError(f"Command failed with return code: {process.returncode}")
 
             # result = subprocess.run(command, check=True, shell=True)
@@ -167,4 +169,4 @@ async def download(url: str):
             downloader_is_working = False
             raise RuntimeError(f"Command failed with return code: {process.returncode}")
 
-        downloader_is_working = False
+    downloader_is_working = False
