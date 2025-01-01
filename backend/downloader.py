@@ -5,6 +5,8 @@ from importlib import import_module
 import asyncio
 from icecream import ic
 
+downloader_is_working = False
+
 
 async def run_command(command: str):
     process = await asyncio.create_subprocess_shell(command)
@@ -13,6 +15,14 @@ async def run_command(command: str):
 
 
 async def download(url: str):
+    ic()
+    global downloader_is_working
+
+    while downloader_is_working:
+        await asyncio.sleep(2)
+
+    downloader_is_working = True
+
     projects = import_module('backend.projects.cls').Projects()
     update_projects = import_module('backend.projects.putils').update_projects
     url, site, id_ = utils.separate_url(url)
@@ -156,6 +166,4 @@ async def download(url: str):
         else:
             raise RuntimeError(f"Command failed with return code: {process.returncode}")
 
-        # result = subprocess.run(command, check=True, shell=True)
-        # if result.returncode == 0:
-        #     update_projects(projects)
+        downloader_is_working = False
