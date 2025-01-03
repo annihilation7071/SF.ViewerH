@@ -4,17 +4,20 @@ from backend import utils
 from importlib import import_module
 import asyncio
 from icecream import ic
+from backend.downloaders.nhentai import NHentaiDownloader
+from backend.downloaders.gallerydl import GalleryDLDownloader
+ic.configureOutput(includeContext=True)
 
 downloader_is_working = False
 
 
-async def run_command(command: str):
-    process = await asyncio.create_subprocess_shell(command)
-    await process.wait()
-    return process
+# async def run_command(command: str):
+#     process = await asyncio.create_subprocess_shell(command)
+#     await process.wait()
+#     return process
 
 
-async def download(url: str):
+async def _download(url: str):
     ic()
     global downloader_is_working
 
@@ -35,138 +38,50 @@ async def download(url: str):
             targets = json.load(f)
 
     if site not in targets:
-        print(f"Not found setting for {site} in download_targets.json")
+        raise Exception(f"Not found setting for {site} in download_targets.json")
 
     libs = utils.read_libs()
 
     if targets[site] not in libs:
-        print(f"Not found lib for {site}")
+        raise Exception(f"Not found lib for {site}")
 
-    if site == "nhentai.net":
-        if libs[targets[site]]["processor"] == "nhentai":
-            output = os.path.abspath(libs[targets[site]]["path"])
-            command = f"nhentai --download --id {id_} -o {output}"
+    target = targets[site]
 
-            if os.path.exists("./settings/download/config_nhentai.json"):
-                with open("./settings/download/config_nhentai.json", "r", encoding="utf-8") as f:
-                    params = json.load(f)
+    match libs[targets[site]]["processor"]:
 
-            if "proxy" in params:
-                com = f"nhentai --proxy={params['proxy']}"
-                os.system(com)
+        case "nhentai":
+            target_lib = libs[targets[site]]
+            downloader = NHentaiDownloader(id_=id_, target=target_lib)
+            process = await downloader.start()
 
-            if "useragent" in params:
-                com = f"nhentai --user-agent={params['useragent']}"
-                os.system(com)
+        case "gallery-dl-nhentai" | "gallery-dl-hitomila":
+            target_lib = libs[targets[site]]
+            downloader = GalleryDLDownloader(id_=id_,
+                                             target=target_lib,
+                                             site=site,
+                                             url=url)
 
-            print(params)
-            if "csrftoken" in params and \
-                    "sessionid" in params and \
-                    "cf_clearance" in params:
-                com = f'nhentai --cookie="csrftoken={params["csrftoken"]}; sessionid={params["sessionid"]}; cf_clearence={params["cf_clearance"]}"'
-                os.system(com)
+            process = await downloader.start()
 
-            print(command)
+        case _:
+            raise Exception(f"Unknown site: {site}")
 
-            process = await run_command(command)
-
-            if process.returncode == 0:
-                ic()
-                update_projects(projects)
-            else:
-                downloader_is_working = False
-                raise RuntimeError(f"Command failed with return code: {process.returncode}")
-
-            # result = subprocess.run(command, check=True, shell=True)
-            # if result.returncode == 0:
-            #     update_projects(projects)
-
-        elif libs[targets[site]]["processor"] == "gallery-dl-nhentai":
-            output = os.path.abspath(libs[targets[site]]["path"])
-            output += f"\\{id_}"
-            command = f"gallery-dl --write-info-json --directory={output}"
-
-            if os.path.exists("./settings/download/config_gallery-dl.json"):
-                with open("./settings/download/config_gallery-dl.json", "r", encoding="utf-8") as f:
-                    params = json.load(f)
-
-            if "nhentai.net" in params and "proxy" in params["nhentai.net"]:
-                com = f' --proxy="{params["nhentai.net"]["proxy"]}"'
-                command += com
-            elif "proxy" in params["all"]:
-                com = f' --proxy="{params["all"]["proxy"]}"'
-                command += com
-
-            if "nhentai.net" in params and "user-agent" in params["nhentai.net"]:
-                com = f' --user-agent="{params["nhentai.net"]["user-agent"]}"'
-                command += com
-            elif "user-agent" in params["all"]:
-                com = f' --user-agent="{params["all"]["user-agent"]}"'
-                command += com
-
-            if "nhentai.net" in params and "cookies" in params["nhentai.net"]:
-                if params["nhentai.net"]["cookies"] is not None and params["nhentai.net"]["cookies"] != "E:\\example\\cookies_file.txt":
-                    com = f' --cookies="{params["nhentai.net"]["cookies"]}"'
-                    command += com
-
-            command += f" {url}"
-
-            print(command)
-
-            process = await run_command(command)
-
-            if process.returncode == 0:
-                ic()
-                update_projects(projects)
-            else:
-                downloader_is_working = False
-                raise RuntimeError(f"Command failed with return code: {process.returncode}")
-
-            # result = subprocess.run(command, check=True, shell=True)
-            # if result.returncode == 0:
-            #     update_projects(projects)
-
-    elif site == "hitomi.la":
-        output = os.path.abspath(libs[targets[site]]["path"])
-
-        output += f"\\{id_}"
-
-        command = f"gallery-dl --write-info-json --directory={output}"
-
-        if os.path.exists("./settings/download/config_gallery-dl.json"):
-            with open("./settings/download/config_gallery-dl.json", "r", encoding="utf-8") as f:
-                params = json.load(f)
-
-        if "hitomi.la" in params and "proxy" in params["hitomi.la"]:
-            com = f' --proxy="{params["hitomi.la"]["proxy"]}"'
-            command += com
-        elif "proxy" in params["all"]:
-            com = f' --proxy="{params["all"]["proxy"]}"'
-            command += com
-
-        if "hitomi.la" in params and "user-agent" in params["hitomi.la"]:
-            com = f' --user-agent="{params["hitomi.la"]["user-agent"]}"'
-            command += com
-        elif "user-agent" in params["all"]:
-            com = f' --user-agent="{params["all"]["user-agent"]}"'
-            command += com
-
-        if "hitomi.la" in params and "cookies" in params["hitomi.la"]:
-            if params["hitomi.la"]["cookies"] is not None and params["hitomi.la"]["cookies"] != "E:\\example\\cookies_file.txt":
-                com = f' --cookies="{params["hitomi.la"]["cookies"]}"'
-                command += com
-
-        command += f" {url}"
-
-        print(command)
-
-        process = await run_command(command)
-
-        if process.returncode == 0:
-            ic()
-            update_projects(projects)
-        else:
-            downloader_is_working = False
-            raise RuntimeError(f"Command failed with return code: {process.returncode}")
+    if process.returncode == 0:
+        ic()
+        update_projects(projects)
+    else:
+        downloader_is_working = False
+        raise RuntimeError(f"Command failed with return code: {process.returncode}")
 
     downloader_is_working = False
+
+
+async def download(url: str):
+    global downloader_is_working
+
+    try:
+        await _download(url)
+    finally:
+        downloader_is_working = False
+
+

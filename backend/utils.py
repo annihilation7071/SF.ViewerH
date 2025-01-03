@@ -6,6 +6,7 @@ from PIL import Image
 import imagehash
 from pathlib import Path
 from icecream import ic
+import asyncio
 ic.configureOutput(includeContext=True)
 
 
@@ -235,6 +236,7 @@ def get_visible_pages(current_page, total_pages):
     visible_pages = []
     if current_page > 7:
         visible_pages.append(1)
+        # noinspection PyUnresolvedReferences
         visible_pages.append('...')
 
     # Center pagination
@@ -252,3 +254,9 @@ def get_visible_pages(current_page, total_pages):
         visible_pages.append(total_pages)
 
     return visible_pages
+
+
+async def run_command(command: str):
+    process = await asyncio.create_subprocess_shell(command)
+    await process.wait()
+    return process
