@@ -40,18 +40,18 @@ async def index(request: Request, page: int = 1, search: str = ""):
     )
 
 
-@router.get("/project/{project_id}", response_class=HTMLResponse)
-async def detail_view(request: Request, project_id: int):
-    project = projects.get_project_by_id(project_id)
-    images = utils.get_pages(project)
-    return templates.TemplateResponse(
-        "detailview.html",
-        {
-            "request": request,
-            "project": project,
-            "images": images
-        },
-    )
+# @router.get("/project/{project_id}", response_class=HTMLResponse)
+# async def detail_view(request: Request, project_id: int):
+#     project = projects.get_project_by_id(project_id)
+#     images = utils.get_pages(project)
+#     return templates.TemplateResponse(
+#         "detailview.html",
+#         {
+#             "request": request,
+#             "project": project,
+#             "images": images
+#         },
+#     )
 
 
 @router.get("/project/lid/{project_lid}", response_class=HTMLResponse)
@@ -68,9 +68,30 @@ async def detail_view_lid(request: Request, project_lid: str):
     )
 
 
-@router.get("/project/{project_id}/{page_id}", response_class=HTMLResponse)
-async def reader(request: Request, project_id: int, page_id: int):
-    project = projects.get_project_by_id(project_id)
+# @router.get("/project/{project_id}/{page_id}", response_class=HTMLResponse)
+# async def reader(request: Request, project_id: int, page_id: int):
+#     project = projects.get_project_by_id(project_id)
+#     images = utils.get_pages(project)
+#     page = page_id
+#     image = images[page - 1]["path"]
+#     total_pages = len(images)
+#     visible_pages = get_visible_pages(page, total_pages)
+#     return templates.TemplateResponse(
+#         "reader.html",
+#         {
+#             "request": request,
+#             "image": image,
+#             "current_page": page,
+#             "project_id": project_id,
+#             "total_pages": total_pages,
+#             "visible_pages": visible_pages,
+#         },
+#     )
+
+
+@router.get("/project/lid/{project_lid}/{page_id}", response_class=HTMLResponse)
+async def reader_lid(request: Request, project_lid: str, page_id: int):
+    project = projects.get_project_by_lid(project_lid)
     images = utils.get_pages(project)
     page = page_id
     image = images[page - 1]["path"]
@@ -82,7 +103,7 @@ async def reader(request: Request, project_id: int, page_id: int):
             "request": request,
             "image": image,
             "current_page": page,
-            "project_id": project_id,
+            "project_id": project_lid,
             "total_pages": total_pages,
             "visible_pages": visible_pages,
         },

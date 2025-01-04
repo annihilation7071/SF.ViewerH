@@ -29,7 +29,7 @@ class Project(Base):
     preview = Column(String(length=500))
     parody = Column(JSON)
     character = Column(JSON)
-    tag = Column(JSON)
+    tag = Column(JSON, index=True)
     artist = Column(JSON, index=True)
     group = Column(JSON)
     language = Column(JSON)

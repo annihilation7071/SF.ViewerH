@@ -51,7 +51,7 @@
     <main>
         <div class="grid-container">
             {% for project in projects %}
-            <a href="{{ request.url_for('detail_view', project_id=project.id) }}?page={{ current_page }}&search={{ request.query_params.get('search', '') }}"
+            <a href="{{ request.url_for('detail_view_lid', project_lid=project.lid) }}?page={{ current_page }}&search={{ request.query_params.get('search', '') }}"
                class="project-item-container">
                 <div class="project-item-preview-data pages-count">{{ project.pages }}</div>
                 {% if project.lid.startswith('pool_') %}
