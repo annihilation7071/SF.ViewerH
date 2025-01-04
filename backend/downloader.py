@@ -6,6 +6,8 @@ import asyncio
 from icecream import ic
 from backend.downloaders.nhentai import NHentaiDownloader
 from backend.downloaders.gallerydl import GalleryDLDownloader
+from backend.projects.cls import Projects
+from backend.projects.putils import update_projects
 ic.configureOutput(includeContext=True)
 
 downloader_is_working = False
@@ -17,7 +19,7 @@ downloader_is_working = False
 #     return process
 
 
-async def _download(url: str):
+async def _download(url: str, projects: Projects):
     ic()
     global downloader_is_working
 
@@ -26,8 +28,6 @@ async def _download(url: str):
 
     downloader_is_working = True
 
-    projects = import_module('backend.projects.cls').Projects()
-    update_projects = import_module('backend.projects.putils').update_projects
     url, site, id_ = utils.separate_url(url)
 
     if os.path.exists("./settings/download/download_targets.json"):
@@ -46,18 +46,17 @@ async def _download(url: str):
         raise Exception(f"Not found lib for {site}")
 
     target = targets[site]
+    settings = libs[targets[site]]
 
     match libs[targets[site]]["processor"]:
 
         case "nhentai":
-            target_lib = libs[targets[site]]
-            downloader = NHentaiDownloader(id_=id_, target=target_lib)
+            downloader = NHentaiDownloader(id_=id_, target=settings)
             process = await downloader.start()
 
         case "gallery-dl-nhentai" | "gallery-dl-hitomila":
-            target_lib = libs[targets[site]]
             downloader = GalleryDLDownloader(id_=id_,
-                                             target=target_lib,
+                                             settings=settings,
                                              site=site,
                                              url=url)
 
@@ -76,11 +75,11 @@ async def _download(url: str):
     downloader_is_working = False
 
 
-async def download(url: str):
+async def download(url: str, projects: Projects):
     global downloader_is_working
 
     try:
-        await _download(url)
+        await _download(url, projects)
     finally:
         downloader_is_working = False
 

@@ -6,9 +6,9 @@ ic.configureOutput(includeContext=True)
 
 
 class NHentaiDownloader:
-    def __init__(self, id_: int | str, target: dict):
+    def __init__(self, id_: int | str, settings: dict):
         self.id_ = id_
-        self.target = target
+        self.settings = settings
         self.command = None
 
     @staticmethod
@@ -37,7 +37,7 @@ class NHentaiDownloader:
     async def start(self):
         ic()
         self.prepare()
-        output = os.path.abspath(self.target["path"])
+        output = os.path.abspath(self.settings["path"])
         command = f"nhentai --download --id {self.id_} -o {output}"
         process = await run_command(command)
 

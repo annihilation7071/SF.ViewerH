@@ -6,16 +6,16 @@ ic.configureOutput(includeContext=True)
 
 
 class GalleryDLDownloader:
-    def __init__(self, id_: int | str, target: dict, site: str, url: str):
+    def __init__(self, id_: int | str, settings: dict, site: str, url: str):
         self.command = None
         self.url = url
         self.id_ = id_
-        self.target = target
+        self.settings = settings
         self.site = site
 
     def prepare(self):
         site = self.site
-        output = os.path.abspath(self.target["path"])
+        output = os.path.abspath(self.settings["path"])
         output += f"\\{self.id_}"
         command = f"gallery-dl --write-info-json --directory={output}"
 

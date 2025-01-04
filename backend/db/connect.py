@@ -15,9 +15,9 @@ class Base(DeclarativeBase):
 
 class Project(Base):
     __tablename__ = 'projects'
-    _id = Column(Integer, primary_key=True)
+    _id = Column(Integer, primary_key=True, index=True)
     info_version = Column(Integer)
-    lid = Column(String, unique=True)
+    lid = Column(String, unique=True, index=True)
     lvariants = Column(JSON)
     source_id = Column(String)
     source = Column(String)
@@ -30,7 +30,7 @@ class Project(Base):
     parody = Column(JSON)
     character = Column(JSON)
     tag = Column(JSON)
-    artist = Column(JSON)
+    artist = Column(JSON, index=True)
     group = Column(JSON)
     language = Column(JSON)
     category = Column(JSON)
