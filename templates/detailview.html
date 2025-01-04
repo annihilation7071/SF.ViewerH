@@ -121,7 +121,7 @@
                 <div class="label">Variants:</div>
                 <div class="tags-container">
                     {% for i in range(0, project.lvariants|length) %}
-                        <a href="{{ request.url_for('detail_view_lid', project_lid=project.lvariants[i].split(':')[0]) }}?{{ request.query_params }}"
+                        <a href="{{ request.url_for('detail_view', project_lid=project.lvariants[i].split(':')[0]) }}?{{ request.query_params }}"
                            class="tag tag-click{{ " tag-priority" if project.lvariants[i].split(':')[0] == project.lid }}">{{ project.variants_view[i] }}</a>
                     {% endfor %}
                     <button class="edit-button" data-type="edit-variants" data-content="{{ '\n'.join(project.lvariants) }}">+</button>
@@ -138,7 +138,7 @@
     <main class="detail-view-pages">
         <div class="grid-container-pages">
             {% for image in images %}
-            <a href="{{ request.url_for('reader_lid', project_lid=project.lid, page_id=image.idx + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}"
+            <a href="{{ request.url_for('reader', project_lid=project.lid, page_id=image.idx + 1) }}{{ ('?' + request.query_string.decode('utf-8')) if request.query_string else '' }}"
                class="image-item">
                 <img src="{{ request.url_for('get_image', image_path=image.path | urlencode) }}" alt="Error">
             </a>

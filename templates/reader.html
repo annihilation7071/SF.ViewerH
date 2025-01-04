@@ -11,7 +11,7 @@
     {% include 'header.html' %}
     <header class="extra_header">
         <div class="extra-nav-buttons">
-            <a href="{{ url_for('detail_view', project_id=project_id) }}?{{ request.query_string }}">Back</a>
+            <a href="{{ url_for('detail_view', project_lid=project_lid) }}?{{ request.query_string }}">Back</a>
         </div>
     </header>
     <main>
@@ -29,7 +29,7 @@
         <div class="pagination">
             <!-- Prev button -->
             {% if current_page > 1 %}
-            <a href="{{ url_for('reader', project_id=project_id, page_id=current_page - 1) }}?{{ request.query_string }}">&laquo; Prev</a>
+            <a href="{{ url_for('reader', project_lid=project_lid, page_id=current_page - 1) }}?{{ request.query_string }}">&laquo; Prev</a>
             {% endif %}
 
             <!-- Show visible pages buttons -->
@@ -37,15 +37,15 @@
                 {% if page == '...' %}
                 <span class="ellipsis">...</span>
                 {% elif page == current_page %}
-                <a href="{{ url_for('reader', project_id=project_id, page_id=page) }}?{{ request.query_string }}" class="active">{{ page }}</a>
+                <a href="{{ url_for('reader', project_lid=project_lid, page_id=page) }}?{{ request.query_string }}" class="active">{{ page }}</a>
                 {% else %}
-                <a href="{{ url_for('reader', project_id=project_id, page_id=page) }}?{{ request.query_string }}">{{ page }}</a>
+                <a href="{{ url_for('reader', project_lid=project_lid, page_id=page) }}?{{ request.query_string }}">{{ page }}</a>
                 {% endif %}
             {% endfor %}
 
             <!-- Next button -->
             {% if current_page < total_pages %}
-            <a href="{{ url_for('reader', project_id=project_id, page_id=current_page + 1) }}?{{ request.query_string }}">Next &raquo;</a>
+            <a href="{{ url_for('reader', project_lid=project_lid, page_id=current_page + 1) }}?{{ request.query_string }}">Next &raquo;</a>
             {% endif %}
         </div>
     </main>

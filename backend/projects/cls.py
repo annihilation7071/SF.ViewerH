@@ -312,6 +312,7 @@ class Projects:
         pool = self.get_project_by_lid(priority[0][0])
         pool["lid"] = f"pool_{utils.gen_lid()}" if lid is None else lid
         pool.pop("_id", None)
+        pool["active"] = True
         ic(pool["lid"])
 
         # union some data
@@ -333,7 +334,7 @@ class Projects:
             self.session.commit()
         else:
             ic("Update existing pool")
-            self.update_item(pool, key=lid)
+            self.update_item(pool, key="lid")
 
         # deactivate original projects
         lids = [p[0] for p in (priority + non_priority)]
@@ -343,6 +344,7 @@ class Projects:
         return pool["lid"]
 
     def update_priority(self, project: dict):
+        ic()
         pool = self.session.query(Project).filter(
             Project.lvariants == project["lvariants"],
             Project.lid.startswith("pool_")
@@ -397,6 +399,7 @@ class Projects:
             variants_editor.edit(self, dict_project, variant)
 
     def update_item(self, project: dict, key: str = "_id"):
+        ic()
         if key == "_id":
             _id = project["_id"]
         elif key == "lid":
@@ -406,11 +409,14 @@ class Projects:
 
         project["search_body"] = make_search_body(project)
         project = {column: project[column] for column in columns}
+        ic(project)
 
         if key == "_id":
+            ic()
             # noinspection PyUnboundLocalVariable
             self.session.query(Project).filter_by(_id=_id).update(project)
         elif key == "lid":
+            ic()
             # noinspection PyUnboundLocalVariable
             self.session.query(Project).filter_by(lid=lid).update(project)
         self.session.commit()
