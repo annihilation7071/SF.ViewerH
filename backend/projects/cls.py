@@ -2,7 +2,7 @@ import os
 import json
 
 from pydantic_core.core_schema import NoneSchema
-
+from backend.classes import ProjectE
 from backend.db.connect import Project, get_session
 from sqlalchemy import desc, and_, func, or_
 from datetime import datetime
@@ -115,7 +115,6 @@ class Projects:
             "path": self._get_project_path(project),
             "preview_path": preview_path,
             "pages": pages,
-            "id": project._id,
             "upload_date_str": project.upload_date.strftime("%Y-%m-%dT%H:%M:%S"),
             "variants_view": [variant.split(":")[1] for variant in project.lvariants],
             "flags": self._get_flags_paths(project.language),
