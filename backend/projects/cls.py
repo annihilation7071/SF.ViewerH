@@ -195,10 +195,23 @@ class Projects:
             dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
             update = defaultdict(list)
 
-            for category in ["tag", "artist", "group", "parody", "character"]:
+            for category in ["tag", "artist", "group", "parody", "character", "language"]:
                 items = dict_project[category]
-                items = [item if (item not in aliases) else aliases[item] for item in items if item]
-                update[category] = items
+                new_items = []
+                for item in items:
+                    if not item:
+                        continue
+                    if item not in aliases:
+                        new_items.append(item)
+                    else:
+                        if isinstance(aliases[item], str):
+                            new_items.append(aliases[item])
+                        elif isinstance(aliases[item], list):
+                            new_items.extend(aliases[item])
+                        else:
+                            raise Exception(f"Unknown item {item}")
+
+                update[category] = list(set(new_items))
 
             update = dict(update)
             # noinspection PyDictCreation
