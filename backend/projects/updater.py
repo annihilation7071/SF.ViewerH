@@ -7,6 +7,8 @@ from backend.logger_new import get_logger
 from backend.projects.cls import Projects
 from backend.upgrade import vinfo
 import json
+from pydantic import BaseModel
+from backend.classes.projecte import ProjectEBase
 
 log = get_logger("putils")
 

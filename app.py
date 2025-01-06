@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from backend.projects.cls import Projects
-from backend.projects.putils import update_projects
+from backend.projects.updater import update_projects
 from fastapi.middleware.cors import CORSMiddleware
 from routers import main, extra
 import os

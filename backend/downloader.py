@@ -7,7 +7,7 @@ from icecream import ic
 from backend.downloaders.nhentai import NHentaiDownloader
 from backend.downloaders.gallerydl import GalleryDLDownloader
 from backend.projects.cls import Projects
-from backend.projects.putils import update_projects
+from backend.projects.updater import update_projects
 ic.configureOutput(includeContext=True)
 
 downloader_is_working = False
