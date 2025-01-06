@@ -1,4 +1,5 @@
 import os
+from backend.classes.lib import Lib
 import json
 from datetime import datetime
 import uuid
@@ -29,7 +30,7 @@ def get_pages(project: dict):
     return pages
 
 
-def read_libs(check: bool = True, only_active: bool = True) -> dict:
+def read_libs_old(check: bool = True, only_active: bool = True) -> dict:
     files = os.listdir("./settings/libs/")
     files = [file for file in files if file.startswith('libs_') and file.endswith('.json') and file != "libs_example.json"]
 
@@ -57,6 +58,40 @@ def read_libs(check: bool = True, only_active: bool = True) -> dict:
         for key, value in libs.items():
             if os.path.exists(os.path.abspath(value['path'])) is False:
                 raise IOError(f"ERROR: libs dir {os.path.abspath(value['path'])} does not exist")
+
+    return libs
+
+
+def read_libs(check: bool = True, only_active: bool = True) -> dict[str, Lib]:
+    files = os.listdir("./settings/libs/")
+    files = [file for file in files if file.startswith('libs_') and file.endswith('.json') and file != "libs_example.json"]
+
+    libs = {}
+    for file in files:
+        with open(os.path.join("./settings/libs", file), 'r', encoding="utf-8") as f:
+            lib = json.load(f)
+
+        a = len(libs)
+        if len(libs.keys() - lib.keys()) > a:
+            raise IOError(f"ERROR: Libs files contain the same names")
+
+        libs.update(lib)
+
+    libs = {key: Lib(name=key, **value) for key, value in libs.items()}
+
+    if only_active:
+        non_active = []
+        for key, value in libs.items():
+            if value.active is False:
+                non_active.append(key)
+
+        for key in non_active:
+            libs.pop(key)
+
+    if check:
+        for key, value in libs.items():
+            if os.path.exists(os.path.abspath(value.path)) is False:
+                raise IOError(f"ERROR: libs dir {os.path.abspath(value.path)} does not exist")
 
     return libs
 

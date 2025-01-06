@@ -1,28 +1,21 @@
 import os
-import json
 
-from pydantic_core.core_schema import NoneSchema
-from backend.classes import ProjectE
 from backend.db.connect import Project, get_session
 from sqlalchemy import desc, and_, func, or_
-from datetime import datetime
 from collections import defaultdict
 from backend.editor import variants_editor
-from sqlalchemy.dialects.sqlite import JSON
-from backend import cmdargs, logger, utils
-from importlib import import_module
+from backend import logger, utils
 from backend.logger import log
 from backend.editor import eutils
-from backend.upgrade import vinfo
 from icecream import ic
-from pathlib import Path
 ic.configureOutput(includeContext=True)
 
 
 # noinspection PyMethodMayBeStatic,PyProtectedMember
 class Projects:
     def __init__(self):
-        self.session = get_session()
+        self.Session = get_session()
+        self.session = self.Session()
         self.libs = utils.read_libs(only_active=True, check=True)
         # active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
         self.all_projects = self.session.query(Project).filter(Project.lib.in_(self.libs))
@@ -33,7 +26,7 @@ class Projects:
 
     def _get_project_path(self, project: Project) -> str:
         lib = project.lib
-        lib_dir = self.libs[lib]["path"]
+        lib_dir = self.libs[lib].path
         project_dir = project.dir_name
         project_path = os.path.abspath(os.path.join(lib_dir, project_dir))
         return project_path

@@ -7,6 +7,7 @@ from backend import utils, cmdargs
 from backend.logger import log
 from backend.projects.cls import Projects
 from backend.upgrade import vinfo
+from backend.classes.lib import Lib
 import json
 
 
@@ -14,7 +15,7 @@ def update_projects(projects: Projects) -> None:
     libs = utils.read_libs()
 
     for lib_name, lib_data in libs.items():
-        if lib_data["active"] is False:
+        if lib_data.active is False:
             continue
 
         log(f"Processing: {lib_name}")
@@ -28,9 +29,9 @@ def update_projects(projects: Projects) -> None:
 
         projects.clear_old_versions(v_info["info_version"])
 
-        processor = import_module(f"backend.processors.{lib_data['processor']}")
+        processor = import_module(f"backend.processors.{lib_data.processor}")
 
-        path = lib_data["path"]
+        path = lib_data.path
         dirs = get_dirs(path, processor.meta_file)
 
         dirs_not_in_db, dirs_not_exist = check_dirs(projects, lib_name, dirs)
@@ -58,7 +59,7 @@ def update_projects(projects: Projects) -> None:
             projects.add_project(project)
 
 
-def get_dirs(path: str, meta_file: str) -> list[str]:
+def get_dirs(path: Path, meta_file: str) -> list[str]:
     dirs = []
     if os.path.exists(path) is False:
         os.makedirs(path)

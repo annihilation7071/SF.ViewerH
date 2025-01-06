@@ -46,12 +46,12 @@ async def _download(url: str, projects: Projects):
         raise Exception(f"Not found lib for {site}")
 
     target = targets[site]
-    settings = libs[targets[site]]
+    settings = getattr(libs, targets[site])
 
     match libs[targets[site]]["processor"]:
 
         case "nhentai":
-            downloader = NHentaiDownloader(id_=id_, target=settings)
+            downloader = NHentaiDownloader(id_=id_, settings=settings)
             process = await downloader.start()
 
         case "gallery-dl-nhentai" | "gallery-dl-hitomila":

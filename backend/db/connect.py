@@ -57,6 +57,5 @@ def get_session():
 
     # noinspection PyPep8Naming
     Session = sessionmaker(bind=engine)
-    session = Session()
 
-    return session
+    return Session
