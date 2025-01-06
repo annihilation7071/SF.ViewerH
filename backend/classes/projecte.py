@@ -4,16 +4,24 @@ from pydantic import BaseModel
 from backend.db.connect import Project
 from sqlalchemy.orm import sessionmaker, Session
 import os
+import sys
 from backend import utils
 from backend.classes.lib import Lib
 import json
+from backend.logger_new import get_logger
+
+log = get_logger("ProjectE")
+
+
+class DBError(Exception):
+    pass
 
 
 class ProjectE(BaseModel):
     Session: sessionmaker[Session]
     lib_data: Lib
 
-    _id: int
+    _id: int | None
     info_version: int
     lid: str
     lvariants: list[str]
@@ -124,6 +132,9 @@ class ProjectE(BaseModel):
     def _attr(self) -> list[str]:
         return [key for key in self.__dict__.keys() if key.startswith("_") is False]
 
+    def _keys(self ):
+        return self._attr()
+
     def update_db(self) -> None:
         with Session() as session:
             project = session.query(Project).filter_by(lid=self.lid).first()
@@ -167,6 +178,20 @@ class ProjectE(BaseModel):
         with open(vpath, "w", encoding="utf-8") as f:
             # noinspection PyTypeChecker
             json.dump(v_info, f, indent=4)
+
+    def add_to_db(self) -> None:
+        log.debug("add_to_db")
+        if self._id is not None:
+            raise DBError("Cannot add project with specified _id in DB")
+
+        data = {key: getattr(self, key) for key in Project.get_columns() if key != "_id"}
+
+        with self.Session() as session:
+            project = Project(**data)
+            session.add(project)
+            session.commit()
+
+
 
 
 

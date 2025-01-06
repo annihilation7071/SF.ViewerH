@@ -4,17 +4,25 @@ from backend.db.connect import Project, get_session
 from sqlalchemy import desc, and_, func, or_
 from collections import defaultdict
 from backend.editor import variants_editor
-from backend import logger, utils
-from backend.logger import log
+from backend import utils
 from backend.editor import eutils
 from icecream import ic
 from backend.classes.projecte import ProjectE
+
 ic.configureOutput(includeContext=True)
+from backend.logger_new import get_logger
+
+log = get_logger("Projects")
+
+
+class ProjectsError(Exception):
+    pass
 
 
 # noinspection PyMethodMayBeStatic,PyProtectedMember
 class Projects:
     def __init__(self):
+        log.debug("load projects...")
         self.Session = get_session()
         self.session = self.Session()
         self.libs = utils.read_libs(only_active=True, check=True)
@@ -24,6 +32,7 @@ class Projects:
         self.sorting_method = Project.upload_date
         self.projects = self.active_projects.order_by(desc(self.sorting_method))
         self.search = ""
+        log.debug("projects loaded")
 
     def _normalize_search(self, search: str) -> str:
         search = search.split(",")
@@ -130,6 +139,7 @@ class Projects:
 
             projecte_updated.update_db()
 
+            # TODO Think about what to do with variants
             if project.lid.startswith("pool_") is False:
                 projecte_updated.update_vinfo()
 
@@ -160,13 +170,14 @@ class Projects:
             **project.to_dict()
         )
 
-    def get_project_by_id(self, _id: int | str) -> dict | None:
+    def get_project_by_id(self, _id: int | str) -> ProjectE | None:
         return self.get_project(_id=_id)
 
-    def get_project_by_lid(self, lid: str) -> dict | None:
+    def get_project_by_lid(self, lid: str) -> ProjectE | None:
         return self.get_project(lid=lid)
 
     def get_dirs(self, lib_name: str = None):
+        log.debug("get_dirs")
         if lib_name is not None:
             selected_lib = self.all_projects.filter_by(lib=lib_name)
         else:
@@ -174,11 +185,11 @@ class Projects:
 
         selected_lib = selected_lib.with_entities(Project.dir_name).all()
         dirs = set([dir_name[0] for dir_name in selected_lib])
-        logger.log(f"Selected dirs count: {len(dirs)}")
+        log.debug(len(dirs))
 
         return dirs
 
-    def get_columns(self, exclude: list | tuple = None):
+    def _get_columns(self, exclude: list | tuple = None):
         # noinspection PyTypeChecker
         columns = [column.name for column in Project.__table__.columns]
         if exclude is not None:
@@ -186,24 +197,32 @@ class Projects:
         return columns
 
     def delete_by_dir_and_lib(self, dir_name: str, lib_name: str):
-        selected_lib = self.all_projects.filter_by(dir_name=dir_name, lib=lib_name).first()
+        log.debug(f"delete_by_dir_and_lib: {dir_name}, {lib_name}")
+        project = self.all_projects.filter_by(dir_name=dir_name, lib=lib_name).first()
 
-        if selected_lib:
-            self.session.delete(selected_lib)
-            self.session.commit()
-            log(f"Row deleted: {lib_name}: {dir_name}", "../db")
+        if project:
+            with self.Session() as session:
+                session.delete(project)
+                session.commit()
+
+            log.debug("project deleted")
         else:
-            log(f"Trying to delete; Row not found: {lib_name}: {dir_name}", "../db")
+            log.error("Project not found")
 
     def delete_pool(self, variants: list) -> None:
-        self.session.query(Project).filter(and_(Project.lid.icontains("pool_"), Project.lvariants == variants)).delete()
-        self.session.commit()
+        log.debug(f"delete_pool: {variants}")
+        with self.Session() as session:
+            session.query(Project).filter(and_(Project.lid.icontains("pool_"), Project.lvariants == variants)).delete()
+            session.commit()
 
     def delete_all_data(self):
-        self.session.query(Project).delete()
-        self.session.commit()
+        log.info("delete_all_data")
+        with self.Session() as session:
+            session.query(Project).delete()
+            session.commit()
 
     def count_item(self, item: str) -> list:
+        log.debug(f"count_item: {item}")
         result = defaultdict(int)
 
         items_strings = self.active_projects.with_entities(getattr(Project, item)).all()
@@ -216,71 +235,113 @@ class Projects:
         return sorted(result.items(), key=lambda x: x[1], reverse=True)
 
     def clear_old_versions(self, target_version: int):
-        self.session.query(Project).filter(Project.info_version < target_version).delete()
-        self.session.commit()
+        log.debug(f"clear_old_versions: {target_version}")
+        with self.Session() as session:
+            session.query(Project).filter(Project.info_version < target_version).delete()
+            session.commit()
 
     def check_lids(self, lids: list) -> int:
+        log.debug(f"check_lids: {lids}")
         return self.all_projects.filter(Project.lid.in_(lids)).count()
 
     # noinspection da
-    def create_priority(self, priority: list, non_priority: list, lid: str = None, update: bool = False) -> None:
-        ic()
-        if update is True and lid is None:
-            raise ValueError("For update priority lid must be provided")
-        elif update is False and lid is not None:
-            raise ValueError("Lid should be provided only if update is True")
+    def create_priority(self,
+                        priority: list,
+                        non_priority: list,
+                        lid: str = None,
+                        update: bool = False) -> str:
+        log.debug("create_priority")
+        log.debug("create new pool" if update else "update existing pool")
+        log.debug("info",
+                  extra={
+                      "priority": priority,
+                      "non_priority": non_priority,
+                  })
+        try:
+            if update is True and lid is None:
+                raise ValueError("For update priority lid must be provided")
+            elif update is False and lid is not None:
+                raise ValueError("Lid should be provided only if update is True")
+        except ValueError:
+            log.exception("Failed to create priority, incorrect parameters",
+                          extra={
+                              "lid": lid,
+                              "update": update,
+                          })
 
-        # priority and non_priority:
-        # [[lid, description], [lid, despription]]
-        pool = self.get_project_by_lid(priority[0][0])
-        pool["lid"] = f"pool_{utils.gen_lid()}" if lid is None else lid
-        pool.pop("_id", None)
-        pool["active"] = True
-        ic(pool["lid"])
+        with self.Session() as session:
+            session.begin()
+            # priority and non_priority:
+            # [[lid, description], [lid, despription]]
+            priority_project: Project = session.query(Project).filter_by(lid=priority[0][0]).first()
+            log.debug(f"priority_project: {priority_project.lid}; {priority_project.title}")
 
-        # union some data
-        for _lid in non_priority:
-            nproject = self.get_project_by_lid(_lid[0])
-            pool["tag"] = list(set(pool["tag"]) | set(nproject["tag"]))
-            pool["language"] = list(set(pool["language"]) | set(nproject["language"]))
-            pool["group"] = list(set(pool["group"]) | set(nproject["group"]))
-            pool["artist"] = list(set(pool["artist"]) | set(nproject["artist"]))
-            pool["series"] = list(set(pool["series"]) | set(nproject["series"]))
-            pool["parody"] = list(set(pool["parody"]) | set(nproject["parody"]))
+            if update:
+                pool: Project = session.query(Project).filter(Project.lid == lid).first()
+            else:
+                pool: Project = Project(
+                    lid=f"pool_{utils.gen_lid()}",
+                    **priority_project.to_dict(exclude=["_id", "lid"])
+                )
 
-        pool["search_body"] = make_search_body(pool)
+            log.debug(f"Selected priority: {pool.lid}, {pool.title}")
+            log.debug(f"Lid for pool: {pool.lid}")
+            pool.active = True
 
-        # add pool to DB
-        if lid is None:
-            ic("Add new pool")
-            self.add_project(pool)
-            self.session.commit()
-        else:
-            ic("Update existing pool")
-            self.update_item(pool, key="lid")
+            for key, value in priority_project.to_dict(exclude=["_id", "lid",
+                                                                "search_body",
+                                                                "active"]).items():
+                setattr(pool, key, value)
 
-        # deactivate original projects
-        lids = [p[0] for p in (priority + non_priority)]
-        self.all_projects.filter(Project.lid.in_(lids)).update({Project.active: False})
+            # union some data
+            for _lid in non_priority:
+                nproject = self.get_project_by_lid(_lid[0])
+                pool.tag = list(set(pool.tag) | set(nproject.tag))
+                pool.language = list(set(pool.language) | set(nproject.language))
+                pool.group = list(set(pool.group) | set(nproject.group))
+                pool.artist = list(set(pool.artist) | set(nproject.artist))
+                pool.series = list(set(pool.series) | set(nproject.series))
+                pool.parody = list(set(pool.parody) | set(nproject.parody))
 
-        self.session.commit()
-        return pool["lid"]
+            pool.search_body = make_search_body(pool)
 
-    def update_priority(self, project: dict):
-        ic()
+            # add pool to DB
+            if lid is None:
+                log.debug(f"Add new pool: {pool.lid}")
+                session.add(pool)
+            else:
+                log.debug(f"Update existing pool: {pool.lid}")
+
+            # deactivate original projects
+            lids = [p[0] for p in (priority + non_priority)]
+            log.debug(f"Deactivating projects: {lids}")
+            session.query(Project).filter(Project.lid.in_(lids)).update({Project.active: False})
+            session.commit()
+
+            lid = pool.lid
+
+        return lid
+
+    def update_priority(self, project: ProjectE):
+        log.debug(f"update_priority: {project.lid}")
+
         pool = self.session.query(Project).filter(
             Project.lvariants == project["lvariants"],
             Project.lid.startswith("pool_")
         ).all()
 
         if len(pool) == 0:
-            raise ValueError("No pool found")
+            raise ProjectsError("No pool found")
         elif len(pool) > 2:
-            raise ValueError("Too many pool found")
+            raise ProjectsError("Too many pool found")
+
+        log.debug(f"Pool found: {pool.lid}")
 
         pool = pool[0]
 
         priority, non_priority = variants_editor.separate_priority(pool.lvariants)
+        log.debug(f"priority: {priority}")
+        log.debug(f"non_priority: {non_priority}")
 
         self.create_priority(priority, non_priority, lid=pool.lid, update=True)
 
@@ -356,7 +417,7 @@ class Projects:
         self.session.commit()
 
 
-def make_search_body(project: dict | ProjectE) -> str:
+def make_search_body(project: dict | ProjectE | Project) -> str:
     include = ["source_id", "source", "url", "downloader", "title", "subtitle",
                "parody", "character", "tag", "artist", "group", "language",
                "category", "series", "lib"]
@@ -366,7 +427,7 @@ def make_search_body(project: dict | ProjectE) -> str:
     for k in include:
         if isinstance(project, dict):
             v = project[k]
-        elif isinstance(project, ProjectE):
+        elif isinstance(project, ProjectE | Project):
             v = getattr(project, k)
         else:
             raise ValueError("Project must be of type dict or ProjectE")

@@ -7,6 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import main, extra
 import os
 import asyncio
+from backend.logger_new import get_logger
+
+log = get_logger("App_main")
 
 if os.name == 'nt':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())

@@ -8,14 +8,14 @@ class Base(DeclarativeBase):
         columns = [column.name for column in self.__table__.columns]
         return columns
 
-    def to_dict(self) -> dict:
-        project = {column: getattr(self, column) for column in self.get_columns()}
+    def to_dict(self, exclude: list = None) -> dict:
+        project = {column: getattr(self, column) for column in self.get_columns() if column not in exclude}
         return project
 
 
 class Project(Base):
     __tablename__ = 'projects'
-    _id = Column(Integer, primary_key=True, index=True)
+    _id = Column(Integer, primary_key=True, index=True, nullable=False)
     info_version = Column(Integer)
     lid = Column(String, unique=True, index=True)
     lvariants = Column(JSON)
@@ -41,6 +41,11 @@ class Project(Base):
     search_body = Column(String(length=3000))
     active = Column(Boolean, default=True)
     preview_hash = Column(String(length=500))
+
+    @classmethod
+    def get_columns(cls):
+        columns = cls.__table__.columns
+        return columns
 
 
 # class PoolV(Base):
