@@ -91,7 +91,7 @@ class Projects:
         return self.projects.count()
 
     def checking(self):
-        self.update_pools_v()
+        self.update_pools()
         self.update_aliases()
 
     def update_aliases(self):
@@ -345,9 +345,11 @@ class Projects:
 
         self.create_priority(priority, non_priority, lid=pool.lid, update=True)
 
-    def update_pools_v(self, force: bool = False):
+    def update_pools(self, force: bool = False):
+        log.info(f"Updating pools...")
         projects_with_variants = self.session.query(Project).filter(
             func.json_array_length(Project.lvariants) > 0).all()
+        log.debug(f"Found {len(projects_with_variants)} projects with variants")
 
         unique_variants = []
         unique_check = set()
@@ -357,64 +359,82 @@ class Projects:
                 unique_variants.append(project)
 
         projects_with_variants = unique_variants
-        ic(projects_with_variants)
+        log.debug(f"Found {len(projects_with_variants)} unique variants")
 
         for project in projects_with_variants:
-            ic(project.lid, project.title)
+            log.debug(f"Processing: {project.lid}; {project.title}")
             variant = project.lvariants
+            log.debug(f"Variants: {variant}")
             exist_pool = self.session.query(Project).filter(Project.lvariants == variant,
                                                             Project.lid.istartswith("pool")).all()
 
             if len(exist_pool) > 0:
-                ic("Pool is found")
+                log.debug(f"Found existing pool")
                 if force is True or len(exist_pool) > 1:
-                    ic("More than one pool found")
-                    exist_pool.delete()
-                    self.session.commit()
+
+                    if len(exist_pool) > 1:
+                        log.warning(f"More than one pool found. Deliting all pools...")
+                    else:
+                        log.debug(f"Deleting existing pool")
+
+                    with self.Session() as session:
+                        for pool in exist_pool:
+                            log.debug(f"Pool deleting: {pool.lid}")
+                            session.delete(pool)
+                        session.commit()
+
+                    log.debug(f"All pools were deleted")
                 else:
-                    self.session.query(Project).filter(Project.lvariants == variant).update({Project.active: False})
-                    exist_pool[0].active = True
-                    self.session.commit()
+                    # TODO check later if this need at all or not
+                    # self.session.query(Project).filter(Project.lvariants == variant).update({Project.active: False})
+                    # exist_pool[0].active = True
+                    # self.session.commit()
                     continue
 
-            ic("create new pool")
-            dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
+            log.debug(f"Creaging new pool")
+            projecte = ProjectE(
+                Session=session,
+                lib_data=self.libs[project.lib],
+                **project.to_dict()
+            )
 
-            variants_editor.edit(self, dict_project, variant)
+            variants_editor.edit(self, projecte, variant)
 
-    def update_item(self, project: dict, key: str = "_id"):
-        ic()
-        if key == "_id":
-            _id = project["_id"]
-        elif key == "lid":
-            lid = project["lid"]
-
-        columns = self.get_columns(exclude=["_id"])
-
-        project["search_body"] = make_search_body(project)
-        project = {column: project[column] for column in columns}
-        ic(project)
-
-        if key == "_id":
-            ic()
-            # noinspection PyUnboundLocalVariable
-            self.session.query(Project).filter_by(_id=_id).update(project)
-        elif key == "lid":
-            ic()
-            # noinspection PyUnboundLocalVariable
-            self.session.query(Project).filter_by(lid=lid).update(project)
-        self.session.commit()
+    # def update_item(self, project: ProjectE, key: str = "_id"):
+    #     log.debug(f"update_item")
+    #     if key == "_id":
+    #         _id = project["_id"]
+    #     elif key == "lid":
+    #         lid = project["lid"]
+    #
+    #     columns = self.get_columns(exclude=["_id"])
+    #
+    #     project["search_body"] = make_search_body(project)
+    #     project = {column: project[column] for column in columns}
+    #     ic(project)
+    #
+    #     if key == "_id":
+    #         ic()
+    #         # noinspection PyUnboundLocalVariable
+    #         self.session.query(Project).filter_by(_id=_id).update(project)
+    #     elif key == "lid":
+    #         ic()
+    #         # noinspection PyUnboundLocalVariable
+    #         self.session.query(Project).filter_by(lid=lid).update(project)
+    #     self.session.commit()
 
     def add_project(self, project: dict):
-        columns = self.get_columns(exclude=["_id", "active", "search_body"])
+        log.debug(f"add_project")
+        columns = self._get_columns(exclude=["_id", "active", "search_body"])
 
         project = {column: project[column] for column in columns}
         project["search_body"] = make_search_body(project)
         project = Project(**project)
-        ic(f"Project added to DB: {project.title}")
+        log.info(f"Adding new project: {project.title}")
 
-        self.session.add(project)
-        self.session.commit()
+        with self.Session() as session:
+            session.add(project)
+            session.commit()
 
 
 def make_search_body(project: dict | ProjectE | Project) -> str:

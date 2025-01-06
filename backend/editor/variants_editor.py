@@ -1,10 +1,22 @@
 from backend.utils import tag_normalizer
-from backend.editor import eutils
-from backend.logger import log
+from backend.logger_new import get_logger
+from backend.classes.projecte import ProjectE
+from typing import TYPE_CHECKING
+
+log = get_logger("VariantsEditor")
+
+if TYPE_CHECKING:
+    from backend.projects.cls import Projects
 
 
-def edit(projects, project: dict, data: str | list, separator: str = "\n"):
-    log(f"Project received by project_editor: {project['lid']}", "variants-3")
+class VariantsEditorError(Exception):
+    pass
+
+
+def edit(projects: Projects, project: ProjectE, data: str | list, separator: str = "\n"):
+    log.debug(f"variant_editor.edit")
+    log.debug(f"")
+
     # New variants
     if isinstance(data, str):
         variants = data.split(separator)
@@ -13,14 +25,16 @@ def edit(projects, project: dict, data: str | list, separator: str = "\n"):
 
     variants = [variant for variant in variants if variant != "" and variant.find(":") != -1]
     variants = tag_normalizer(variants, lower=False, ali=False)
-    log(f"Variants: {variants}", "variants-3")
+    log.debug(f"New variants: {variants}")
 
     variants_count = len(variants)
+    log.debug(f"New variants_count: {variants_count}")
 
     if variants_count == 1:
-        raise Exception("Too few variants")
+        raise VariantsEditorError("Too few variants")
 
     lids = [variant.split(":")[0] for variant in variants]
+    log.debug(f"Lids: {lids}")
 
     # Old variants
     old_variants = set()
@@ -28,60 +42,73 @@ def edit(projects, project: dict, data: str | list, separator: str = "\n"):
     for lid in lids:
         old_variants = old_variants | set(projects.get_project_by_lid(lid)["lvariants"])
     old_variants = list(old_variants)
+    log.debug(f"Old variants: {old_variants}")
 
-    log(f"Old variants: {old_variants}", "variants-3")
     old_lids = [variant.split(":")[0] for variant in old_variants]
+    log.debug(f"Old lids: {old_lids}")
 
     # Check availability projects
+    log.debug(f"Check availability projects")
     if projects.check_lids(lids) != len(lids) or projects.check_lids(old_lids) != len(old_lids):
-        raise Exception("Some projects not loaded")
-    log(f"Availability checked", "variants-3")
+        raise VariantsEditorError("Some projects not loaded")
 
     # Clear old variants (pools)
-    unique_variants = [project["lvariants"]]
-    unique_chesk = {str(project["lvariants"])}
+    log.debug(f"Clear old variants (pools)")
+    unique_variants = [project.lvariants]
+    unique_check = {str(project.lvariants)}
+
     for lid in lids + old_lids:
-        prjv = projects.get_project_by_lid(lid)["lvariants"]
-        if str(prjv) not in unique_chesk:
+        log.debug(f"Getting variants for {lid}")
+        prjv = projects.get_project_by_lid(lid).lvariants
+        if str(prjv) not in unique_check:
+            log.debug(f"{prjv}")
             unique_variants.append(prjv)
-            unique_chesk.add(str(prjv))
+            unique_check.add(str(prjv))
 
     for variant in unique_variants:
+        log.debug(f"Deleting pools with variant = {variant}")
         projects.delete_pool(variant)
 
     old_projects = [projects.get_project_by_lid(lid) for lid in old_lids]
 
     for t_project in old_projects:
-        eutils.update_data(projects, t_project, ["lvariants", "active"], [[], True], multiple=True)
+        t_project.lvariants = []
+        t_project.active = True
+        t_project.update_db()
+        t_project.update_vinfo()
 
     # Stop if new variants not provided
     if len(variants) == 0:
+        log.debug("New variants not provided. Stop variants_editor.edit")
         return
 
     # Find priority project
     priority, non_priority = separate_priority(variants)
-
-    log(f"Priority: {priority}", "variants-3")
-    log(f"Non priority: {non_priority}", "variants-3")
+    log.debug(f"Priority: {priority}")
+    log.debug(f"Non priority: {non_priority}")
 
     if len(priority) > 1:
-        raise Exception("Only one priority marker allowed")
+        raise VariantsEditorError("Only one priority marker allowed")
 
     # Sorting variants:
     # Priority first others sorting
     variants = [":".join(priority[0])] + [":".join(variant) for variant in sorted(non_priority, key=lambda x: x[1])]
     variants = [variant for variant in variants if len(variant) > 0]
-    log(f"Variants after sorting: {variants}", "variants-3")
+    log.debug(f"Variants after sorting: {variants}")
 
     # Update data in info file and DB
+    log.debug(f"Updating data in DB and file")
     target_projects = [projects.get_project_by_lid(lid) for lid in lids]
 
     for t_project in target_projects:
-        eutils.update_data(projects, t_project, "lvariants", variants, update_priority=False)
+        log.debug(f"{t_project.lid}")
+        t_project.lvariants = variants
+        t_project.update_db()
+        t_project.update_vinfo()
 
     # Create priority
     if len(priority) == 1:
-        log(f"Start creating priority", "variants-3")
+        log.debug(f"Creating priority: {variants}")
         return projects.create_priority(priority, non_priority)
 
     return

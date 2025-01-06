@@ -136,6 +136,7 @@ class ProjectE(BaseModel):
         return self._attr()
 
     def update_db(self) -> None:
+        log.debug(f"update_db: {self.lid}")
         with Session() as session:
             project = session.query(Project).filter_by(lid=self.lid).first()
             keys_db = [key for key in project.__dict__.keys() if key.startswith("_") is False]
@@ -148,8 +149,11 @@ class ProjectE(BaseModel):
             session.commit()
 
     def update_vinfo(self) -> None:
+        log.debug(f"update_vinfo: {self.lid}")
         if self.lib.startswith("pool_"):
             raise Exception("Cannot update vinfo for pool")
+
+        self.renew_search_body()
 
         keys_pe = self._attr()
 
@@ -184,6 +188,7 @@ class ProjectE(BaseModel):
         if self._id is not None:
             raise DBError("Cannot add project with specified _id in DB")
 
+        self.renew_search_body()
         data = {key: getattr(self, key) for key in Project.get_columns() if key != "_id"}
 
         with self.Session() as session:
@@ -191,11 +196,31 @@ class ProjectE(BaseModel):
             session.add(project)
             session.commit()
 
+    def renew_search_body(self) -> None:
+        log.debug("renew_search_body")
+        self.search_body = make_search_body(self)
 
 
+def make_search_body(project: dict | ProjectE | Project) -> str:
+    include = ["source_id", "source", "url", "downloader", "title", "subtitle",
+               "parody", "character", "tag", "artist", "group", "language",
+               "category", "series", "lib"]
 
+    search_body = ";;;"
 
+    for k in include:
+        if isinstance(project, dict):
+            v = project[k]
+        elif isinstance(project, ProjectE | Project):
+            v = getattr(project, k)
+        else:
+            raise ValueError("Project must be of type dict or ProjectE")
 
+        if isinstance(v, list):
+            for item in v:
+                search_body += f"{k}:{item.lower()};;;"
+        else:
+            search_body += f"{k}:{v};;;"
 
-
+    return search_body
 
