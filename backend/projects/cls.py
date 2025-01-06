@@ -128,11 +128,10 @@ class Projects:
             update["search_body"] = make_search_body(projecte_updated)
             projecte_updated.search_body = update["search_body"]
 
+            projecte_updated.update_db()
+
             if project.lid.startswith("pool_") is False:
-                eutils.update_data(self, projecte_updated, list(update.keys()), list(update.values()), multiple=True)
-            else:
-                self.session.query(Project).filter_by(_id=project._id).update(update)
-                self.session.commit()
+                projecte_updated.update_vinfo()
 
     def get_project(self, _id: int | str = None, lid: str = None) -> ProjectE | None:
         ic(_id, lid)

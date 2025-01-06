@@ -1,43 +1,36 @@
-from datetime import datetime
-import os
+import logging
+from logging.handlers import SocketHandler, RotatingFileHandler
+
+SOCKET_HANDLER = SocketHandler('127.0.0.1', 19996)
 
 
-path = os.path.join(os.getcwd(), f"logs/{datetime.now().strftime('%Y-%m-%d')}")
-if os.path.exists(path) is False:
-    os.makedirs(path)
+def get_logger(name: str, level: int = 1) -> logging.Logger:
+    file_handler = RotatingFileHandler(filename=f"./logs/{name}.log", mode="w", encoding="utf-8")
+    formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+    file_handler.setFormatter(formatter)
 
-date = None
-files = set()
-
-
-def start(file):
-    global date
-
-    if date is None:
-        date = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-
-    text = (f"\n---------\n"
-            f"SESSION START: {date}\n"
-            f"---------\n")
-
-    if file not in files:
-        with open(os.path.join(path, file), 'a+', encoding="utf-8") as f:
-            f.write(text)
-        files.add(file)
+    # noinspection PyShadowingNames
+    log = logging.getLogger(name)
+    log.setLevel(level)
+    log.addHandler(SOCKET_HANDLER)
+    log.addHandler(file_handler)
+    return log
 
 
-def log(message, file: str = "log.txt"):
+if __name__ == '__main__':
+    log = get_logger("Root logger")
 
-    if file.endswith(".txt") is False:
-        file = file + ".txt"
+    log.debug("A DEBUG Message")
+    log.info("An INFO")
+    log.warning("A WARNING")
+    log.error("An ERROR")
+    log.critical("A message of CRITICAL severity")
 
-    start(file)
+    try:
+        x = 5/0
+    except ZeroDivisionError:
+        log.exception("An exception occurred")
+        raise
 
-    text = f"    <LOG: {datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}>    {message}\n"
 
-    with open(os.path.join(path, "log.txt"), "a+", encoding="utf-8") as f:
-        f.write(text)
 
-    if file != "log.txt":
-        with open(os.path.join(path, file), "a+", encoding="utf-8") as f:
-            f.write(text)
