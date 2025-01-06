@@ -9,7 +9,7 @@ import os
 import asyncio
 from backend.logger_new import get_logger
 
-log = get_logger("App_main")
+log = get_logger("App")
 
 if os.name == 'nt':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())

@@ -13,7 +13,7 @@ class VariantsEditorError(Exception):
     pass
 
 
-def edit(projects: Projects, project: ProjectE, data: str | list, separator: str = "\n"):
+def edit(projects: 'Projects', project: ProjectE, data: str | list, separator: str = "\n"):
     log.debug(f"variant_editor.edit")
     log.debug(f"")
 

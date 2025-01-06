@@ -8,10 +8,13 @@ import imagehash
 from pathlib import Path
 from icecream import ic
 import asyncio
-ic.configureOutput(includeContext=True)
+from backend.logger_new import get_logger
+from backend.classes.projecte import ProjectE
+
+log = get_logger("utils")
 
 
-def get_pages(project: dict):
+def get_pages(project: ProjectE):
     extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.avif', '.webp']
 
     path = project['path']

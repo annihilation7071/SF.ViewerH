@@ -1,14 +1,21 @@
 from sqlalchemy import Column, Integer, String, create_engine, DateTime, Boolean, JSON
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from backend.logger_new import get_logger
+
+log = get_logger("Connect")
 
 
 class Base(DeclarativeBase):
     def get_columns(self):
+        log.debug(f"Base.get_columns")
         # noinspection PyTypeChecker
         columns = [column.name for column in self.__table__.columns]
+        log.debug(f"columns")
         return columns
 
     def to_dict(self, exclude: list = None) -> dict:
+        if exclude is None:
+            exclude = []
         project = {column: getattr(self, column) for column in self.get_columns() if column not in exclude}
         return project
 
@@ -42,9 +49,9 @@ class Project(Base):
     active = Column(Boolean, default=True)
     preview_hash = Column(String(length=500))
 
-    @classmethod
-    def get_columns(cls):
-        columns = cls.__table__.columns
+    def get_columns(self):
+        log.debug(f"Project.get_columns")
+        columns = [column.name for column in self.__table__.columns]
         return columns
 
 

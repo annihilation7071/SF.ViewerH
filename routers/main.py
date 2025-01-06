@@ -4,12 +4,14 @@ from fastapi.templating import Jinja2Templates
 from backend.projects.cls import Projects
 from backend.utils import get_visible_pages
 from backend import utils
+from pathlib import Path
 from urllib.parse import quote, unquote
 import mimetypes
 from backend.editor import selector as edit_selector
-from icecream import ic
-ic.configureOutput(includeContext=True)
+from backend.logger_new import get_logger
+from backend.classes.projecte import ProjectE
 
+log = get_logger("Routers.main")
 
 # noinspection PyTypeChecker
 projects: Projects = None
@@ -22,6 +24,7 @@ router = APIRouter()
 
 @router.get("/", response_class=HTMLResponse, name="index")
 async def index(request: Request, page: int = 1, search: str = ""):
+    log.debug(f"index")
     search_query = search.strip().lower()
     displayed_projects = projects.get_page(PPG, page=page, search=search_query)
 
@@ -57,7 +60,7 @@ async def index(request: Request, page: int = 1, search: str = ""):
 @router.get("/project/lid/{project_lid}", response_class=HTMLResponse)
 async def detail_view(request: Request, project_lid: str):
     project = projects.get_project_by_lid(project_lid)
-    images = utils.get_pages(project)
+    images = project.get_images()
     return templates.TemplateResponse(
         "detailview.html",
         {
@@ -92,7 +95,7 @@ async def detail_view(request: Request, project_lid: str):
 @router.get("/project/lid/{project_lid}/{page_id}", response_class=HTMLResponse)
 async def reader(request: Request, project_lid: str, page_id: int):
     project = projects.get_project_by_lid(project_lid)
-    images = utils.get_pages(project)
+    images = project.get_images()
     page = page_id
     image = images[page - 1]["path"]
     total_pages = len(images)
@@ -111,7 +114,7 @@ async def reader(request: Request, project_lid: str, page_id: int):
 
 
 @router.get("/get_image/{image_path:path}")
-async def get_image(image_path: str):
+async def get_image(image_path: str | Path):
     try:
         decoded_path = unquote(image_path)
         mimetype, _ = mimetypes.guess_type(image_path)

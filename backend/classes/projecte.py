@@ -59,6 +59,7 @@ class ProjectE(BaseModel):
 
     # noinspection PyPep8Naming,PyShadowingNames
     def __init__(self, Session, lib_data, **kwargs):
+        log.debug("Initializing ProjectE")
         super().__init__(Session=Session, lib_data=lib_data, **kwargs)
         self.path = self.lib_data.path / self.dir_name
         files = os.listdir(self.path)
@@ -67,6 +68,7 @@ class ProjectE(BaseModel):
         self._gen_extra_parameters()
 
     def _update_preview_and_pages(self, files: list) -> None:
+        log.debug("_update_preview_and_pages")
         preview_name: str = ""
 
         for file in files:
@@ -104,6 +106,7 @@ class ProjectE(BaseModel):
 
     @staticmethod
     def _get_flags_paths(languages: list) -> list:
+        log.debug("_get_flags_paths")
         exclude = ["rewrite", "translated"]
 
         flags_path = Path(os.getcwd()) / "data/flags"
@@ -123,6 +126,7 @@ class ProjectE(BaseModel):
         return flags
 
     def _gen_extra_parameters(self) -> None:
+        log.debug("_gen_extra_parameters")
         self.upload_date_str = self.upload_date.strftime("%Y-%m-%dT%H:%M:%S")
         self.variants_view = [variant.split(":")[1] for variant in self.lvariants]
         self.flags = self._get_flags_paths(self.language)
@@ -199,6 +203,22 @@ class ProjectE(BaseModel):
         log.debug("renew_search_body")
         self.search_body = make_search_body(self)
 
+    def get_images(self) -> list[dict[str, Path | int]]:
+        extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.avif', '.webp']
+
+        files = os.listdir(self.path)
+
+        pages = []
+
+        for file in files:
+            if os.path.splitext(file)[1] in extensions:
+                pages.append(Path(self.path) / file)
+
+        pages = sorted(pages, key=lambda x: str(x))
+        pages = [{"idx": i, "path": pages[i]} for i in range(len(pages))]
+
+        return pages
+
 
 def make_search_body(project: dict | ProjectE | Project) -> str:
     include = ["source_id", "source", "url", "downloader", "title", "subtitle",
@@ -222,3 +242,5 @@ def make_search_body(project: dict | ProjectE | Project) -> str:
             search_body += f"{k}:{v};;;"
 
     return search_body
+
+

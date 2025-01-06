@@ -72,7 +72,6 @@ class Projects:
 
     def get_page(self, ppg: int, page: int = 1, search: str = None):
         self._filter(search)
-        ic(str(self.projects))
 
         selected_projects = self.projects.offset(((page - 1) * ppg)).limit(ppg)
         projects = []
@@ -140,7 +139,7 @@ class Projects:
             if project.lid.startswith("pool_") is False:
                 projecte_updated.update_vinfo()
 
-    def get_project(self, _id: int | str = None, lid: str = None) -> ProjectE | None:
+    def get_project(self, _id: int | str = None, lid: str = None) -> ProjectE:
         ic(_id, lid)
         if _id is None and lid is None:
             raise ValueError("Either id or lig must be provided")
@@ -167,10 +166,10 @@ class Projects:
             **project.to_dict()
         )
 
-    def get_project_by_id(self, _id: int | str) -> ProjectE | None:
+    def get_project_by_id(self, _id: int | str) -> ProjectE:
         return self.get_project(_id=_id)
 
-    def get_project_by_lid(self, lid: str) -> ProjectE | None:
+    def get_project_by_lid(self, lid: str) -> ProjectE:
         return self.get_project(lid=lid)
 
     def get_dirs(self, lib_name: str = None):
@@ -182,7 +181,7 @@ class Projects:
 
         selected_lib = selected_lib.with_entities(Project.dir_name).all()
         dirs = set([dir_name[0] for dir_name in selected_lib])
-        log.debug(len(dirs))
+        log.debug(f"get_dirs: {len(dirs)}")
 
         return dirs
 
