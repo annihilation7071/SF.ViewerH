@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker, Session
 import os
 from backend import utils
 from backend.classes.lib import Lib
+import json
 
 
 class ProjectE(BaseModel):
@@ -49,8 +50,9 @@ class ProjectE(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    # noinspection PyPep8Naming,PyShadowingNames
+    def __init__(self, Session, lib_data, **kwargs):
+        super().__init__(Session=Session, lib_data=lib_data, **kwargs)
         self.path = self.lib_data.path / self.dir_name
         files = os.listdir(self.path)
 
@@ -118,6 +120,53 @@ class ProjectE(BaseModel):
         self.variants_view = [variant.split(":")[1] for variant in self.lvariants]
         self.flags = self._get_flags_paths(self.language)
         self.lvariants_count = len(self.lvariants)
+
+    def _attr(self) -> list[str]:
+        return [key for key in self.__dict__.keys() if key.startswith("_") is False]
+
+    def update_db(self) -> None:
+        with Session() as session:
+            project = session.query(Project).filter_by(lid=self.lid).first()
+            keys_db = [key for key in project.__dict__.keys() if key.startswith("_") is False]
+            keys_pe = self._attr()
+
+            for key in keys_pe:
+                if key in keys_db:
+                    setattr(project, key, getattr(self, key))
+
+            session.commit()
+
+    def update_vinfo(self) -> None:
+        if self.lib.startswith("pool_"):
+            raise Exception("Cannot update vinfo for pool")
+
+        keys_pe = self._attr()
+
+        matches = {
+            Path: lambda x: str(x),
+            datetime: lambda x: datetime.strptime(x, "%Y-%m-%dT%H:%M:%S"),
+        }
+
+        vpath = self.path / "sf.viewer/v_info.json"
+
+        # Open
+        with open(vpath, "r", encoding="utf-8") as f:
+            v_info = json.load(f)
+
+        # Update
+        for key in keys_pe:
+            if key in v_info:
+
+                value = getattr(self, key)
+                if type(value) in matches:
+                    value = matches[type(value)](value)
+
+                v_info[key] = value
+
+        # Save
+        with open(vpath, "w", encoding="utf-8") as f:
+            # noinspection PyTypeChecker
+            json.dump(v_info, f, indent=4)
 
 
 

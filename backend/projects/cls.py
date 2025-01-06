@@ -8,6 +8,7 @@ from backend import logger, utils
 from backend.logger import log
 from backend.editor import eutils
 from icecream import ic
+from backend.classes.projecte import ProjectE
 ic.configureOutput(includeContext=True)
 
 
@@ -24,95 +25,11 @@ class Projects:
         self.projects = self.active_projects.order_by(desc(self.sorting_method))
         self.search = ""
 
-    def _get_project_path(self, project: Project) -> str:
-        lib = project.lib
-        lib_dir = self.libs[lib].path
-        project_dir = project.dir_name
-        project_path = os.path.abspath(os.path.join(lib_dir, project_dir))
-        return project_path
-
     def _normalize_search(self, search: str) -> str:
         search = search.split(",")
         search = [item.strip().lower().replace("\r", "").replace("\n", "").replace("_", " ").strip() for item in search]
         search = ",".join(search)
         return search
-
-    def _get_flags_paths(self, languages: list) -> list:
-        exclude = ["rewrite", "translated"]
-        # exclude = []
-        flags_path = os.path.join(os.getcwd(), f"data/flags")
-        supports = os.listdir(flags_path)
-        supports = [os.path.splitext(flag)[0] for flag in supports]
-        flags = []
-        for language in languages:
-            language = language.lower()
-            if language in supports:
-                path = os.path.join(os.getcwd(), f"data/flags/{language}.svg")
-                flags.append(path)
-            else:
-                if language not in exclude:
-                    logger.log(f"Flags not found: {language}", file="log-flags.txt")
-                    path = os.path.join(os.getcwd(), f"data/flags/unknown.png")
-                    flags.append(path)
-
-        return flags
-
-    def _get_project_preview_path(self, project: Project) -> str:
-        project_path = self._get_project_path(project)
-        preview_name = ""
-
-        for file in os.listdir(project_path):
-            if file.startswith("preview") or file.startswith("_preview"):
-                preview_name = file
-                break
-
-        if preview_name == "":
-            preview_name = project.preview
-
-        preview_path = os.path.abspath(os.path.join(project_path, preview_name))
-        return preview_path
-
-    def _gen_extra_parameters(self, project: Project) -> dict:
-        project_path = self._get_project_path(project)
-        files = os.listdir(project_path)
-
-        # Preview
-        preview_name = ""
-
-        for file in files:
-            if file.startswith("preview") or file.startswith("_preview"):
-                preview_name = file
-                break
-
-        if preview_name == "" or preview_name == project.preview:
-            preview_name = project.preview
-        else:
-            preview_path = os.path.abspath(os.path.join(project_path, preview_name))
-            preview_hash = utils.get_imagehash(preview_path)
-
-            utils.update_vinfo(project_path, ["preview", "preview_hash"], [preview_name, preview_hash])
-
-            project.preview = preview_name
-            project.preview_hash = preview_hash
-            self.session.commit()
-
-        preview_path = os.path.abspath(os.path.join(project_path, preview_name))
-
-        # Pages
-        exts = {".png", ".jpg", ".jpeg", ".gif", ".avif", ".webp",
-                ".bmp", ".tif", ".tiff", ".apng",
-                ".mng", ".flif", ".bpg", ".jxl", ".qoi", ".hif"}
-        pages = len([file for file in files if os.path.splitext(file)[1] in exts])
-
-        return {
-            "path": self._get_project_path(project),
-            "preview_path": preview_path,
-            "pages": pages,
-            "upload_date_str": project.upload_date.strftime("%Y-%m-%dT%H:%M:%S"),
-            "variants_view": [variant.split(":")[1] for variant in project.lvariants],
-            "flags": self._get_flags_paths(project.language),
-            "lvariants_count": len(project.lvariants),
-        }
 
     def _filter(self, search: str | None):
         search = self._normalize_search(search)
@@ -154,7 +71,7 @@ class Projects:
         selected_projects = self.projects.offset(((page - 1) * ppg)).limit(ppg)
         projects = []
         for project in selected_projects:
-            projects.append({**project.to_dict(), **self._gen_extra_parameters(project)})
+            projects.append(ProjectE(Session=self.Session, lib_data=self.libs[project.lib], **project.to_dict()))
 
         return projects
 
@@ -184,11 +101,11 @@ class Projects:
         incorrect_aliases = self.active_projects.filter(or_(*search_query)).all()
 
         for project in incorrect_aliases:
-            dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
+            projecte = ProjectE(Session=self.Session, lib_data=self.libs[project.lib], **project.to_dict())
             update = defaultdict(list)
 
             for category in ["tag", "artist", "group", "parody", "character", "language"]:
-                items = dict_project[category]
+                items = getattr(projecte, category)
                 new_items = []
                 for item in items:
                     if not item:
@@ -207,17 +124,17 @@ class Projects:
 
             update = dict(update)
             # noinspection PyDictCreation
-            dict_project = {**dict_project, **update}
-            update["search_body"] = make_search_body(dict_project)
-            dict_project["search_body"] = update["search_body"]
+            projecte_updated = projecte.model_copy(update=update)
+            update["search_body"] = make_search_body(projecte_updated)
+            projecte_updated.search_body = update["search_body"]
 
             if project.lid.startswith("pool_") is False:
-                eutils.update_data(self, dict_project, list(update.keys()), list(update.values()), multiple=True)
+                eutils.update_data(self, projecte_updated, list(update.keys()), list(update.values()), multiple=True)
             else:
                 self.session.query(Project).filter_by(_id=project._id).update(update)
                 self.session.commit()
 
-    def get_project(self, _id: int | str = None, lid: str = None) -> dict | None:
+    def get_project(self, _id: int | str = None, lid: str = None) -> ProjectE | None:
         ic(_id, lid)
         if _id is None and lid is None:
             raise ValueError("Either id or lig must be provided")
@@ -238,9 +155,11 @@ class Projects:
         if project is None:
             return None
 
-        dict_project = {**project.to_dict(), **self._gen_extra_parameters(project)}
-
-        return dict_project
+        return ProjectE(
+            Session=self.Session,
+            lib_data=self.libs[project.lib],
+            **project.to_dict()
+        )
 
     def get_project_by_id(self, _id: int | str) -> dict | None:
         return self.get_project(_id=_id)
@@ -438,19 +357,25 @@ class Projects:
         self.session.commit()
 
 
-def make_search_body(project: dict):
+def make_search_body(project: dict | ProjectE) -> str:
     include = ["source_id", "source", "url", "downloader", "title", "subtitle",
                "parody", "character", "tag", "artist", "group", "language",
                "category", "series", "lib"]
 
     search_body = ";;;"
 
-    for k, v in project.items():
-        if k in include:
-            if isinstance(v, list):
-                for item in v:
-                    search_body += f"{k}:{item.lower()};;;"
-            else:
-                search_body += f"{k}:{v};;;"
+    for k in include:
+        if isinstance(project, dict):
+            v = project[k]
+        elif isinstance(project, ProjectE):
+            v = getattr(project, k)
+        else:
+            raise ValueError("Project must be of type dict or ProjectE")
+
+        if isinstance(v, list):
+            for item in v:
+                search_body += f"{k}:{item.lower()};;;"
+        else:
+            search_body += f"{k}:{v};;;"
 
     return search_body
