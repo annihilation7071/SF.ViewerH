@@ -16,11 +16,8 @@ class DBError(Exception):
     pass
 
 
-class ProjectE(BaseModel):
-    Session: sessionmaker[Session]
-    lib_data: Lib
-
-    _id: int | None
+class ProjectEBase(BaseModel):
+    _id: int | None = None
     info_version: int
     lid: str
     lvariants: list[str]
@@ -46,6 +43,14 @@ class ProjectE(BaseModel):
     search_body: str
     active: bool
     preview_hash: str
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class ProjectE(ProjectEBase):
+    Session: sessionmaker[Session]
+    lib_data: Lib
 
     path: Path = None
     preview_path: Path = None
@@ -156,7 +161,7 @@ class ProjectE(BaseModel):
         if self.lib.startswith("pool_"):
             raise Exception("Cannot update vinfo for pool")
 
-        self.renew_search_body()
+        self._renew_search_body()
 
         keys_pe = self._attr()
 
@@ -191,7 +196,7 @@ class ProjectE(BaseModel):
         if self._id is not None:
             raise DBError("Cannot add project with specified _id in DB")
 
-        self.renew_search_body()
+        self._renew_search_body()
         data = {key: getattr(self, key) for key in Project.get_columns() if key != "_id"}
 
         with self.Session() as session:
@@ -199,7 +204,7 @@ class ProjectE(BaseModel):
             session.add(project)
             session.commit()
 
-    def renew_search_body(self) -> None:
+    def _renew_search_body(self) -> None:
         log.debug("renew_search_body")
         self.search_body = make_search_body(self)
 
@@ -242,5 +247,3 @@ def make_search_body(project: dict | ProjectE | Project) -> str:
             search_body += f"{k}:{v};;;"
 
     return search_body
-
-

@@ -49,9 +49,12 @@ class Project(Base):
     active = Column(Boolean, default=True)
     preview_hash = Column(String(length=500))
 
-    def get_columns(self):
+    @classmethod
+    def get_columns(cls, exclude: list = None) -> list:
         log.debug(f"Project.get_columns")
-        columns = [column.name for column in self.__table__.columns]
+        if exclude is None:
+            exclude = []
+        columns = [column.name for column in cls.__table__.columns if column not in exclude]
         return columns
 
 

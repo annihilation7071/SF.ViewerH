@@ -231,7 +231,7 @@ class Projects:
         return sorted(result.items(), key=lambda x: x[1], reverse=True)
 
     def clear_old_versions(self, target_version: int):
-        log.debug(f"clear_old_versions: {target_version}")
+        log.debug(f"clear_old_versions: target version: {target_version}")
         with self.Session() as session:
             session.query(Project).filter(Project.info_version < target_version).delete()
             session.commit()
