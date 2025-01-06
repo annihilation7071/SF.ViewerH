@@ -1,4 +1,3 @@
-import os
 import json
 from backend.classes.projecte import ProjectE
 from backend.logger_new import get_logger
@@ -42,7 +41,7 @@ def update_data(projects,
         projects.update_priority(project)
 
 
-def update_data_2(projects, project: dict):
-    target_columns = list(project.keys())
-    new_data = list(project.values())
-    update_data(projects, project, target_columns, new_data, multiple=True)
+# def update_data_2(projects, project: dict):
+#     target_columns = list(project.keys())
+#     new_data = list(project.values())
+#     update_data(projects, project, target_columns, new_data, multiple=True)

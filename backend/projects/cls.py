@@ -1,11 +1,8 @@
-import os
-
 from backend.db.connect import Project, get_session
 from sqlalchemy import desc, and_, func, or_
 from collections import defaultdict
 from backend.editor import variants_editor
 from backend import utils
-from backend.editor import eutils
 from icecream import ic
 from backend.classes.projecte import ProjectE
 

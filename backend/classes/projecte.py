@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from backend.db.connect import Project
 from sqlalchemy.orm import sessionmaker, Session
 import os
-import sys
 from backend import utils
 from backend.classes.lib import Lib
 import json
@@ -132,7 +131,7 @@ class ProjectE(BaseModel):
     def _attr(self) -> list[str]:
         return [key for key in self.__dict__.keys() if key.startswith("_") is False]
 
-    def _keys(self ):
+    def _keys(self):
         return self._attr()
 
     def update_db(self) -> None:
@@ -223,4 +222,3 @@ def make_search_body(project: dict | ProjectE | Project) -> str:
             search_body += f"{k}:{v};;;"
 
     return search_body
-
