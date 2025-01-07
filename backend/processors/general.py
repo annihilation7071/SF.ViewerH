@@ -28,7 +28,7 @@ def make_v_info(path: Path, processor_name: str) -> None:
     if os.path.exists(_path) is False:
         os.makedirs(_path)
 
-    template = upgrade(template)
+    template = upgrade(path, template)
 
     log.debug("Writing vinfo to project")
     data = template.model_dump_json()

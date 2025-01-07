@@ -3,6 +3,7 @@ from typing import Any
 from pydantic import BaseModel
 from datetime import datetime
 from backend.logger_new import get_logger
+from backend import utils
 
 log = get_logger("templates")
 
@@ -21,7 +22,7 @@ class ProjectTemplate(BaseModel):
     downloader: str = None
     title: str = None
     subtitle: str = None
-    upload_date: str | datetime = None
+    upload_date: datetime = None
     preview: str = None
     parody: list[str] = None
     character: list[str] = None
@@ -47,14 +48,16 @@ class ProjectTemplate(BaseModel):
 class ProjectTemplateDB(ProjectTemplate):
     dir_name: str
     lib: str
-    search_body: str
+    search_body: str = None
     active: bool = True
+    upload_date: datetime = None
 
     class Config:
         arbitrary_types_allowed = True
 
     def model_post_init(self, __context: Any) -> None:
-        self.upload_date = datetime.strptime(self.upload_date, "%Y-%m-%dT%H:%M:%S")
+        self.search_body = utils.make_search_body(self)
+        log.debug(self)
 
         keys = self._keys()
         for key in keys:

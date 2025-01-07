@@ -8,6 +8,7 @@ from backend import utils
 from backend.classes.templates import ProjectTemplate
 from pathlib import Path
 from backend.logger_new import get_logger
+from datetime import datetime
 
 log = get_logger("Processor.gallery-dl-hitomila")
 
@@ -51,7 +52,7 @@ def parse(path: Path, template: ProjectTemplate) -> ProjectTemplate:
     template.title = metadata["title"] or _name
     template.subtitle = ""
     # noinspection PyTypeChecker
-    template.upload_date = utils.to_time(metadata["date"], "%Y-%m-%d %H:%M:%S") or "unknown"
+    template.upload_date = utils.to_time(metadata["date"], "%Y-%m-%d %H:%M:%S") or datetime.now()
     template.category = ["unknown"]
     template.series = []
 

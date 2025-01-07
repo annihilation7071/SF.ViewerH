@@ -60,7 +60,7 @@ def upgrade_to_3(project_path: Path, template: ProjectTemplate) -> ProjectTempla
     preview_path = project_path / template.preview
 
     template.preview_hash = utils.get_imagehash(preview_path)
-    log.debug(template.preview_path)
+    log.debug(template.preview_hash)
 
     template.info_version = 3
 

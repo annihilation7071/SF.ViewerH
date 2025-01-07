@@ -10,7 +10,7 @@ from icecream import ic
 import asyncio
 from backend.logger_new import get_logger
 from backend.classes.projecte import ProjectE
-from backend.classes.templates import ProjectTemplate
+from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
 from backend.db.connect import Project
 
 log = get_logger("utils")
@@ -167,22 +167,23 @@ def tag_normalizer(tags: str | list | int, lower: bool = True, ali: bool = True)
         return new_tags
 
 
-def to_time(str_time: str | int, format: str = None) -> str | bool:
+def to_time(str_time: str, format: str = None) -> datetime | bool:
+    log.debug("to_time")
     if isinstance(str_time, str) and format is None:
         raise IOError("Format must be specified")
 
-    target_format = "%Y-%m-%dT%H:%M:%S"
+    # target_format = "%Y-%m-%dT%H:%M:%S"
 
     if isinstance(str_time, str):
         try:
             date = datetime.strptime(str_time, format)
-            return date.strftime(target_format)
+            return date
         except Exception as e:
-            print(e)
+            log.error(e)
             return False
-    elif isinstance(str_time, int):
-        date = datetime.fromtimestamp(1566440093)
-        return date.strftime(target_format)
+    # elif isinstance(str_time, int):
+    #     date = datetime.fromtimestamp(1566440093)
+    #     return date
 
 
 def get_aliases():
@@ -302,7 +303,7 @@ async def run_command(command: str):
     return process
 
 
-def make_search_body(project: dict | ProjectE | Project | ProjectTemplate) -> str:
+def make_search_body(project: dict | ProjectE | Project | ProjectTemplateDB) -> str:
     include = ["source_id", "source", "url", "downloader", "title", "subtitle",
                "parody", "character", "tag", "artist", "group", "language",
                "category", "series", "lib"]

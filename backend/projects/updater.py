@@ -74,9 +74,9 @@ def update_projects(projects: Projects) -> None:
             project_to_db = ProjectTemplateDB(
                 lib=lib_name,
                 dir_name=dir,
-                search_body=utils.make_search_body(project),
                 **project.model_dump()
             )
+            log.debug(project_to_db)
 
             projects.add_project(project)
 
@@ -116,6 +116,8 @@ def get_project_info(path: Path) -> ProjectTemplate | None:
         with open(v_info_path, "r", encoding='utf-8') as f:
             v_info_exist = json.load(f)
 
+        log.debug(v_info_exist["upload_date"])
+        v_info_exist["upload_date"] = datetime.strptime(v_info_exist["upload_date"], "%Y-%m-%dT%H:%M:%S")
         project_info = ProjectTemplate(**v_info_exist)
 
         if project_info.info_version == v_info_example["info_version"]:

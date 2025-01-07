@@ -7,6 +7,7 @@ from backend import utils
 from backend.classes.templates import ProjectTemplate
 from pathlib import Path
 from backend.logger_new import get_logger
+from datetime import datetime
 
 log = get_logger("Processor.nhentai")
 
@@ -42,7 +43,7 @@ def parse(path: Path, template: ProjectTemplate) -> ProjectTemplate:
     template.title = metadata["title"] or _name
     template.subtitle = metadata["subtitle"] or ""
     # noinspection PyTypeChecker
-    template.upload_date = utils.to_time(metadata["upload_date"], "%Y-%m-%dT%H:%M:%S.%f%z") or "unknown"
+    template.upload_date = utils.to_time(metadata["upload_date"], "%Y-%m-%dT%H:%M:%S.%f%z") or datetime.now()
     template.series = []
 
     def f(key: str) -> list | str:

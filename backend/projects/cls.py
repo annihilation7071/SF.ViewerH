@@ -422,7 +422,10 @@ class Projects:
 
     def add_project(self, project: ProjectTemplateDB):
         log.debug(f"add_project")
+        log.debug(project)
+        log.debug(project.model_dump())
         project = Project(**project.model_dump())
+        log.debug(project.upload_date)
         log.info(f"Adding new project: {project.title}")
 
         with self.Session() as session:
