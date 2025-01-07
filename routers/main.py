@@ -15,6 +15,8 @@ log = get_logger("Routers.main")
 
 # noinspection PyTypeChecker
 projects: Projects = None
+project_cache: dict = {}
+
 PROJECTS_PER_PAGE = 60
 PPG = PROJECTS_PER_PAGE
 templates = Jinja2Templates(directory="templates")
@@ -59,7 +61,18 @@ async def index(request: Request, page: int = 1, search: str = ""):
 
 @router.get("/project/lid/{project_lid}", response_class=HTMLResponse)
 async def detail_view(request: Request, project_lid: str):
-    project = projects.get_project_by_lid(project_lid)
+    global projects_cache
+
+    if project_lid not in projects_cache:
+        project = projects.get_project_by_lid(project_lid)
+        projects_cache = {
+            project_lid: {
+                "data": project
+            }
+        }
+    else:
+        project = projects_cache[project_lid]["data"]
+
     images = project.get_images()
     return templates.TemplateResponse(
         "detailview.html",
@@ -94,8 +107,25 @@ async def detail_view(request: Request, project_lid: str):
 
 @router.get("/project/lid/{project_lid}/{page_id}", response_class=HTMLResponse)
 async def reader(request: Request, project_lid: str, page_id: int):
-    project = projects.get_project_by_lid(project_lid)
-    images = project.get_images()
+    global projects_cache
+
+    if project_lid not in projects_cache:
+        project = projects.get_project_by_lid(project_lid)
+        images = project.get_images()
+        projects_cache = {
+            project_lid: {
+                "data": project,
+                "images": images
+            }
+        }
+    else:
+        project = projects_cache[project_lid]["data"]
+        if "images" not in projects_cache[project_lid]:
+            images = project.get_images()
+            projects_cache[project_lid]["images"] = images
+        else:
+            images = projects_cache[project_lid]["images"]
+
     page = page_id
     image = images[page - 1]["path"]
     total_pages = len(images)
@@ -153,6 +183,8 @@ async def edit_data(
     page: int = Form(...),
     search: str = Form(...),
 ):
+    global projects_cache
+    project_cache = {}
     project = projects.get_project_by_lid(lid)
 
     r = edit_selector.edit(projects, project, edit_type, data)

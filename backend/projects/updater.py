@@ -44,7 +44,9 @@ def update_projects(projects: Projects) -> None:
 
         dirs_not_in_db, dirs_not_exist = check_dirs(projects, lib_name, dirs)
         log.debug(f"dirs_not_in_db: {len(dirs_not_in_db)}")
+        log.debug(dirs_not_in_db)
         log.debug(f"dirs_not_exist: {len(dirs_not_exist)}")
+        log.debug(dirs_not_exist)
 
         if len(dirs_not_exist) > 0:
             log.info(f"Deleting not exist projects...")
@@ -78,7 +80,7 @@ def update_projects(projects: Projects) -> None:
             )
             log.debug(project_to_db)
 
-            projects.add_project(project)
+            projects.add_project(project_to_db)
 
 
 def get_dirs(path: Path, meta_file: str) -> list[str]:

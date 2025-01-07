@@ -6,9 +6,10 @@ from backend import utils
 from icecream import ic
 from backend.classes.projecte import ProjectE
 from backend.classes.templates import ProjectTemplateDB
+from backend.logger_new import get_logger
+import sys
 
 ic.configureOutput(includeContext=True)
-from backend.logger_new import get_logger
 
 log = get_logger("Projects")
 
@@ -131,7 +132,7 @@ class Projects:
             update = dict(update)
             # noinspection PyDictCreation
             projecte_updated = projecte.model_copy(update=update)
-            update["search_body"] = make_search_body(projecte_updated)
+            update["search_body"] = utils.make_search_body(projecte_updated)
             projecte_updated.search_body = update["search_body"]
 
             projecte_updated.update_db()
@@ -300,7 +301,7 @@ class Projects:
                 pool.series = list(set(pool.series) | set(nproject.series))
                 pool.parody = list(set(pool.parody) | set(nproject.parody))
 
-            pool.search_body = make_search_body(pool)
+            pool.search_body = utils.make_search_body(pool)
 
             # add pool to DB
             if lid is None:
@@ -422,8 +423,10 @@ class Projects:
 
     def add_project(self, project: ProjectTemplateDB):
         log.debug(f"add_project")
-        log.debug(project)
-        log.debug(project.model_dump())
+
+        if isinstance(project, ProjectTemplateDB) is False:
+            log.exception(TypeError("Project must be type ProjectTemplateDB"))
+
         project = Project(**project.model_dump())
         log.debug(project.upload_date)
         log.info(f"Adding new project: {project.title}")
