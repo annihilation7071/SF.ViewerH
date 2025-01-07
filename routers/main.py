@@ -24,6 +24,35 @@ templates = Jinja2Templates(directory="templates")
 router = APIRouter()
 
 
+def clear_cache():
+    global project_cache
+    project_cache = {}
+
+
+def get_with_cache(project_lid: str):
+    global project_cache
+
+    if project_lid not in project_cache:
+        project = projects.get_project_by_lid(project_lid)
+        images = project.get_images()
+        project_cache = {
+            project_lid: {
+                "data": project,
+                "images": images
+            }
+        }
+    else:
+        project = project_cache[project_lid]["data"]
+        if "images" not in project_cache[project_lid]:
+            images = project.get_images()
+            project_cache[project_lid]["images"] = images
+        else:
+            images = project_cache[project_lid]["images"]
+
+    return project, images
+
+
+
 @router.get("/", response_class=HTMLResponse, name="index")
 async def index(request: Request, page: int = 1, search: str = ""):
     log.debug(f"index")
@@ -61,19 +90,8 @@ async def index(request: Request, page: int = 1, search: str = ""):
 
 @router.get("/project/lid/{project_lid}", response_class=HTMLResponse)
 async def detail_view(request: Request, project_lid: str):
-    global projects_cache
+    project, images = get_with_cache(project_lid)
 
-    if project_lid not in projects_cache:
-        project = projects.get_project_by_lid(project_lid)
-        projects_cache = {
-            project_lid: {
-                "data": project
-            }
-        }
-    else:
-        project = projects_cache[project_lid]["data"]
-
-    images = project.get_images()
     return templates.TemplateResponse(
         "detailview.html",
         {
@@ -107,24 +125,7 @@ async def detail_view(request: Request, project_lid: str):
 
 @router.get("/project/lid/{project_lid}/{page_id}", response_class=HTMLResponse)
 async def reader(request: Request, project_lid: str, page_id: int):
-    global projects_cache
-
-    if project_lid not in projects_cache:
-        project = projects.get_project_by_lid(project_lid)
-        images = project.get_images()
-        projects_cache = {
-            project_lid: {
-                "data": project,
-                "images": images
-            }
-        }
-    else:
-        project = projects_cache[project_lid]["data"]
-        if "images" not in projects_cache[project_lid]:
-            images = project.get_images()
-            projects_cache[project_lid]["images"] = images
-        else:
-            images = projects_cache[project_lid]["images"]
+    project, images = get_with_cache(project_lid)
 
     page = page_id
     image = images[page - 1]["path"]
@@ -183,8 +184,8 @@ async def edit_data(
     page: int = Form(...),
     search: str = Form(...),
 ):
-    global projects_cache
-    project_cache = {}
+    clear_cache()
+
     project = projects.get_project_by_lid(lid)
 
     r = edit_selector.edit(projects, project, edit_type, data)
