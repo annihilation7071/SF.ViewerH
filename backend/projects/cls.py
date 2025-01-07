@@ -5,6 +5,7 @@ from backend.editor import variants_editor
 from backend import utils
 from icecream import ic
 from backend.classes.projecte import ProjectE
+from backend.classes.templates import ProjectTemplateDB
 
 ic.configureOutput(includeContext=True)
 from backend.logger_new import get_logger
@@ -419,13 +420,9 @@ class Projects:
     #         self.session.query(Project).filter_by(lid=lid).update(project)
     #     self.session.commit()
 
-    def add_project(self, project: dict):
+    def add_project(self, project: ProjectTemplateDB):
         log.debug(f"add_project")
-        columns = self._get_columns(exclude=["_id", "active", "search_body"])
-
-        project = {column: project[column] for column in columns}
-        project["search_body"] = make_search_body(project)
-        project = Project(**project)
+        project = Project(**project.model_dump())
         log.info(f"Adding new project: {project.title}")
 
         with self.Session() as session:
@@ -433,25 +430,4 @@ class Projects:
             session.commit()
 
 
-def make_search_body(project: dict | ProjectE | Project) -> str:
-    include = ["source_id", "source", "url", "downloader", "title", "subtitle",
-               "parody", "character", "tag", "artist", "group", "language",
-               "category", "series", "lib"]
 
-    search_body = ";;;"
-
-    for k in include:
-        if isinstance(project, dict):
-            v = project[k]
-        elif isinstance(project, ProjectE | Project):
-            v = getattr(project, k)
-        else:
-            raise ValueError("Project must be of type dict or ProjectE")
-
-        if isinstance(v, list):
-            for item in v:
-                search_body += f"{k}:{item.lower()};;;"
-        else:
-            search_body += f"{k}:{v};;;"
-
-    return search_body

@@ -10,6 +10,8 @@ from icecream import ic
 import asyncio
 from backend.logger_new import get_logger
 from backend.classes.projecte import ProjectE
+from backend.classes.templates import ProjectTemplate
+from backend.db.connect import Project
 
 log = get_logger("utils")
 
@@ -298,3 +300,27 @@ async def run_command(command: str):
     process = await asyncio.create_subprocess_shell(command)
     await process.wait()
     return process
+
+
+def make_search_body(project: dict | ProjectE | Project | ProjectTemplate) -> str:
+    include = ["source_id", "source", "url", "downloader", "title", "subtitle",
+               "parody", "character", "tag", "artist", "group", "language",
+               "category", "series", "lib"]
+
+    search_body = ";;;"
+
+    for k in include:
+        if isinstance(project, dict):
+            v = project[k]
+        elif isinstance(project, ProjectE | Project | ProjectTemplate):
+            v = getattr(project, k)
+        else:
+            raise ValueError("Project must be of type dict or ProjectE")
+
+        if isinstance(v, list):
+            for item in v:
+                search_body += f"{k}:{item.lower()};;;"
+        else:
+            search_body += f"{k}:{v};;;"
+
+    return search_body

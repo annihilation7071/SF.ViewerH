@@ -1,34 +1,68 @@
 import json
 from backend import utils
 from pathlib import Path
-from icecream import ic
-ic.configureOutput(includeContext=True)
+from backend.classes.templates import ProjectTemplate
+from backend.logger_new import get_logger
+
+log = get_logger("vinfo_upgrader")
 
 
-def upgrade(project_path: str | Path) -> None:
-    ic(f"Path received for upgrade: {project_path}")
+class VInfoUpgrageError(Exception):
+    pass
+
+
+def upgrade(project_path: Path, template_: ProjectTemplate = None, force_write=False) -> None | ProjectTemplate:
+    log.debug("upgrade")
+    if project_path:
+        log.debug(project_path)
+    if template_:
+        log.debug(template_)
 
     vinfo_path = Path(project_path) / 'sf.viewer/v_info.json'
+    upgraded = False
 
-    with open(vinfo_path, 'r', encoding='utf-8') as f:
-        old_vinfo = json.load(f)
+    if template_ is None:
+        log.debug("Loading data into template from path.")
 
-    if old_vinfo["info_version"] == 2:
-        ic(f"Current version is 2")
-        upgrade_to_3(vinfo_path)
+        with open(vinfo_path, 'r', encoding='utf-8') as f:
+            old_vinfo = json.load(f)
+
+        template = ProjectTemplate(**old_vinfo)
+    else:
+        template = template_
+
+    if template.info_version == 2:
+        log.debug("Current version is 2. Upgrading to 3.")
+        template = upgrade_to_3(project_path, template)
+        upgraded = True
+
+    if upgraded is False:
+        log.debug("Upgrading not need.")
+        if template_:
+            log.debug("Returning template without changes.")
+            return template
+        return
+
+    if template_ is None or force_write is True:
+        log.debug("Writing data into json file.")
+        data = template.model_dump_json()
+        with open(vinfo_path, 'w', encoding='utf-8') as f:
+            # noinspection PyTypeChecker
+            json.dump(json.loads(data), f, ensure_ascii=False, indent=4)
+    else:
+        log.debug("Returning template.")
+        return template
 
 
-def upgrade_to_3(vinfo_path: str | Path) -> None:
-    ic(f"Upgrade to version 3")
-    with open(vinfo_path, 'r', encoding='utf-8') as f:
-        vinfo = json.load(f)
+def upgrade_to_3(project_path: Path, template: ProjectTemplate) -> ProjectTemplate:
+    log.debug("Upgrading to v3.")
 
-    project_path = Path(vinfo_path).parent.parent
-    preview_path = project_path / vinfo["preview"]
+    preview_path = project_path / template.preview
 
-    vinfo["preview_hash"] = utils.get_imagehash(preview_path)
-    vinfo["info_version"] = 3
+    template.preview_hash = utils.get_imagehash(preview_path)
+    log.debug(template.preview_path)
 
-    with open(vinfo_path, 'w', encoding='utf-8') as f:
-        json.dump(vinfo, f, indent=4)
-    ic(f"Upgrade to version 3 completed")
+    template.info_version = 3
+
+    log.debug(f"Upgrade to version 3 completed")
+    return template

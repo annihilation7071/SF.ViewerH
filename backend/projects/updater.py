@@ -6,9 +6,10 @@ from backend import utils, cmdargs
 from backend.logger_new import get_logger
 from backend.projects.cls import Projects
 from backend.upgrade import vinfo
+from backend.processors import general as general
 import json
+from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
 from pydantic import BaseModel
-from backend.classes.projecte import ProjectEBase
 
 log = get_logger("putils")
 
@@ -22,6 +23,8 @@ def update_projects(projects: Projects) -> None:
         if lib_data.active is False:
             continue
 
+        processor_name = lib_data.processor
+
         log.info(f"Checking {lib_name} ...")
         if cmdargs.args.reindex is True:
             log.warning(f"Deleting all data...")
@@ -29,9 +32,9 @@ def update_projects(projects: Projects) -> None:
             projects.delete_all_data()
 
         with open("./backend/v_info.json", "r", encoding="utf-8") as f:
-            v_info = json.load(f)
+            v_info_example = json.load(f)
 
-        projects.clear_old_versions(v_info["info_version"])
+        projects.clear_old_versions(v_info_example["info_version"])
 
         processor = import_module(f"backend.processors.{lib_data.processor}")
 
@@ -59,20 +62,22 @@ def update_projects(projects: Projects) -> None:
 
             if cmdargs.args.rewrite_v_info is True:
                 log.warning(f"Rewriting vinfo {dir}...")
-                processor.make_v_info(project_path)
+                general.make_v_info(project_path, processor_name)
 
-            project = get_v_info(project_path)
+            project = get_project_info(project_path)
             if project is None:
                 log.debug(f"vinfo for {dir} not found...")
                 log.info(f"Preparing project {dir}...")
-                processor.make_v_info(project_path)
-                utils.update_vinfo(project_path, ["info_version"], [2])
-                vinfo.upgrade(project_path)
-                project = get_v_info(project_path)
+                general.make_v_info(project_path, processor_name)
+                project = get_project_info(project_path)
 
-            project["lib"] = lib_name
-            project["dir_name"] = dir
-            project["upload_date"] = datetime.strptime(project["upload_date"], "%Y-%m-%dT%H:%M:%S")
+            project_to_db = ProjectTemplateDB(
+                lib=lib_name,
+                dir_name=dir,
+                search_body=utils.make_search_body(project),
+                **project.model_dump()
+            )
+
             projects.add_project(project)
 
 
@@ -100,20 +105,24 @@ def check_dirs(projects: Projects, lib_name: str, dirs: list[str]) -> tuple:
     return dirs_not_in_db, dirs_not_exist
 
 
-def get_v_info(path: str | Path) -> dict | None:
+def get_project_info(path: Path) -> ProjectTemplate | None:
     log.debug("get_v_info")
     with open('./backend/v_info.json', 'r', encoding='utf-8') as f:
-        v_info = json.load(f)
+        v_info_example = json.load(f)
 
-    if os.path.exists(os.path.join(path, "sf.viewer/v_info.json")):
-        with open(os.path.join(path, "sf.viewer/v_info.json"), "r", encoding='utf-8') as f:
+    v_info_path = path / "sf.viewer/v_info.json"
+
+    if os.path.exists(v_info_path):
+        with open(v_info_path, "r", encoding='utf-8') as f:
             v_info_exist = json.load(f)
 
-        if v_info_exist["info_version"] == v_info["info_version"]:
-            return v_info_exist
+        project_info = ProjectTemplate(**v_info_exist)
+
+        if project_info.info_version == v_info_example["info_version"]:
+            return project_info
         else:
-            vinfo.upgrade(path)
-            return get_v_info(path)
+            vinfo.upgrade(path, project_info, force_write=True)
+            return get_project_info(path)
 
     else:
         return None

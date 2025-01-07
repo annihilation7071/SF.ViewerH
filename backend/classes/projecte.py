@@ -1,5 +1,7 @@
 from datetime import datetime
 from pathlib import Path
+from typing import Any
+
 from pydantic import BaseModel
 from backend.db.connect import Project
 from sqlalchemy.orm import sessionmaker, Session
@@ -8,6 +10,7 @@ from backend import utils
 from backend.classes.lib import Lib
 import json
 from backend.logger_new import get_logger
+from backend import utils
 
 log = get_logger("ProjectE")
 
@@ -16,7 +19,7 @@ class DBError(Exception):
     pass
 
 
-class ProjectEBase(BaseModel):
+class ProjectDB(BaseModel):
     _id: int | None = None
     info_version: int
     lid: str
@@ -48,7 +51,7 @@ class ProjectEBase(BaseModel):
         arbitrary_types_allowed = True
 
 
-class ProjectE(ProjectEBase):
+class ProjectE(ProjectDB):
     Session: sessionmaker[Session]
     lib_data: Lib
 
@@ -62,10 +65,8 @@ class ProjectE(ProjectEBase):
     class Config:
         arbitrary_types_allowed = True
 
-    # noinspection PyPep8Naming,PyShadowingNames
-    def __init__(self, Session, lib_data, **kwargs):
+    def model_post_init(self, __context: Any) -> None:
         log.debug("Initializing ProjectE")
-        super().__init__(Session=Session, lib_data=lib_data, **kwargs)
         self.path = self.lib_data.path / self.dir_name
         files = os.listdir(self.path)
 
@@ -206,7 +207,7 @@ class ProjectE(ProjectEBase):
 
     def _renew_search_body(self) -> None:
         log.debug("renew_search_body")
-        self.search_body = make_search_body(self)
+        self.search_body = utils.make_search_body(self)
 
     def get_images(self) -> list[dict[str, Path | int]]:
         extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.avif', '.webp']
@@ -224,26 +225,3 @@ class ProjectE(ProjectEBase):
 
         return pages
 
-
-def make_search_body(project: dict | ProjectE | Project) -> str:
-    include = ["source_id", "source", "url", "downloader", "title", "subtitle",
-               "parody", "character", "tag", "artist", "group", "language",
-               "category", "series", "lib"]
-
-    search_body = ";;;"
-
-    for k in include:
-        if isinstance(project, dict):
-            v = project[k]
-        elif isinstance(project, ProjectE | Project):
-            v = getattr(project, k)
-        else:
-            raise ValueError("Project must be of type dict or ProjectE")
-
-        if isinstance(v, list):
-            for item in v:
-                search_body += f"{k}:{item.lower()};;;"
-        else:
-            search_body += f"{k}:{v};;;"
-
-    return search_body
