@@ -11,7 +11,7 @@ import asyncio
 from backend.logger_new import get_logger
 from backend.classes.projecte import ProjectE
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
-from backend.db.connect import Project
+from backend.db.classes import Project
 
 log = get_logger("utils")
 
@@ -205,12 +205,13 @@ def get_aliases():
 
 
 def get_imagehash(path: str | Path) -> str:
+    log.debug("get_imagehash")
     realpatch_original = os.path.realpath
     os.path.realpath = os.path.abspath
 
     image = Image.open(path)
     hash_ = str(imagehash.phash(image))
-    ic(f"Hash for {path}: {hash_}")
+    log.debug(f"hash: {hash_}")
 
     os.path.realpath = realpatch_original
 

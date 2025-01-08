@@ -7,15 +7,15 @@ import sys
 import asyncio
 import traceback
 
+socket_handler = SocketHandler('127.0.0.1', 19996)
+socket_handler.setLevel(logging.DEBUG)
+
 
 def get_logger(name: str) -> logging.Logger:
     if logging.Logger.manager.loggerDict.get(name):
         return logging.Logger.manager.loggerDict.get(name)
 
     formatter = logging.Formatter(f"%(asctime)s %(levelname)-8s: {name}: %(message)s")
-
-    socket_handler = SocketHandler('127.0.0.1', 19996)
-    socket_handler.setLevel(logging.DEBUG)
 
     file_handler = RotatingFileHandler(filename=f"./logs/{name}.log", mode="w", encoding="utf-8")
     file_handler.setFormatter(formatter)

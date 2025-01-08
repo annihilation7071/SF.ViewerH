@@ -8,6 +8,7 @@ from backend.projects.cls import Projects
 from backend.upgrade import vinfo
 from backend.processors import general as general
 import json
+from dateutil import parser
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
 from pydantic import BaseModel
 
@@ -119,7 +120,9 @@ def get_project_info(path: Path) -> ProjectTemplate | None:
             v_info_exist = json.load(f)
 
         log.debug(v_info_exist["upload_date"])
-        v_info_exist["upload_date"] = datetime.strptime(v_info_exist["upload_date"], "%Y-%m-%dT%H:%M:%S")
+
+        # v_info_exist["upload_date"] = datetime.strptime(v_info_exist["upload_date"], "%Y-%m-%dT%H:%M:%S")
+        v_info_exist["upload_date"] = parser.parse(v_info_exist["upload_date"])
         project_info = ProjectTemplate(**v_info_exist)
 
         if project_info.info_version == v_info_example["info_version"]:

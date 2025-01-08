@@ -1,9 +1,9 @@
+from backend import dep
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-
 from pydantic import BaseModel
-from backend.db.connect import Project
+from backend.db.classes import Project
 from sqlalchemy.orm import sessionmaker, Session
 import os
 from backend import utils
@@ -11,6 +11,7 @@ from backend.classes.lib import Lib
 import json
 from backend.logger_new import get_logger
 from backend import utils
+from backend.db import connect
 
 log = get_logger("ProjectE")
 
@@ -52,7 +53,6 @@ class ProjectDB(BaseModel):
 
 
 class ProjectE(ProjectDB):
-    Session: sessionmaker[Session]
     lib_data: Lib
 
     path: Path = None
@@ -72,6 +72,11 @@ class ProjectE(ProjectDB):
 
         self._update_preview_and_pages(files)
         self._gen_extra_parameters()
+
+        # with dep.Session() as session:
+        #     log.warning(session)
+        #     project = session.query(Project).filter_by(_id=1).first()
+        #     log.warning(project)
 
     def _update_preview_and_pages(self, files: list) -> None:
         log.debug("_update_preview_and_pages")
@@ -94,14 +99,14 @@ class ProjectE(ProjectDB):
             preview_hash = utils.get_imagehash(preview_path)
             utils.update_vinfo(self.path, ["preview", "preview_hash"], [preview_name, preview_hash])
 
-            with self.Session() as session:
+            with dep.Session() as session:
                 project = session.query(Project).filter_by(lid=self.lid).first()
                 project.preview = preview_name
                 project.preview_hash = preview_hash
                 session.commit()
 
         if pages != self.pages:
-            with self.Session() as session:
+            with dep.Session() as session:
                 project = session.query(Project).filter_by(lid=self.lid).first()
                 project.pages = pages
                 session.commit()
@@ -146,7 +151,7 @@ class ProjectE(ProjectDB):
 
     def update_db(self) -> None:
         log.debug(f"update_db: {self.lid}")
-        with Session() as session:
+        with dep.Session() as session:
             project = session.query(Project).filter_by(lid=self.lid).first()
             keys_db = [key for key in project.__dict__.keys() if key.startswith("_") is False]
             keys_pe = self._attr()
@@ -159,6 +164,7 @@ class ProjectE(ProjectDB):
 
     def update_vinfo(self) -> None:
         log.debug(f"update_vinfo: {self.lid}")
+        log.debug(f"update_vinfo: {self.path}")
         if self.lib.startswith("pool_"):
             raise Exception("Cannot update vinfo for pool")
 
@@ -168,7 +174,7 @@ class ProjectE(ProjectDB):
 
         matches = {
             Path: lambda x: str(x),
-            datetime: lambda x: datetime.strptime(x, "%Y-%m-%dT%H:%M:%S"),
+            datetime: lambda x: self.upload_date.strftime("%Y-%m-%dT%H:%M:%S"),
         }
 
         vpath = self.path / "sf.viewer/v_info.json"
@@ -177,20 +183,32 @@ class ProjectE(ProjectDB):
         with open(vpath, "r", encoding="utf-8") as f:
             v_info = json.load(f)
 
-        # Update
-        for key in keys_pe:
-            if key in v_info:
+        log.debug(f"v_info: {v_info}")
 
-                value = getattr(self, key)
-                if type(value) in matches:
-                    value = matches[type(value)](value)
+        v_info_original = v_info
 
-                v_info[key] = value
+        try:
+            # Update
+            for key in keys_pe:
+                if key in v_info:
 
-        # Save
-        with open(vpath, "w", encoding="utf-8") as f:
-            # noinspection PyTypeChecker
-            json.dump(v_info, f, indent=4)
+                    value = getattr(self, key)
+                    if type(value) in matches:
+                        value = matches[type(value)](value)
+
+                    v_info[key] = value
+
+            log.debug(f"v_info: {v_info}")
+
+            # Save
+            with open(vpath, "w", encoding="utf-8") as f:
+                # noinspection PyTypeChecker
+                json.dump(v_info, f, indent=4, ensure_ascii=False)
+        except Exception as e:
+            with open(vpath, "w", encoding="utf-8") as f:
+                # noinspection PyTypeChecker
+                json.dump(v_info_original, f, indent=4, ensure_ascii=False)
+            raise e
 
     def add_to_db(self) -> None:
         log.debug("add_to_db")
@@ -200,7 +218,7 @@ class ProjectE(ProjectDB):
         self._renew_search_body()
         data = {key: getattr(self, key) for key in Project.get_columns() if key != "_id"}
 
-        with self.Session() as session:
+        with dep.Session() as session:
             project = Project(**data)
             session.add(project)
             session.commit()

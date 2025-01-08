@@ -1,4 +1,6 @@
-from backend.db.connect import Project, get_session
+from backend import dep
+from backend.db.connect import get_session
+from backend.db.classes import Project
 from sqlalchemy import desc, and_, func, or_
 from collections import defaultdict
 from backend.editor import variants_editor
@@ -22,8 +24,7 @@ class ProjectsError(Exception):
 class Projects:
     def __init__(self):
         log.debug("load projects...")
-        self.Session = get_session()
-        self.session = self.Session()
+        self.session = dep.Session()
         self.libs = utils.read_libs(only_active=True, check=True)
         # active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
         self.all_projects = self.session.query(Project).filter(Project.lib.in_(self.libs))
@@ -78,7 +79,7 @@ class Projects:
         selected_projects = self.projects.offset(((page - 1) * ppg)).limit(ppg)
         projects = []
         for project in selected_projects:
-            projects.append(ProjectE(Session=self.Session, lib_data=self.libs[project.lib], **project.to_dict()))
+            projects.append(ProjectE(lib_data=self.libs[project.lib], **project.to_dict()))
 
         return projects
 
@@ -108,7 +109,7 @@ class Projects:
         incorrect_aliases = self.active_projects.filter(or_(*search_query)).all()
 
         for project in incorrect_aliases:
-            projecte = ProjectE(Session=self.Session, lib_data=self.libs[project.lib], **project.to_dict())
+            projecte = ProjectE(lib_data=self.libs[project.lib], **project.to_dict())
             update = defaultdict(list)
 
             for category in ["tag", "artist", "group", "parody", "character", "language"]:
@@ -142,7 +143,7 @@ class Projects:
                 projecte_updated.update_vinfo()
 
     def get_project(self, _id: int | str = None, lid: str = None) -> ProjectE:
-        ic(_id, lid)
+        log.debug("get_project")
         if _id is None and lid is None:
             raise ValueError("Either id or lig must be provided")
 
@@ -154,16 +155,15 @@ class Projects:
 
         if _id is not None:
             project = self.session.query(Project).filter_by(_id=_id).first()
-            ic(project.title)
+            log.debug("by id")
         else:
             project = self.session.query(Project).filter_by(lid=lid).first()
-            ic(project.title)
+            log.debug("by lid")
 
         if project is None:
             return None
 
         return ProjectE(
-            Session=self.Session,
             lib_data=self.libs[project.lib],
             **project.to_dict()
         )
@@ -199,7 +199,7 @@ class Projects:
         project = self.all_projects.filter_by(dir_name=dir_name, lib=lib_name).first()
 
         if project:
-            with self.Session() as session:
+            with dep.Session() as session:
                 session.delete(project)
                 session.commit()
 
@@ -209,13 +209,13 @@ class Projects:
 
     def delete_pool(self, variants: list) -> None:
         log.debug(f"delete_pool: {variants}")
-        with self.Session() as session:
+        with dep.Session() as session:
             session.query(Project).filter(and_(Project.lid.icontains("pool_"), Project.lvariants == variants)).delete()
             session.commit()
 
     def delete_all_data(self):
         log.info("delete_all_data")
-        with self.Session() as session:
+        with dep.Session() as session:
             session.query(Project).delete()
             session.commit()
 
@@ -234,7 +234,7 @@ class Projects:
 
     def clear_old_versions(self, target_version: int):
         log.debug(f"clear_old_versions: target version: {target_version}")
-        with self.Session() as session:
+        with dep.Session() as session:
             session.query(Project).filter(Project.info_version < target_version).delete()
             session.commit()
 
@@ -267,7 +267,7 @@ class Projects:
                               "update": update,
                           })
 
-        with self.Session() as session:
+        with dep.Session() as session:
             session.begin()
             # priority and non_priority:
             # [[lid, description], [lid, despription]]
@@ -375,7 +375,7 @@ class Projects:
                     else:
                         log.debug(f"Deleting existing pool")
 
-                    with self.Session() as session:
+                    with dep.Session() as session:
                         for pool in exist_pool:
                             log.debug(f"Pool deleting: {pool.lid}")
                             session.delete(pool)
@@ -391,7 +391,6 @@ class Projects:
 
             log.debug(f"Creaging new pool")
             projecte = ProjectE(
-                Session=session,
                 lib_data=self.libs[project.lib],
                 **project.to_dict()
             )
@@ -431,7 +430,7 @@ class Projects:
         log.debug(project.upload_date)
         log.info(f"Adding new project: {project.title}")
 
-        with self.Session() as session:
+        with dep.Session() as session:
             session.add(project)
             session.commit()
 
