@@ -1,15 +1,14 @@
-from fastapi import APIRouter, Request, Form, HTTPException, Body
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
+from fastapi import APIRouter, Request, Form, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from backend.projects.cls import Projects
 from backend.utils import get_visible_pages
-from backend import utils
 from pathlib import Path
+# noinspection PyUnresolvedReferences
 from urllib.parse import quote, unquote
 import mimetypes
 from backend.editor import selector as edit_selector
 from backend.logger_new import get_logger
-from backend.classes.projecte import ProjectE
 
 log = get_logger("Routers.main")
 

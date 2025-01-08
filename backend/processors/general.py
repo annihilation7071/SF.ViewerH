@@ -1,6 +1,5 @@
 import json
 import os
-from collections import defaultdict
 from backend import utils
 from backend.classes.templates import ProjectTemplate
 from pathlib import Path

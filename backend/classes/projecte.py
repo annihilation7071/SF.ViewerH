@@ -4,19 +4,20 @@ from pathlib import Path
 from typing import Any
 from pydantic import BaseModel
 from backend.db.classes import Project
-from sqlalchemy.orm import sessionmaker, Session
 import os
-from backend import utils
 from backend.classes.lib import Lib
 import json
 from backend.logger_new import get_logger
 from backend import utils
-from backend.db import connect
 
 log = get_logger("ProjectE")
 
 
 class DBError(Exception):
+    pass
+
+
+class DBErrorPoolHasNotDir(DBError):
     pass
 
 
@@ -149,26 +150,23 @@ class ProjectE(ProjectDB):
     def _keys(self):
         return self._attr()
 
-    def update_db(self) -> None:
-        log.debug(f"update_db: {self.lid}")
-        with dep.Session() as session:
-            project = session.query(Project).filter_by(lid=self.lid).first()
-            keys_db = [key for key in project.__dict__.keys() if key.startswith("_") is False]
-            keys_pe = self._attr()
+    def _update_db(self, session) -> None:
+        log.debug(f"_update_db: {self.lid}")
+        project = session.query(Project).filter_by(lid=self.lid).first()
+        keys_db = [key for key in project.__dict__.keys() if key.startswith("_") is False]
+        keys_pe = self._attr()
 
-            for key in keys_pe:
-                if key in keys_db:
-                    setattr(project, key, getattr(self, key))
+        for key in keys_pe:
+            if key in keys_db:
+                setattr(project, key, getattr(self, key))
 
-            session.commit()
+        session.commit()
 
-    def update_vinfo(self) -> None:
-        log.debug(f"update_vinfo: {self.lid}")
-        log.debug(f"update_vinfo: {self.path}")
+    def _update_vinfo(self) -> None:
+        log.debug(f"_update_vinfo: {self.lid}")
+        log.debug(f"_update_vinfo: {self.path}")
         if self.lib.startswith("pool_"):
-            raise Exception("Cannot update vinfo for pool")
-
-        self._renew_search_body()
+            raise DBError("Cannot update vinfo for pool")
 
         keys_pe = self._attr()
 
@@ -210,6 +208,33 @@ class ProjectE(ProjectDB):
                 # noinspection PyTypeChecker
                 json.dump(v_info_original, f, indent=4, ensure_ascii=False)
             raise e
+
+    def update(self, only_db=False) -> None:
+        log.debug(f"update: {self.lid}")
+        log.info(f"Updating project: {self.title}")
+        self._renew_search_body()
+        with dep.Session() as session:
+            try:
+                self._update_db(session)
+            except Exception as e:
+                session.rollback()
+                log.exception(f"Failed to update project: {self.title}")
+                raise e
+
+            if only_db:
+                log.debug(f"vinfo file will not be updated: {self.lid} than flag only_db is True")
+
+            try:
+                self._update_vinfo()
+            except DBErrorPoolHasNotDir as e:
+                log.debug("Updating pool; v_info file will not be updated")
+            except Exception as e:
+                session.rollback()
+                log.exception(f"Failed to update project: {self.title}")
+                raise e
+
+            session.commit()
+            log.info(f"Update completed: {self.title}")
 
     def add_to_db(self) -> None:
         log.debug("add_to_db")

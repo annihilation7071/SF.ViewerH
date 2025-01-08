@@ -74,8 +74,7 @@ def edit(projects: 'Projects', project: ProjectE, data: str | list, separator: s
     for t_project in old_projects:
         t_project.lvariants = []
         t_project.active = True
-        t_project.update_db()
-        t_project.update_vinfo()
+        t_project.update()
 
     # Stop if new variants not provided
     if len(variants) == 0:
@@ -103,8 +102,7 @@ def edit(projects: 'Projects', project: ProjectE, data: str | list, separator: s
     for t_project in target_projects:
         log.debug(f"{t_project.lid}")
         t_project.lvariants = variants
-        t_project.update_db()
-        t_project.update_vinfo()
+        t_project.update()
 
     # Create priority
     if len(priority) == 1:

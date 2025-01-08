@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Request, Form, HTTPException, Body
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
+from fastapi import APIRouter, Request, HTTPException, Body
 from backend.projects.cls import Projects, Project
 from backend import utils, downloader
-from pydantic import BaseModel
 from icecream import ic
 ic.configureOutput(includeContext=True)
 
@@ -15,7 +13,7 @@ router = APIRouter()
 @router.post("/load")
 async def load(request: Request,
                url: str = Body(..., embed=True)):
-    await downloader.download(url)
+    await downloader.download(url, projects)
     # return JSONResponse({"status": "success"})
 
 

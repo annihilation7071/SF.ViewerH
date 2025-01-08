@@ -54,5 +54,6 @@ class Project(Base):
         log.debug(f"Project.get_columns")
         if exclude is None:
             exclude = []
+        # noinspection PyTypeChecker
         columns = [column.name for column in cls.__table__.columns if column not in exclude]
         return columns

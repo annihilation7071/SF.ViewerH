@@ -1,5 +1,4 @@
 from backend import dep
-from backend.db.connect import get_session
 from backend.db.classes import Project
 from sqlalchemy import desc, and_, func, or_
 from collections import defaultdict
@@ -9,7 +8,6 @@ from icecream import ic
 from backend.classes.projecte import ProjectE
 from backend.classes.templates import ProjectTemplateDB
 from backend.logger_new import get_logger
-import sys
 
 ic.configureOutput(includeContext=True)
 
@@ -136,11 +134,7 @@ class Projects:
             update["search_body"] = utils.make_search_body(projecte_updated)
             projecte_updated.search_body = update["search_body"]
 
-            projecte_updated.update_db()
-
-            # TODO Think about what to do with variants
-            if project.lid.startswith("pool_") is False:
-                projecte_updated.update_vinfo()
+            projecte_updated.update()
 
     def get_project(self, _id: int | str = None, lid: str = None) -> ProjectE:
         log.debug("get_project")
@@ -161,6 +155,7 @@ class Projects:
             log.debug("by lid")
 
         if project is None:
+            # noinspection PyTypeChecker
             return None
 
         return ProjectE(

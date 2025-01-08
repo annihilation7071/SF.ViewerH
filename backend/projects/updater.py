@@ -1,7 +1,6 @@
 from pathlib import Path
 import os
 from importlib import import_module
-from datetime import datetime
 from backend import utils, cmdargs
 from backend.logger_new import get_logger
 from backend.projects.cls import Projects
@@ -10,7 +9,6 @@ from backend.processors import general as general
 import json
 from dateutil import parser
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
-from pydantic import BaseModel
 
 log = get_logger("putils")
 

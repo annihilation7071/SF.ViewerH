@@ -1,12 +1,6 @@
-import os
-from backend import utils
+# noinspection PyUnresolvedReferences
 from backend.db.connect import PoolV, get_session
-from sqlalchemy import select, text, desc, asc, and_
 from datetime import datetime
-from collections import defaultdict
-from backend import utils
-from backend import logger
-from backend import utils
 
 
 temp_pool = {
@@ -62,4 +56,3 @@ class PoolsV:
             self.session.add(row)
 
         self.session.commit()
-

@@ -1,11 +1,7 @@
 import logging
 import os
-import threading
 from logging.handlers import SocketHandler, RotatingFileHandler
 from pathlib import Path
-import sys
-import asyncio
-import traceback
 
 socket_handler = SocketHandler('127.0.0.1', 19996)
 socket_handler.setLevel(logging.DEBUG)

@@ -36,8 +36,7 @@ def edit(projects: Projects, project: ProjectE, edit_type: str, data: str, updat
         return
 
     setattr(project, edit_types[edit_type], items)
-    project.update_db()
-    project.update_vinfo()
+    project.update()
 
     return
 
