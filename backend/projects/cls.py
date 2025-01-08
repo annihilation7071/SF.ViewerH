@@ -1,5 +1,5 @@
 from backend import dep
-from backend.db.classes import Project
+from backend.classes.db import Project
 from sqlalchemy import desc, and_, func, or_
 from collections import defaultdict
 from backend.editor import variants_editor

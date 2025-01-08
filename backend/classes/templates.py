@@ -1,9 +1,14 @@
 from typing import Any
-
+from dateutil import parser
 from pydantic import BaseModel
 from datetime import datetime
 from backend.logger_new import get_logger
 from backend import utils
+from pathlib import Path
+from typing import TYPE_CHECKING, Annotated
+
+if TYPE_CHECKING:
+    from backend.classes.projecte import ProjectDB, ProjectE
 
 log = get_logger("templates")
 
@@ -38,11 +43,36 @@ class ProjectTemplate(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def _attr(self) -> list[str]:
+    def attr(self) -> list[str]:
         return [key for key in self.__dict__.keys() if key.startswith("_") is False]
 
-    def _keys(self):
-        return self._attr()
+    def keys(self):
+        return self.attr()
+
+    @classmethod
+    def load_from_json(cls, path: Path):
+        log.debug("")
+        jdata = utils.read_json(path)
+        jdata["upload date"] = parser.parse(jdata["upload_date"])
+        model = cls(**jdata)
+        model.check_not_none()
+        return model
+
+    @classmethod
+    def load_from_project(cls, project: Annotated['ProjectE', 'ProjectDB']):
+        log.debug("")
+        model = cls()
+        for key in project.keys():
+            if hasattr(model, key):
+                setattr(model, key, project[key])
+        model.check_not_none()
+        return model
+
+    def check_not_none(self):
+        log.debug("")
+        for key in self.keys():
+            if getattr(self, key) is None:
+                raise ProjectTemplateError(f"Attribute '{key}' is not defined")
 
 
 class ProjectTemplateDB(ProjectTemplate):
@@ -59,10 +89,7 @@ class ProjectTemplateDB(ProjectTemplate):
         self.search_body = utils.make_search_body(self)
         log.debug(self)
 
-        keys = self._keys()
-        for key in keys:
-            if getattr(self, key) is None:
-                raise ProjectTemplateError(f"Attribute `{key}` is not defined")
+        self.check_not_none()
 
 
 

@@ -11,7 +11,8 @@ import asyncio
 from backend.logger_new import get_logger
 from backend.classes.projecte import ProjectE
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
-from backend.db.classes import Project
+from backend.classes.db import Project
+from backend.classes.templates import ProjectTemplate
 
 log = get_logger("utils")
 
@@ -326,3 +327,27 @@ def make_search_body(project: dict | ProjectE | Project | ProjectTemplateDB) -> 
             search_body += f"{k}:{v};;;"
 
     return search_body
+
+
+def write_json(path: Path, data: dict | list | ProjectTemplate) -> None:
+    try:
+        if isinstance(data, list | dict):
+            with open(path, 'w', encoding="utf-8") as f:
+                # noinspection PyTypeChecker
+                json.dump(data, f, indent=4, ensure_ascii=False)
+        elif isinstance(data, ProjectTemplate):
+            with open(path, 'w', encoding="utf-8") as f:
+                # noinspection PyTypeChecker
+                json.dump(json.loads(data.model_dump_json()), f, indent=4, ensure_ascii=False)
+        else:
+            raise TypeError(f"Unsupported type {type(data)}")
+    except:
+        log.exception("Failed to write json")
+        raise
+
+
+def read_json(path: Path) -> dict | list | ProjectTemplate:
+    with open(path, 'r', encoding="utf-8") as f:
+        data = json.load(f)
+
+    return data

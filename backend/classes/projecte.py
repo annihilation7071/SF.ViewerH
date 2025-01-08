@@ -3,12 +3,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 from pydantic import BaseModel
-from backend.db.classes import Project
+from backend.classes.db import Project
 import os
 from backend.classes.lib import Lib
+from backend.classes.files import ProjectInfoFile, ProjectInfoFileError
 import json
 from backend.logger_new import get_logger
 from backend import utils
+
 
 log = get_logger("ProjectE")
 
@@ -51,6 +53,12 @@ class ProjectDB(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+    def attr(self) -> list[str]:
+        return [key for key in self.__dict__.keys() if key.startswith("_") is False]
+
+    def keys(self):
+        return self.attr()
 
 
 class ProjectE(ProjectDB):
@@ -144,19 +152,12 @@ class ProjectE(ProjectDB):
         self.flags = self._get_flags_paths(self.language)
         self.lvariants_count = len(self.lvariants)
 
-    def _attr(self) -> list[str]:
-        return [key for key in self.__dict__.keys() if key.startswith("_") is False]
-
-    def _keys(self):
-        return self._attr()
-
     def _update_db(self, session) -> None:
         log.debug(f"_update_db: {self.lid}")
         project = session.query(Project).filter_by(lid=self.lid).first()
-        keys_db = [key for key in project.__dict__.keys() if key.startswith("_") is False]
-        keys_pe = self._attr()
+        keys_db = project.get_columns()
 
-        for key in keys_pe:
+        for key in self.keys():
             if key in keys_db:
                 setattr(project, key, getattr(self, key))
 
@@ -168,45 +169,27 @@ class ProjectE(ProjectDB):
         if self.lib.startswith("pool_"):
             raise DBError("Cannot update vinfo for pool")
 
-        keys_pe = self._attr()
-
-        matches = {
-            Path: lambda x: str(x),
-            datetime: lambda x: self.upload_date.strftime("%Y-%m-%dT%H:%M:%S"),
-        }
-
         vpath = self.path / "sf.viewer/v_info.json"
 
         # Open
-        with open(vpath, "r", encoding="utf-8") as f:
-            v_info = json.load(f)
+        infofile = ProjectInfoFile(path=vpath)
+        v_info = infofile.data
 
         log.debug(f"v_info: {v_info}")
 
-        v_info_original = v_info
-
         try:
-            # Update
-            for key in keys_pe:
-                if key in v_info:
-
-                    value = getattr(self, key)
-                    if type(value) in matches:
-                        value = matches[type(value)](value)
-
-                    v_info[key] = value
+            for key in self.keys():
+                if hasattr(v_info, key):
+                    setattr(v_info, key, getattr(self, key))
 
             log.debug(f"v_info: {v_info}")
 
             # Save
-            with open(vpath, "w", encoding="utf-8") as f:
-                # noinspection PyTypeChecker
-                json.dump(v_info, f, indent=4, ensure_ascii=False)
+            infofile.set(v_info)
+            infofile.commit()
+
         except Exception as e:
-            log.exception(e)
-            with open(vpath, "w", encoding="utf-8") as f:
-                # noinspection PyTypeChecker
-                json.dump(v_info_original, f, indent=4, ensure_ascii=False)
+            log.exception(str(e))
             raise e
 
     def update(self, only_db=False) -> None:
@@ -236,18 +219,18 @@ class ProjectE(ProjectDB):
             session.commit()
             log.info(f"Update completed: {self.title}")
 
-    def add_to_db(self) -> None:
-        log.debug("add_to_db")
-        if self._id is not None:
-            raise DBError("Cannot add project with specified _id in DB")
-
-        self._renew_search_body()
-        data = {key: getattr(self, key) for key in Project.get_columns() if key != "_id"}
-
-        with dep.Session() as session:
-            project = Project(**data)
-            session.add(project)
-            session.commit()
+    # def add_to_db(self) -> None:
+    #     log.debug("add_to_db")
+    #     if self._id is not None:
+    #         raise DBError("Cannot add project with specified _id in DB")
+    #
+    #     self._renew_search_body()
+    #     data = {key: getattr(self, key) for key in Project.get_columns(exclude=["_id"])}
+    #
+    #     with dep.Session() as session:
+    #         project = Project(**data)
+    #         session.add(project)
+    #         session.commit()
 
     def _renew_search_body(self) -> None:
         log.debug("renew_search_body")
