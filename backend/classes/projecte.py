@@ -10,6 +10,7 @@ from backend.classes.files import ProjectInfoFile, ProjectInfoFileError
 import json
 from backend.logger_new import get_logger
 from backend import utils
+from sqlalchemy.orm import Session
 
 
 log = get_logger("ProjectE")
@@ -152,8 +153,10 @@ class ProjectE(ProjectDB):
         self.flags = self._get_flags_paths(self.language)
         self.lvariants_count = len(self.lvariants)
 
-    def _update_db(self, session) -> None:
+    def update_db(self, session: Session, commit: bool = False) -> None:
         log.debug(f"_update_db: {self.lid}")
+        self._renew_search_body()
+
         project = session.query(Project).filter_by(lid=self.lid).first()
         keys_db = project.get_columns()
 
@@ -161,11 +164,14 @@ class ProjectE(ProjectDB):
             if key in keys_db:
                 setattr(project, key, getattr(self, key))
 
-        session.commit()
+        if commit:
+            session.commit()
 
-    def _update_vinfo(self) -> None:
+    def update_vinfo(self) -> None | ProjectInfoFile:
         log.debug(f"_update_vinfo: {self.lid}")
         log.debug(f"_update_vinfo: {self.path}")
+        self._renew_search_body()
+
         if self.lib.startswith("pool_"):
             raise DBError("Cannot update vinfo for pool")
 
@@ -177,6 +183,8 @@ class ProjectE(ProjectDB):
 
         log.debug(f"v_info: {v_info}")
 
+        infofile.save_model("backup")
+
         try:
             for key in self.keys():
                 if hasattr(v_info, key):
@@ -187,37 +195,46 @@ class ProjectE(ProjectDB):
             # Save
             infofile.set(v_info)
             infofile.commit()
+            return infofile
 
         except Exception as e:
             log.exception(str(e))
             raise e
 
-    def update(self, only_db=False) -> None:
-        log.debug(f"update: {self.lid}")
+    def soft_update(self, session: Session, only_db: bool = False) -> None:
+        log.debug(f"soft_update")
         log.info(f"Updating project: {self.title}")
-        self._renew_search_body()
+
+        try:
+            self.update_db(session)
+        except Exception as e:
+            session.rollback()
+            log.exception(f"Failed to update project: {self.title}")
+            raise e
+
+        if only_db:
+            log.debug(f"vinfo file will not be updated: {self.lid} than flag only_db is True")
+            return
+
+        try:
+            self.update_vinfo()
+        except DBErrorPoolHasNotDir as e:
+            log.debug("Updating pool; v_info file will not be updated", exc_info=e)
+        except Exception as e:
+            session.rollback()
+            log.exception(f"Failed to update project: {self.title}")
+            raise e
+
+        log.info(f"Update completed: {self.title}")
+
+    def update(self, only_db: bool = False) -> None:
+        log.debug(f"update: {self.lid}")
+
         with dep.Session() as session:
-            try:
-                self._update_db(session)
-            except Exception as e:
-                session.rollback()
-                log.exception(f"Failed to update project: {self.title}")
-                raise e
-
-            if only_db:
-                log.debug(f"vinfo file will not be updated: {self.lid} than flag only_db is True")
-
-            try:
-                self._update_vinfo()
-            except DBErrorPoolHasNotDir as e:
-                log.debug("Updating pool; v_info file will not be updated")
-            except Exception as e:
-                session.rollback()
-                log.exception(f"Failed to update project: {self.title}")
-                raise e
-
+            self.soft_update(session, only_db=only_db)
             session.commit()
-            log.info(f"Update completed: {self.title}")
+            log.info(f"Update commited: {self.title}")
+
 
     # def add_to_db(self) -> None:
     #     log.debug("add_to_db")

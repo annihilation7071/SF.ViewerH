@@ -20,7 +20,7 @@ class ProjectInfoFile(BaseModel):
     __data: ProjectTemplate = None
     __backup: ProjectTemplate | None = None
     __status: str = "ready"
-    __saves: dict[str, ProjectTemplate] | None = None
+    __saves: dict[str, ProjectTemplate] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -35,6 +35,7 @@ class ProjectInfoFile(BaseModel):
             self.__data = self.template.model_copy(deep=True)
 
         self.__path = self.path
+        self.__saves = {}
 
         del self.path
         del self.template
@@ -80,11 +81,17 @@ class ProjectInfoFile(BaseModel):
 
     def save_model(self, name: str) -> None:
         log.debug("")
-        self.__saves[name] = self.__data
+        if self.__status == "ready":
+            self.__saves[name] = self.__data
+        else:
+            raise ProjectInfoFileError("Save project able only when model is ready.")
 
     def load_model(self, name: str) -> None:
         log.debug("")
-        self.__data = self.__saves[name]
+        if self.__status == "ready":
+            self.set(self.__saves[name])
+        elif self.__status == "prepared_to_edit":
+            self.__data = self.__saves[name]
 
     @property
     def data(self) -> ProjectTemplate:
