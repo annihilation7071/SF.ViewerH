@@ -5,20 +5,25 @@ from logging.handlers import SocketHandler, RotatingFileHandler
 from pathlib import Path
 import sys
 import asyncio
-
-SOCKET_HANDLER = SocketHandler('127.0.0.1', 19996)
-SOCKET_HANDLER.setLevel(logging.DEBUG)
+import traceback
 
 
-def get_logger(name: str):
+def get_logger(name: str) -> logging.Logger:
     if logging.Logger.manager.loggerDict.get(name):
         return logging.Logger.manager.loggerDict.get(name)
 
     formatter = logging.Formatter(f"%(asctime)s %(levelname)-8s: {name}: %(message)s")
 
+    socket_handler = SocketHandler('127.0.0.1', 19996)
+    socket_handler.setLevel(logging.DEBUG)
+
     file_handler = RotatingFileHandler(filename=f"./logs/{name}.log", mode="w", encoding="utf-8")
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.DEBUG)
+
+    file_handler_2 = RotatingFileHandler(filename=f"./logs/All.log", mode="w", encoding="utf-8")
+    file_handler_2.setFormatter(formatter)
+    file_handler_2.setLevel(logging.DEBUG)
 
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(formatter)
@@ -27,8 +32,9 @@ def get_logger(name: str):
     # noinspection PyShadowingNames
     log = logging.getLogger(name)
     log.setLevel(logging.DEBUG)
-    log.addHandler(SOCKET_HANDLER)
+    log.addHandler(socket_handler)
     log.addHandler(file_handler)
+    log.addHandler(file_handler_2)
     log.addHandler(stream_handler)
 
     return log
