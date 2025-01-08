@@ -205,6 +205,7 @@ class ProjectE(ProjectDB):
                 # noinspection PyTypeChecker
                 json.dump(v_info, f, indent=4, ensure_ascii=False)
         except Exception as e:
+            log.exception(e)
             with open(vpath, "w", encoding="utf-8") as f:
                 # noinspection PyTypeChecker
                 json.dump(v_info_original, f, indent=4, ensure_ascii=False)

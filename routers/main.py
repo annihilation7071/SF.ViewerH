@@ -52,7 +52,6 @@ def get_with_cache(project_lid: str):
     return project, images
 
 
-
 @router.get("/", response_class=HTMLResponse, name="index")
 async def index(request: Request, page: int = 1, search: str = ""):
     log.debug(f"index")
