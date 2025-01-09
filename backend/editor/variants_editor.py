@@ -1,3 +1,4 @@
+from backend import dep
 from backend.utils import tag_normalizer
 from backend.logger_new import get_logger
 from backend.classes.projecte import ProjectE
@@ -72,45 +73,62 @@ def edit(projects: 'Projects', project: ProjectE, data: str | list, separator: s
 
     old_projects = [projects.get_project_by_lid(lid) for lid in old_lids]
 
-    for t_project in old_projects:
-        t_project.lvariants = []
-        t_project.active = True
-        t_project.update()
+    updated_files = {}
 
-    # Stop if new variants not provided
-    if len(variants) == 0:
-        log.debug("New variants not provided. Stop variants_editor.edit")
-        return
+    try:
+        with dep.Session() as session:
 
-    # Find priority project
-    priority, non_priority = separate_priority(variants)
-    log.debug(f"Priority: {priority}")
-    log.debug(f"Non priority: {non_priority}")
+            for t_project in old_projects:
+                t_project.lvariants = []
+                t_project.active = True
+                infofile = t_project.soft_update(session)
+                updated_files[infofile.lid] = infofile
 
-    if len(priority) > 1:
-        raise VariantsEditorError("Only one priority marker allowed")
+            # Stop if new variants not provided
+            if len(variants) == 0:
+                log.debug("New variants not provided. Stop variants_editor.edit")
+                session.commit()
+                return
 
-    # Sorting variants:
-    # Priority first others sorting
-    variants = [":".join(priority[0])] + [":".join(variant) for variant in sorted(non_priority, key=lambda x: x[1])]
-    variants = [variant for variant in variants if len(variant) > 0]
-    log.debug(f"Variants after sorting: {variants}")
+            # Find priority project
+            priority, non_priority = separate_priority(variants)
+            log.debug(f"Priority: {priority}")
+            log.debug(f"Non priority: {non_priority}")
 
-    # Update data in info file and DB
-    log.debug(f"Updating data in DB and file")
-    target_projects = [projects.get_project_by_lid(lid) for lid in lids]
+            if len(priority) > 1:
+                raise VariantsEditorError("Only one priority marker allowed")
 
-    for t_project in target_projects:
-        log.debug(f"{t_project.lid}")
-        t_project.lvariants = variants
-        t_project.update()
+            # Sorting variants:
+            # Priority first others sorting
+            variants = [":".join(priority[0])] + [":".join(variant) for variant in sorted(non_priority, key=lambda x: x[1])]
+            variants = [variant for variant in variants if len(variant) > 0]
+            log.debug(f"Variants after sorting: {variants}")
 
-    # Create priority
-    if len(priority) == 1:
-        log.debug(f"Creating priority: {variants}")
-        return projects.create_priority(priority, non_priority)
+            # Update data in info file and DB
+            log.debug(f"Updating data in DB and file")
+            target_projects = [projects.get_project_by_lid(lid) for lid in lids]
 
-    return
+            for t_project in target_projects:
+                log.debug(f"{t_project.lid}")
+                t_project.lvariants = variants
+                infofile = t_project.soft_update(session)
+                if infofile.lid not in updated_files:
+                    updated_files[infofile.lid] = infofile
+
+            pool_lid = None
+            # Create priority
+            if len(priority) == 1:
+                log.debug(f"Creating priority: {variants}")
+                pool_lid = projects.create_priority(priority, non_priority, variants, session)
+
+            session.commit()
+            return pool_lid
+    except Exception as e:
+        log.exception(e)
+        session.rollback()
+        for file in updated_files.values():
+            file.load_model("backup")
+            file.commit()
 
 
 def separate_priority(variants: list) -> tuple[list, list]:

@@ -16,6 +16,7 @@ class ProjectInfoFileError(Exception):
 
 
 class ProjectInfoFile(BaseModel):
+    lid: str = None
     path: Path
     template: ProjectTemplate = None
     __path: Path = None
@@ -41,6 +42,7 @@ class ProjectInfoFile(BaseModel):
 
         self.__path = self.path
         self.__saves = {}
+        self.lid = self.__data.lid
 
         del self.path
         del self.template

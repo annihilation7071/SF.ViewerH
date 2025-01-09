@@ -298,8 +298,7 @@ class ProjectEPool(ProjectE):
         kw["pool_mark"] = True
         return super().__new__(cls, *args, **kw)
 
-    def update_pool(self, session: Session = None) -> None:
-
+    def parse_parameters(self):
         template = Template()
 
         for variant in self.lvariants:
@@ -318,6 +317,10 @@ class ProjectEPool(ProjectE):
 
         self._renew_search_body()
 
+    def update_pool(self, session: Session = None) -> None:
+
+        self.parse_parameters()
+
         if session is None:
             self.update(only_db=True)
         else:
@@ -330,3 +333,10 @@ class ProjectEPool(ProjectE):
         template.active = True
 
         template.add_to_db(session)
+        self.__deactivate_variants(session)
+
+    def __deactivate_variants(self, session: Session) -> None:
+        lids = [variant[0] for variant in self.lvariants]
+
+        session.query(Project).filter(Project.lid.in_(lids)).update({Project.active: False})
+
