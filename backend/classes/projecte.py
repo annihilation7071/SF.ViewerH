@@ -2,7 +2,7 @@ from backend import dep
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from backend.classes.db import Project
 import os
 from backend.classes.lib import Lib
@@ -75,13 +75,26 @@ class ProjectE(ProjectDB):
     class Config:
         arbitrary_types_allowed = True
 
+    def __new__(cls, *args, **kwargs):
+        log.debug(args)
+        log.debug(kwargs)
+        if kwargs["lid"].startswith("pool_") and "pool_mark" not in kwargs:
+            log.debug("Returning ProjectEPool object instead ProjectE")
+            return ProjectEPool(*args, **kwargs)
+        else:
+            kw = dict(kwargs)
+            kw.pop("pool_mark", None)
+            return super().__new__(cls)
+
     def model_post_init(self, __context: Any) -> None:
-        log.debug("Initializing ProjectE")
+        log.debug(f"Initializing {type(self).__name__}")
         self.path = self.lib_data.path / self.dir_name
         files = os.listdir(self.path)
 
         self._update_preview_and_pages(files)
         self._gen_extra_parameters()
+
+        log.debug(self)
 
         # with dep.Session() as session:
         #     log.warning(session)
@@ -269,3 +282,39 @@ class ProjectE(ProjectDB):
 
         return pages
 
+
+# noinspection PyDataclass
+class Template(BaseModel):
+    tag: list[str] = Field(default_factory=list)
+    language: list[str] = Field(default_factory=list)
+    group: list[str] = Field(default_factory=list)
+    artist: list[str] = Field(default_factory=list)
+    series: list[str] = Field(default_factory=list)
+    parody: list[str] = Field(default_factory=list)
+
+
+class ProjectEPool(ProjectE):
+    def __new__(cls, *args, **kwargs):
+        kw = dict(kwargs)
+        kw["pool_mark"] = True
+        return super().__new__(cls, *args, **kw)
+
+    def update_pool(self):
+
+        template = Template()
+
+        for variant in self.lvariants:
+            lid = variant.split(":")[0]
+            project = dep.projects.get_project_by_lid(lid)
+
+            template.tag = list(set(template.tag) | set(project.tag))
+            template.language = list(set(template.language) | set(project.language))
+            template.group = list(set(template.group) | set(project.group))
+            template.artist = list(set(template.artist) | set(project.artist))
+            template.series = list(set(template.series) | set(project.series))
+            template.parody = list(set(template.parody) | set(project.parody))
+
+        for key in template.model_dump().keys():
+            setattr(self, key, getattr(template, key))
+
+        self.update()

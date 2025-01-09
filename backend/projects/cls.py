@@ -263,7 +263,6 @@ class Projects:
                           })
 
         with dep.Session() as session:
-            session.begin()
             # priority and non_priority:
             # [[lid, description], [lid, despription]]
             priority_project: Project = session.query(Project).filter_by(lid=priority[0][0]).first()
@@ -319,7 +318,7 @@ class Projects:
         log.debug(f"update_priority: {project.lid}")
 
         pool = self.session.query(Project).filter(
-            Project.lvariants == project["lvariants"],
+            Project.lvariants == project.lvariants,
             Project.lid.startswith("pool_")
         ).all()
 
@@ -328,9 +327,8 @@ class Projects:
         elif len(pool) > 2:
             raise ProjectsError("Too many pool found")
 
-        log.debug(f"Pool found: {pool.lid}")
-
         pool = pool[0]
+        log.debug(f"Pool found: {pool.lid}")
 
         priority, non_priority = variants_editor.separate_priority(pool.lvariants)
         log.debug(f"priority: {priority}")

@@ -43,7 +43,7 @@ def edit(projects: Projects, project: ProjectE, edit_type: str, data: str, updat
 
 def multiple_edit(projects: Projects, project: ProjectE, edit_type: str, items: list):
     log.debug("item_editor.multiple_edit")
-    project_items: list = project[edit_types[edit_type]]
+    project_items: list = getattr(project, edit_types[edit_type])
     minus = []
     plus = []
     for item in items:
@@ -66,7 +66,7 @@ def multiple_edit(projects: Projects, project: ProjectE, edit_type: str, items: 
         lid: str = variant.split(":")[0]
         log.debug(f"Variant: {lid}")
         target_project = projects.get_project_by_lid(lid)
-        data: list = target_project[edit_types[edit_type]]
+        data: list = getattr(target_project, edit_types[edit_type])
         log.debug(f"Old data: {data}")
 
         new_data = data

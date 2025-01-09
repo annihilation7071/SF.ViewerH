@@ -35,12 +35,13 @@ def edit(projects: 'Projects', project: ProjectE, data: str | list, separator: s
 
     lids = [variant.split(":")[0] for variant in variants]
     log.debug(f"Lids: {lids}")
+    log.debug(f"{project}")
 
     # Old variants
     old_variants = set()
-    old_variants = old_variants | set(project["lvariants"])
+    old_variants = old_variants | set(project.lvariants)
     for lid in lids:
-        old_variants = old_variants | set(projects.get_project_by_lid(lid)["lvariants"])
+        old_variants = old_variants | set(projects.get_project_by_lid(lid).lvariants)
     old_variants = list(old_variants)
     log.debug(f"Old variants: {old_variants}")
 

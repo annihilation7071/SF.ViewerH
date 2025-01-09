@@ -1,3 +1,4 @@
+from backend import dep
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
@@ -29,6 +30,7 @@ async def lifespan(app: FastAPI):
     extra.projects = projects
     update_projects(projects)
     projects.checking()
+    dep.projects = projects
     yield
 
 app = FastAPI(lifespan=lifespan)
