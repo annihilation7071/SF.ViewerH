@@ -80,7 +80,7 @@ def update_projects(projects: Projects) -> None:
             )
             log.debug(project_to_db)
 
-            projects.add_project(project_to_db)
+            project_to_db.add_to_db()
 
 
 def get_dirs(path: Path, meta_file: str) -> list[str]:

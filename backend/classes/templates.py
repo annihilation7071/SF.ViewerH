@@ -1,3 +1,5 @@
+from sqlalchemy.orm import Session
+from backend import dep
 from typing import Any
 from dateutil import parser
 from pydantic import BaseModel
@@ -6,6 +8,7 @@ from backend.logger_new import get_logger
 from backend import utils
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
+from backend.classes.db import Project
 
 if TYPE_CHECKING:
     from backend.classes.projecte import ProjectDB, ProjectE
@@ -90,6 +93,32 @@ class ProjectTemplateDB(ProjectTemplate):
         log.debug(self)
 
         self.check_not_none()
+
+    def add_to_db(self, session_: Session = None ) -> None:
+        log.debug(f"add_to_db: {self.lid}")
+        log.info(f"Adding new project: {self.title}")
+
+        if session_ is None:
+            session = dep.Session()
+            session.begin()
+        else:
+            session = session_
+
+        try:
+            project = Project(**self.model_dump())
+            session.add(project)
+
+            if session_ is not None:
+                session.commit()
+        except Exception:
+            session.rollback()
+            log.exception("Error adding project")
+            raise
+
+
+
+
+
 
 
 

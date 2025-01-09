@@ -12,7 +12,6 @@ from backend.logger_new import get_logger
 from backend import utils
 from sqlalchemy.orm import Session
 
-
 log = get_logger("ProjectE")
 
 
@@ -247,7 +246,6 @@ class ProjectE(ProjectDB):
             self.soft_update(session, only_db=only_db)
             session.commit()
             log.info(f"Update commited: {self.title}")
-
 
     # def add_to_db(self) -> None:
     #     log.debug("add_to_db")

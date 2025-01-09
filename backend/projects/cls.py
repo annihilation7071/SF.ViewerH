@@ -8,6 +8,7 @@ from icecream import ic
 from backend.classes.projecte import ProjectE
 from backend.classes.templates import ProjectTemplateDB
 from backend.logger_new import get_logger
+from sqlalchemy.orm import Session
 
 ic.configureOutput(includeContext=True)
 
@@ -136,7 +137,7 @@ class Projects:
 
             projecte_updated.update()
 
-    def get_project(self, _id: int | str = None, lid: str = None) -> ProjectE:
+    def get_project(self, _id: int | str = None, lid: str = None, session: Session = None) -> ProjectE:
         log.debug("get_project")
         if _id is None and lid is None:
             raise ValueError("Either id or lig must be provided")
@@ -413,19 +414,16 @@ class Projects:
     #         self.session.query(Project).filter_by(lid=lid).update(project)
     #     self.session.commit()
 
-    def add_project(self, project: ProjectTemplateDB):
-        log.debug(f"add_project")
+    # def add_project(self, project: ProjectTemplateDB):
+    #     log.debug(f"add_project")
+    #
+    #     if isinstance(project, ProjectTemplateDB) is False:
+    #         log.exception(TypeError("Project must be type ProjectTemplateDB"))
+    #
+    #     project.add_to_db()
+    #
+    #     log.info(f"Adding new project: {project.title}")
 
-        if isinstance(project, ProjectTemplateDB) is False:
-            log.exception(TypeError("Project must be type ProjectTemplateDB"))
-
-        project = Project(**project.model_dump())
-        log.debug(project.upload_date)
-        log.info(f"Adding new project: {project.title}")
-
-        with dep.Session() as session:
-            session.add(project)
-            session.commit()
 
 
 
