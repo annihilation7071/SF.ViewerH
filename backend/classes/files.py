@@ -28,6 +28,7 @@ class ProjectInfoFile(BaseModel):
         arbitrary_types_allowed = True
 
     def model_post_init(self, __context: Any) -> None:
+        log.debug(self.path)
         if os.path.exists(self.path) and self.template is not None:
             raise ProjectInfoFileError("File already exists. Do not provede template if file exists.")
 

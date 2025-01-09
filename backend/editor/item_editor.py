@@ -1,7 +1,9 @@
+from backend import dep
 from backend.utils import tag_normalizer
 from backend.projects.cls import Projects
 from backend.logger_new import get_logger
-from backend.classes.projecte import ProjectE
+from backend.classes.projecte import ProjectE, ProjectEPool
+from backend.classes.files import ProjectInfoFile
 
 log = get_logger("item_editor")
 
@@ -16,7 +18,7 @@ edit_types = {
 }
 
 
-def edit(projects: Projects, project: ProjectE, edit_type: str, data: str, update_priority: bool = True):
+def edit(projects: Projects, project: ProjectE | ProjectEPool, edit_type: str, data: str, update_priority: bool = True):
     log.debug("item_editor.edit")
     log.debug(f"Edit type: {edit_type}")
     log.debug(f"Data: {data}")
@@ -29,10 +31,9 @@ def edit(projects: Projects, project: ProjectE, edit_type: str, data: str, updat
     items = tag_normalizer(items)
     log.debug(f"Normalized items: {items}")
 
-    if project.lid.startswith("pool_"):
+    if project.lid.startswith("pool_") and type:
         log.debug(f"Project is a pool. Finding projects...")
         multiple_edit(projects, project, edit_type, items)
-        projects.update_priority(project)
         return
 
     setattr(project, edit_types[edit_type], items)
@@ -41,7 +42,7 @@ def edit(projects: Projects, project: ProjectE, edit_type: str, data: str, updat
     return
 
 
-def multiple_edit(projects: Projects, project: ProjectE, edit_type: str, items: list):
+def multiple_edit(projects: Projects, project: ProjectEPool, edit_type: str, items: list):
     log.debug("item_editor.multiple_edit")
     project_items: list = getattr(project, edit_types[edit_type])
     minus = []
@@ -61,22 +62,44 @@ def multiple_edit(projects: Projects, project: ProjectE, edit_type: str, items: 
     log.debug(f"Minus: {minus}")
     log.debug(f"Plus: {plus}")
 
-    log.debug(f"Finding variants....")
-    for variant in project.lvariants:
-        lid: str = variant.split(":")[0]
-        log.debug(f"Variant: {lid}")
-        target_project = projects.get_project_by_lid(lid)
-        data: list = getattr(target_project, edit_types[edit_type])
-        log.debug(f"Old data: {data}")
+    infofiles = []
 
-        new_data = data
-        for item in plus:
-            if item not in new_data:
-                new_data.append(item)
+    try:
+        with dep.Session() as session:
 
-        for item in minus:
-            if item in new_data:
-                new_data.remove(item)
+            log.debug(f"Finding variants....")
+            for variant in project.lvariants:
+                lid: str = variant.split(":")[0]
+                log.debug(f"Variant: {lid}")
 
-        log.debug(f"New data: {new_data}")
-        edit(projects, target_project, edit_type, "\n".join(new_data), update_priority=False)
+                target_project: ProjectE = projects.get_project_by_lid(lid)
+                data: list = getattr(target_project, edit_types[edit_type])
+                log.debug(f"Old data: {data}")
+
+                new_data = data
+                for item in plus:
+                    if item not in new_data:
+                        new_data.append(item)
+
+                for item in minus:
+                    if item in new_data:
+                        new_data.remove(item)
+
+                log.debug(f"New data: {new_data}")
+
+                setattr(target_project, edit_types[edit_type], new_data)
+                infofiles.append(target_project.soft_update(session))
+
+            project.update_pool(session)
+            session.commit()
+    except Exception as e:
+        log.exception("Error in multiple_edit: " + str(e))
+        session.rollback()
+        for file in infofiles:
+            file.load_model("backup")
+            file.commit()
+        raise
+
+    with dep.Session() as session:
+        project.update_pool(session)
+        session.commit()

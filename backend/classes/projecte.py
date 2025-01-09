@@ -214,7 +214,7 @@ class ProjectE(ProjectDB):
             log.exception(str(e))
             raise e
 
-    def soft_update(self, session: Session, only_db: bool = False) -> None:
+    def soft_update(self, session: Session, only_db: bool = False) -> ProjectInfoFile | None:
         log.debug(f"soft_update")
         log.info(f"Updating project: {self.title}")
 
@@ -230,7 +230,7 @@ class ProjectE(ProjectDB):
             return
 
         try:
-            self.update_vinfo()
+            return self.update_vinfo()
         except DBErrorPoolHasNotDir as e:
             log.debug("Updating pool; v_info file will not be updated", exc_info=e)
         except Exception as e:
@@ -327,5 +327,6 @@ class ProjectEPool(ProjectE):
         template = ProjectTemplateDB(
             **self.model_dump()
         )
+        template.active = True
 
         template.add_to_db(session)
