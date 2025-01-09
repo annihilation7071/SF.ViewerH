@@ -11,6 +11,7 @@ import json
 from backend.logger_new import get_logger
 from backend import utils
 from sqlalchemy.orm import Session
+from backend.classes.templates import ProjectTemplateDB
 
 log = get_logger("ProjectE")
 
@@ -297,7 +298,7 @@ class ProjectEPool(ProjectE):
         kw["pool_mark"] = True
         return super().__new__(cls, *args, **kw)
 
-    def update_pool(self):
+    def update_pool(self, session: Session = None) -> None:
 
         template = Template()
 
@@ -315,4 +316,16 @@ class ProjectEPool(ProjectE):
         for key in template.model_dump().keys():
             setattr(self, key, getattr(template, key))
 
-        self.update()
+        self._renew_search_body()
+
+        if session is None:
+            self.update(only_db=True)
+        else:
+            self.soft_update(session, only_db=True)
+
+    def add_to_db(self, session: Session) -> None:
+        template = ProjectTemplateDB(
+            **self.model_dump()
+        )
+
+        template.add_to_db(session)
