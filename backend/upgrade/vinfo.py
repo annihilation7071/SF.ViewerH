@@ -3,6 +3,7 @@ from backend import utils
 from pathlib import Path
 from backend.classes.templates import ProjectTemplate
 from backend.logger_new import get_logger
+from backend.classes.files import ProjectInfoFile
 
 log = get_logger("vinfo_upgrader")
 
@@ -11,7 +12,7 @@ class VInfoUpgrageError(Exception):
     pass
 
 
-def upgrade(project_path: Path, template_: ProjectTemplate = None, force_write=False) -> None | ProjectTemplate:
+def upgrade(project_path: Path, template_: ProjectTemplate = None) -> None | ProjectTemplate:
     log.debug("upgrade")
     if project_path:
         log.debug(project_path)
@@ -19,15 +20,14 @@ def upgrade(project_path: Path, template_: ProjectTemplate = None, force_write=F
         log.debug(template_)
 
     vinfo_path = Path(project_path) / 'sf.viewer/v_info.json'
+    info_file = None
     upgraded = False
 
     if template_ is None:
         log.debug("Loading data into template from path.")
 
-        with open(vinfo_path, 'r', encoding='utf-8') as f:
-            old_vinfo = json.load(f)
-
-        template = ProjectTemplate(**old_vinfo)
+        info_file = ProjectInfoFile(path=vinfo_path)
+        template = info_file.data
     else:
         template = template_
 
@@ -43,12 +43,10 @@ def upgrade(project_path: Path, template_: ProjectTemplate = None, force_write=F
             return template
         return
 
-    if template_ is None or force_write is True:
+    if template_ is None:
         log.debug("Writing data into json file.")
-        data = template.model_dump_json()
-        with open(vinfo_path, 'w', encoding='utf-8') as f:
-            # noinspection PyTypeChecker
-            json.dump(json.loads(data), f, ensure_ascii=False, indent=4)
+        info_file.set(template)
+        info_file.commit()
     else:
         log.debug("Returning template.")
         return template

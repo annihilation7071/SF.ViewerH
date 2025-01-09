@@ -23,6 +23,7 @@ downloader_is_working = False
 async def _download(url: str, projects: Projects):
     log.debug("_download")
     log.info(f"Downloading: {url}")
+
     global downloader_is_working
 
     while downloader_is_working:
