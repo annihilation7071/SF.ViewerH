@@ -60,6 +60,10 @@ class ProjectInfoFile(BaseModel):
             self.__backup = self.__data.model_copy(deep=True)
             self.__data = data.model_copy(deep=True)
             self.__status = "prepared_to_edit"
+        elif self.__status == "not exist":
+            e = ProjectInfoFileError("Unable set data to not existing project.")
+            log.exception(e)
+            raise e
         else:
             e = ProjectInfoFileError("Project info file already prepared to edit. Use rollback or commit to continue.")
             log.exception(str(e), exc_info=e)
@@ -76,6 +80,10 @@ class ProjectInfoFile(BaseModel):
                 utils.write_json(self.__path, self.__backup)
                 log.exception("Failed to write project info file. Returning original data.")
                 raise
+        elif self.__status == "not exist":
+            e = ProjectInfoFileError("Project info file not existing. Use write to create file.")
+            log.exception(e)
+            raise e
         else:
             e = ProjectInfoFileError("Project info not ready to commit. Use set prepare commit.")
             log.exception(str(e), exc_info=e)
@@ -88,8 +96,14 @@ class ProjectInfoFile(BaseModel):
             self.__backup = None
             self.__status = "ready"
         else:
-            e = ProjectInfoFileError(
-                "Project info not have data to change. Use set before rollback or commit to continue.")
+            if self.__status == "ready":
+                e = ProjectInfoFileError(
+                    "Project info not have data to change. Use set before rollback or commit to continue.")
+            elif self.__status == "not exist":
+                e = ProjectInfoFileError(
+                    "Project not exist. Unable user rollback for non existing project.")
+            else:
+                e = ProjectInfoFileError("Unknown error.")
             log.exception(str(e), exc_info=e)
             raise e
 
@@ -110,3 +124,15 @@ class ProjectInfoFile(BaseModel):
     @property
     def data(self) -> ProjectTemplate:
         return self.__data.model_copy(deep=True)
+
+    def create(self, path: Path) -> None:
+        log.debug("")
+        if self.__status != "not exist":
+            e = ProjectInfoFileError("Project must not exist to create file.")
+            log.exception(e)
+            raise e
+        else:
+            os.makedirs(path.parent, exist_ok=True)
+            utils.write_json(self.__path, self.__data)
+            log.info("File written successfully.")
+
