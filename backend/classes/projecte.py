@@ -336,7 +336,8 @@ class ProjectEPool(ProjectE):
         self.__deactivate_variants(session)
 
     def __deactivate_variants(self, session: Session) -> None:
-        lids = [variant[0] for variant in self.lvariants]
+        lids = [variant.split(":")[0] for variant in self.lvariants]
+        log.debug(f"deactivate_variants: {lids}")
 
         session.query(Project).filter(Project.lid.in_(lids)).update({Project.active: False})
 

@@ -33,13 +33,12 @@ def edit(projects: Projects, project: ProjectE | ProjectEPool, edit_type: str, d
 
     if project.lid.startswith("pool_") and type:
         log.debug(f"Project is a pool. Finding projects...")
-        multiple_edit(projects, project, edit_type, items)
-        return
+        return multiple_edit(projects, project, edit_type, items)
 
     setattr(project, edit_types[edit_type], items)
     project.update()
 
-    return
+    return project.lid
 
 
 def multiple_edit(projects: Projects, project: ProjectEPool, edit_type: str, items: list):
@@ -103,3 +102,6 @@ def multiple_edit(projects: Projects, project: ProjectEPool, edit_type: str, ite
     with dep.Session() as session:
         project.update_pool(session)
         session.commit()
+
+    log.debug(f"return: {project.lid}")
+    return project.lid
