@@ -115,14 +115,8 @@ def get_project_info(path: Path) -> ProjectTemplate | None:
     v_info_path = path / "sf.viewer/v_info.json"
 
     if os.path.exists(v_info_path):
-        with open(v_info_path, "r", encoding='utf-8') as f:
-            v_info_exist = json.load(f)
 
-        log.debug(v_info_exist["upload_date"])
-
-        # v_info_exist["upload_date"] = datetime.strptime(v_info_exist["upload_date"], "%Y-%m-%dT%H:%M:%S")
-        v_info_exist["upload_date"] = parser.parse(v_info_exist["upload_date"])
-        project_info = ProjectTemplate(**v_info_exist)
+        project_info = ProjectTemplate.load_from_json(v_info_path)
 
         if project_info.info_version == v_info_example["info_version"]:
             return project_info

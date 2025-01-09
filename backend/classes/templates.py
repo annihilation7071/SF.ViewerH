@@ -56,6 +56,11 @@ class ProjectTemplate(BaseModel):
     def load_from_json(cls, path: Path):
         log.debug("")
         jdata = utils.read_json(path)
+
+        if isinstance(jdata["category"], str):
+            jdata["category"] = [jdata["category"]]
+            utils.write_json(path, jdata)
+
         jdata["upload date"] = parser.parse(jdata["upload_date"])
         model = cls(**jdata)
         model.check_not_none()

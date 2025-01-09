@@ -130,10 +130,14 @@ class ProjectInfoFile(BaseModel):
     def data(self) -> ProjectTemplate:
         return self.__data.model_copy(deep=True)
 
-    def create(self) -> None:
+    def create(self, force: bool = False) -> None:
         log.debug("")
         if self.__status != "not exist":
-            e = ProjectInfoFileError("Project must not exist to create file.")
+            if self.__status == "ready" and force:
+                os.makedirs(self.__path.parent, exist_ok=True)
+                utils.write_json(self.__path, self.__data)
+                log.info("File written successfully.")
+            e = ProjectInfoFileError("Project must not exist to create file. Or use force to create file.")
             log.exception(e)
             raise e
         else:

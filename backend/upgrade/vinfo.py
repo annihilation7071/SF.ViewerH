@@ -12,7 +12,7 @@ class VInfoUpgrageError(Exception):
     pass
 
 
-def upgrade(project_path: Path, template_: ProjectTemplate = None) -> None | ProjectTemplate:
+def upgrade(project_path: Path, template_: ProjectTemplate = None, force_write: bool = False) -> None | ProjectTemplate:
     log.debug("upgrade")
     if project_path:
         log.debug(project_path)
@@ -43,7 +43,7 @@ def upgrade(project_path: Path, template_: ProjectTemplate = None) -> None | Pro
             return template
         return
 
-    if template_ is None:
+    if template_ is None or force_write:
         log.debug("Writing data into json file.")
         info_file.set(template)
         info_file.commit()
