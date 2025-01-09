@@ -2,12 +2,14 @@ import json
 import os
 from backend import utils
 import asyncio
-from icecream import ic
 from backend.downloaders.nhentai import NHentaiDownloader
 from backend.downloaders.gallerydl import GalleryDLDownloader
+from backend.downloaders.error import DownloaderError
 from backend.projects.cls import Projects
 from backend.projects.updater import update_projects
-ic.configureOutput(includeContext=True)
+from backend.logger_new import get_logger
+
+log = get_logger("Downloader")
 
 downloader_is_working = False
 
@@ -19,7 +21,8 @@ downloader_is_working = False
 
 
 async def _download(url: str, projects: Projects):
-    ic()
+    log.debug("_download")
+    log.info(f"Downloading: {url}")
     global downloader_is_working
 
     while downloader_is_working:
@@ -37,25 +40,26 @@ async def _download(url: str, projects: Projects):
             targets = json.load(f)
 
     if site not in targets:
-        raise Exception(f"Not found setting for {site} in download_targets.json")
+        raise DownloaderError(f"Not found setting for {site} in download_targets.json")
 
     libs = utils.read_libs()
+    log.debug(f"libs: {libs.keys()}")
 
     if targets[site] not in libs:
-        raise Exception(f"Not found lib for {site}")
+        raise DownloaderError(f"Not found lib for {site}")
 
     target = targets[site]
-    settings = getattr(libs, targets[site])
+    lib = libs[target]
 
-    match libs[targets[site]]["processor"]:
+    match lib.processor:
 
         case "nhentai":
-            downloader = NHentaiDownloader(id_=id_, settings=settings)
+            downloader = NHentaiDownloader(id_=id_, lib=lib)
             process = await downloader.start()
 
         case "gallery-dl-nhentai" | "gallery-dl-hitomila":
             downloader = GalleryDLDownloader(id_=id_,
-                                             settings=settings,
+                                             lib=lib,
                                              site=site,
                                              url=url)
 
@@ -65,16 +69,19 @@ async def _download(url: str, projects: Projects):
             raise Exception(f"Unknown site: {site}")
 
     if process.returncode == 0:
-        ic()
+        log.info(f"Download successful: {url}")
         update_projects(projects)
     else:
         downloader_is_working = False
-        raise RuntimeError(f"Command failed with return code: {process.returncode}")
+        e = DownloaderError(f"Command failed with return code: {process.returncode}")
+        log.exception(f"Download failed: {url}", exc_info=e)
+        raise e
 
     downloader_is_working = False
 
 
 async def download(url: str, projects: Projects):
+    log.debug("download")
     global downloader_is_working
 
     try:

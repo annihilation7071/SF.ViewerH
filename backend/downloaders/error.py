@@ -1,0 +1,2 @@
+class DownloaderError(Exception):
+    pass

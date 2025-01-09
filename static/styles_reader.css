@@ -22,7 +22,7 @@ main {
     border-radius: 15px;
     overflow: hidden;
     border: 1px solid #ddd;
-    width: 100%;
+    width: 70vw;
     display: flex;
     flex-direction: column;
     justify-content: space-between;

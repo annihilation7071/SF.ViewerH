@@ -9,6 +9,7 @@ from backend.processors import general as general
 import json
 from dateutil import parser
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
+from backend.classes.files import ProjectInfoFile
 
 log = get_logger("putils")
 

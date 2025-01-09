@@ -48,10 +48,12 @@ class ProjectInfoFile(BaseModel):
     @field_validator("path", mode="after")
     @classmethod
     def check_correct_path(cls, value: Path, info: ValidationInfo) -> Path:
-        if re.fullmatch(r'^([A-Z]:\\).*(sf\.viewer\\v_info.json)$', str(value)):
+        if re.fullmatch(r'^.*\\(sf\.viewer\\v_info.json)$', str(value)):
             return value
         else:
-            raise ProjectInfoFileError("Path incorrected.")
+            e = ProjectInfoFileError(f"Path incorrected: {value}")
+            log.exception(str(e), exc_info=e)
+            raise e
 
     def set(self, data: ProjectTemplate) -> None:
         log.debug("")
@@ -125,14 +127,17 @@ class ProjectInfoFile(BaseModel):
     def data(self) -> ProjectTemplate:
         return self.__data.model_copy(deep=True)
 
-    def create(self, path: Path) -> None:
+    def create(self) -> None:
         log.debug("")
         if self.__status != "not exist":
             e = ProjectInfoFileError("Project must not exist to create file.")
             log.exception(e)
             raise e
         else:
-            os.makedirs(path.parent, exist_ok=True)
+            os.makedirs(self.__path.parent, exist_ok=True)
             utils.write_json(self.__path, self.__data)
             log.info("File written successfully.")
 
+    @property
+    def status(self):
+        return self.__status

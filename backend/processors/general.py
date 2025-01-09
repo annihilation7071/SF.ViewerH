@@ -6,6 +6,7 @@ from pathlib import Path
 from backend.logger_new import get_logger
 from backend.upgrade.vinfo import upgrade
 from importlib import import_module
+from backend.classes.files import ProjectInfoFile
 
 log = get_logger("Processor.general")
 
@@ -23,15 +24,16 @@ def make_v_info(path: Path, processor_name: str) -> None:
     processor = import_module(f"backend.processors.{processor_name}")
     template = processor.parse(path, template)
 
-    _path = path / "sf.viewer/"
-    if os.path.exists(_path) is False:
-        os.makedirs(_path)
+    vinfo_path = path / "sf.viewer/v_info.json"
 
     template = upgrade(path, template)
 
     log.debug("Writing vinfo to project")
-    data = template.model_dump_json()
-    vinfo_path = _path / "v_info.json"
-    with open(vinfo_path, "w", encoding="utf-8") as f:
-        # noinspection PyTypeChecker
-        json.dump(json.loads(data), f, ensure_ascii=False, indent=4)
+
+    project_info_file = ProjectInfoFile(
+        path=vinfo_path,
+        template=template,
+    )
+
+    project_info_file.create()
+

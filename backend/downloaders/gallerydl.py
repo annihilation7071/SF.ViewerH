@@ -1,21 +1,24 @@
 from backend.utils import run_command
 import os
 import json
-from icecream import ic
-ic.configureOutput(includeContext=True)
+from backend.logger_new import get_logger
+from backend.classes.lib import Lib
+
+log = get_logger("NHentaiDownloader")
 
 
 class GalleryDLDownloader:
-    def __init__(self, id_: int | str, settings: dict, site: str, url: str):
+    def __init__(self, id_: int | str, lib: Lib, site: str, url: str):
         self.command = None
         self.url = url
         self.id_ = id_
-        self.settings = settings
+        self.lib = lib
         self.site = site
 
     def prepare(self):
+        log.debug("prepare")
         site = self.site
-        output = os.path.abspath(self.settings["path"])
+        output = os.path.abspath(self.lib.path)
         output += f"\\{self.id_}"
         command = f"gallery-dl --write-info-json --directory={output}"
 
@@ -24,30 +27,35 @@ class GalleryDLDownloader:
                 params = json.load(f)
 
         if site in params and "proxy" in params[site]:
+            log.debug(f"proxy: {params[site]['proxy']}")
             com = f' --proxy="{params[site]["proxy"]}"'
             command += com
         elif "proxy" in params["all"]:
+            log.debug(f"proxy: {params['all']['proxy']}")
             com = f' --proxy="{params["all"]["proxy"]}"'
             command += com
 
         if site in params and "user-agent" in params[site]:
+            log.debug(f"user-agent: {params[site]['user-agent']}")
             com = f' --user-agent="{params[site]["user-agent"]}"'
             command += com
         elif "user-agent" in params["all"]:
+            log.debug(f"user-agent: {params['all']['user-agent']}")
             com = f' --user-agent="{params["all"]["user-agent"]}"'
             command += com
 
         if site in params and "cookies" in params[site]:
             if params[site]["cookies"] is not None and params[site]["cookies"] != "E:\\example\\cookies_file.txt":
+                log.debug(f"cookies: {params[site]['cookies']}")
                 com = f' --cookies="{params[site]["cookies"]}"'
                 command += com
 
         command += f" {self.url}"
         self.command = command
-        ic(command)
+        log.debug(f"command: {command}")
 
     async def start(self):
-        ic()
+        log.debug("start")
         self.prepare()
         process = await run_command(self.command)
 
