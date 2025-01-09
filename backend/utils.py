@@ -9,15 +9,20 @@ from pathlib import Path
 from icecream import ic
 import asyncio
 from backend.logger_new import get_logger
-from backend.classes.projecte import ProjectE
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
 from backend.classes.db import Project
 from backend.classes.templates import ProjectTemplate
+from typing import TYPE_CHECKING, Annotated
+from importlib import import_module
+
+if TYPE_CHECKING:
+    from backend.classes.projecte import ProjectE
+
 
 log = get_logger("utils")
 
 
-def get_pages(project: ProjectE):
+def get_pages(project: 'ProjectE'):
     extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.avif', '.webp']
 
     path = project['path']
@@ -305,7 +310,7 @@ async def run_command(command: str):
     return process
 
 
-def make_search_body(project: dict | ProjectE | Project | ProjectTemplateDB) -> str:
+def make_search_body(project: Annotated[dict, 'ProjectE', Project, ProjectTemplateDB]) -> str:
     include = ["source_id", "source", "url", "downloader", "title", "subtitle",
                "parody", "character", "tag", "artist", "group", "language",
                "category", "series", "lib"]
@@ -313,6 +318,8 @@ def make_search_body(project: dict | ProjectE | Project | ProjectTemplateDB) -> 
     search_body = ";;;"
 
     for k in include:
+        # noinspection PyPep8Naming,PyShadowingNames
+        ProjectE = import_module("backend.classes.projecte").ProjectE
         if isinstance(project, dict):
             v = project[k]
         elif isinstance(project, ProjectE | Project | ProjectTemplate):

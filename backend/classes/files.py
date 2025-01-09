@@ -1,10 +1,12 @@
 from typing import Any
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pathlib import Path
+from pydantic_core.core_schema import ValidationInfo
 from backend.logger_new import get_logger
 from backend import utils
 from backend.classes.templates import ProjectTemplate
 import os
+import re
 
 log = get_logger("classes.files")
 
@@ -19,7 +21,7 @@ class ProjectInfoFile(BaseModel):
     __path: Path = None
     __data: ProjectTemplate = None
     __backup: ProjectTemplate | None = None
-    __status: str = "ready"
+    __status: str = None
     __saves: dict[str, ProjectTemplate] = None
 
     class Config:
@@ -31,14 +33,25 @@ class ProjectInfoFile(BaseModel):
 
         if self.template is None:
             self.__data = ProjectTemplate.load_from_json(self.path)
+            self.__status = "ready"
         else:
             self.__data = self.template.model_copy(deep=True)
+            self.__status = "not exist"
 
         self.__path = self.path
         self.__saves = {}
 
         del self.path
         del self.template
+
+    # noinspection PyNestedDecorators
+    @field_validator("path", mode="after")
+    @classmethod
+    def check_correct_path(cls, value: Path, info: ValidationInfo) -> Path:
+        if re.fullmatch(r'^([A-Z]:\\).*(sf\.viewer\\v_info.json)$', str(value)):
+            return value
+        else:
+            raise ProjectInfoFileError("Path incorrected.")
 
     def set(self, data: ProjectTemplate) -> None:
         log.debug("")
@@ -75,7 +88,8 @@ class ProjectInfoFile(BaseModel):
             self.__backup = None
             self.__status = "ready"
         else:
-            e = ProjectInfoFileError("Project info not have data to change. Use set before rollback or commit to continue.")
+            e = ProjectInfoFileError(
+                "Project info not have data to change. Use set before rollback or commit to continue.")
             log.exception(str(e), exc_info=e)
             raise e
 
@@ -96,8 +110,3 @@ class ProjectInfoFile(BaseModel):
     @property
     def data(self) -> ProjectTemplate:
         return self.__data.model_copy(deep=True)
-
-
-
-
-
