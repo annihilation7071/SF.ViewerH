@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import main, extra
 import os
 import asyncio
+from backend import utils
 from backend.logger_new import get_logger
 
 log = get_logger("App")
@@ -25,6 +26,7 @@ project: Projects = None
 async def lifespan(app: FastAPI):
     # noinspection PyGlobalUndefined
     global projects
+    dep.libs = utils.read_libs(only_active=True)
     projects = Projects()
     main.projects = projects
     extra.projects = projects

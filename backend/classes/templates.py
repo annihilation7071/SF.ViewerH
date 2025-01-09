@@ -99,22 +99,13 @@ class ProjectTemplateDB(ProjectTemplate):
 
         self.check_not_none()
 
-    def add_to_db(self, session_: Session = None ) -> None:
+    def add_to_db(self, session: Session) -> None:
         log.debug(f"add_to_db: {self.lid}")
         log.info(f"Adding new project: {self.title}")
-
-        if session_ is None:
-            session = dep.Session()
-            session.begin()
-        else:
-            session = session_
 
         try:
             project = Project(**self.model_dump())
             session.add(project)
-
-            if session_ is not None:
-                session.commit()
         except Exception:
             session.rollback()
             log.exception("Error adding project")

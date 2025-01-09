@@ -9,6 +9,7 @@ from backend.classes.projecte import ProjectE, ProjectEPool
 from backend.classes.templates import ProjectTemplateDB
 from backend.logger_new import get_logger
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 ic.configureOutput(includeContext=True)
 
@@ -23,12 +24,14 @@ class ProjectsError(Exception):
 class Projects:
     def __init__(self):
         log.debug("load projects...")
-        self.session = dep.Session()
         self.libs = utils.read_libs(only_active=True, check=True)
         # active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
-        self.all_projects = self.session.query(Project).filter(Project.lib.in_(self.libs))
+        # self.all_projects = self.session.query(Project).filter(Project.lib.in_(self.libs))
+        self.all_projects = select(Project).filter(Project.lib.in_(dep.libs))
+        # self.active_projects = self.all_projects.filter(Project.active == 1)
         self.active_projects = self.all_projects.filter(Project.active == 1)
         self.sorting_method = Project.upload_date
+        # self.projects = self.active_projects.order_by(desc(self.sorting_method))
         self.projects = self.active_projects.order_by(desc(self.sorting_method))
         self.search = ""
         log.debug("projects loaded")
@@ -75,18 +78,21 @@ class Projects:
     def get_page(self, ppg: int, page: int = 1, search: str = None):
         self._filter(search)
 
-        selected_projects = self.projects.offset(((page - 1) * ppg)).limit(ppg)
         projects = []
-        for project in selected_projects:
-            projects.append(ProjectE(lib_data=self.libs[project.lib], **project.to_dict()))
+
+        with dep.Session() as session:
+            selected_projects = session.scalars(self.projects.offset(((page - 1) * ppg)).limit(ppg))
+
+            for project in selected_projects:
+                projects.append(ProjectE.load_from_db(project.lid, session))
+
+            session.commit()
 
         return projects
 
-    def db(self):
-        return self.session
-
     def len(self):
-        return self.projects.count()
+        with dep.Session() as session:
+            return len(session.scalars(self.projects).all())
 
     def checking(self):
         self.update_pools()
@@ -105,81 +111,63 @@ class Projects:
             )
             for alias in aliases.keys()
         ]
-        incorrect_aliases = self.active_projects.filter(or_(*search_query)).all()
 
-        for project in incorrect_aliases:
-            projecte = ProjectE(lib_data=self.libs[project.lib], **project.to_dict())
-            update = defaultdict(list)
+        with dep.Session() as session:
 
-            for category in ["tag", "artist", "group", "parody", "character", "language"]:
-                items = getattr(projecte, category)
-                new_items = []
-                for item in items:
-                    if not item:
-                        continue
-                    if item not in aliases:
-                        new_items.append(item)
-                    else:
-                        if isinstance(aliases[item], str):
-                            new_items.append(aliases[item])
-                        elif isinstance(aliases[item], list):
-                            new_items.extend(aliases[item])
+            incorrect_aliases = session.scalars(self.active_projects.filter(or_(*search_query))).all()
+
+            for project in incorrect_aliases:
+                projecte = ProjectE(lib_data=self.libs[project.lib], **project.to_dict())
+                update = defaultdict(list)
+
+                for category in ["tag", "artist", "group", "parody", "character", "language"]:
+                    items = getattr(projecte, category)
+                    new_items = []
+                    for item in items:
+                        if not item:
+                            continue
+                        if item not in aliases:
+                            new_items.append(item)
                         else:
-                            raise Exception(f"Unknown item {item}")
+                            if isinstance(aliases[item], str):
+                                new_items.append(aliases[item])
+                            elif isinstance(aliases[item], list):
+                                new_items.extend(aliases[item])
+                            else:
+                                raise Exception(f"Unknown item {item}")
 
-                update[category] = list(set(new_items))
+                    update[category] = list(set(new_items))
 
-            update = dict(update)
-            # noinspection PyDictCreation
-            projecte_updated = projecte.model_copy(update=update)
-            update["search_body"] = utils.make_search_body(projecte_updated)
-            projecte_updated.search_body = update["search_body"]
+                update = dict(update)
+                # noinspection PyDictCreation
+                projecte_updated = projecte.model_copy(update=update)
+                update["search_body"] = utils.make_search_body(projecte_updated)
+                projecte_updated.search_body = update["search_body"]
 
-            projecte_updated.update()
+                projecte_updated.soft_update(session)
 
-    def get_project(self, _id: int | str = None, lid: str = None, session: Session = None) -> ProjectE:
+            session.commit()
+
+    def get_project(self, lid: str) -> ProjectE:
         log.debug("get_project")
-        if _id is None and lid is None:
-            raise ValueError("Either id or lig must be provided")
-
-        if _id is not None and lid is not None:
-            raise ValueError("Only one of id or lig must be provided")
-
-        if isinstance(_id, str):
-            _id = int(_id)
-
-        if _id is not None:
-            project = self.session.query(Project).filter_by(_id=_id).first()
-            log.debug("by id")
-        else:
-            project = self.session.query(Project).filter_by(lid=lid).first()
-            log.debug("by lid")
-
-        if project is None:
-            # noinspection PyTypeChecker
-            return None
-
-        return ProjectE(
-            lib_data=self.libs[project.lib],
-            **project.to_dict()
-        )
-
-    def get_project_by_id(self, _id: int | str) -> ProjectE:
-        return self.get_project(_id=_id)
+        with dep.Session() as session:
+            return ProjectE.load_from_db(lid, session)
 
     def get_project_by_lid(self, lid: str) -> ProjectE:
         return self.get_project(lid=lid)
 
     def get_dirs(self, lib_name: str = None):
         log.debug("get_dirs")
-        if lib_name is not None:
-            selected_lib = self.all_projects.filter_by(lib=lib_name)
-        else:
-            selected_lib = self.all_projects
+        log.debug(lib_name)
+        with dep.Session() as session:
+            if lib_name is not None:
+                selected_lib = select(Project).filter_by(lib=lib_name)
+            else:
+                selected_lib = select(Project)
 
-        selected_lib = selected_lib.with_entities(Project.dir_name).all()
-        dirs = set([dir_name[0] for dir_name in selected_lib])
-        log.debug(f"get_dirs: {len(dirs)}")
+            selected_lib = session.scalars(select(Project)).all()
+            dirs = set([value.dir_name for value in selected_lib])
+            log.debug(f"get_dirs: {len(dirs)}")
 
         return dirs
 
@@ -191,17 +179,18 @@ class Projects:
         return columns
 
     def delete_by_dir_and_lib(self, dir_name: str, lib_name: str):
-        log.debug(f"delete_by_dir_and_lib: {dir_name}, {lib_name}")
-        project = self.all_projects.filter_by(dir_name=dir_name, lib=lib_name).first()
+        log.debug(f"delete_by_dir_and_lib: {dir_name}, {lib_name}", )
+        stmt = select(Project).filter_by(dir_name=dir_name, lib=lib_name)
+        with dep.Session() as session:
+            project = session.scalars(self.all_projects.filter_by(dir_name=dir_name, lib=lib_name)).first()
 
-        if project:
-            with dep.Session() as session:
+            if project:
                 session.delete(project)
                 session.commit()
 
-            log.debug("project deleted")
-        else:
-            log.error("Project not found")
+                log.debug("project deleted")
+            else:
+                log.error("Project not found")
 
     def delete_pool(self, variants: list) -> None:
         log.debug(f"delete_pool: {variants}")
@@ -267,7 +256,7 @@ class Projects:
         log.debug(f"Lid for pool: {pool.lid}")
         pool.active = True
 
-        pool.parse_parameters()
+        pool.parse_parameters(session)
 
         log.debug(f"Add new pool: {pool.lid}")
         pool.add_to_db(session)
@@ -276,54 +265,60 @@ class Projects:
 
     def update_pools(self, force: bool = False):
         log.info(f"Updating pools...")
-        projects_with_variants = self.session.query(Project).filter(
-            func.json_array_length(Project.lvariants) > 0).all()
-        log.debug(f"Found {len(projects_with_variants)} projects with variants")
 
-        unique_variants = []
-        unique_check = set()
-        for project in projects_with_variants:
-            if str(project.lvariants) not in unique_check:
-                unique_check.add(str(project.lvariants))
-                unique_variants.append(project)
+        pool_need_create = []
 
-        projects_with_variants = unique_variants
-        log.debug(f"Found {len(projects_with_variants)} unique variants")
+        with dep.Session() as session:
+            projects_with_variants: list[Project] = session.query(Project).filter(
+                func.json_array_length(Project.lvariants) > 0).all()
+            log.debug(f"Found {len(projects_with_variants)} projects with variants")
 
-        for project in projects_with_variants:
-            log.debug(f"Processing: {project.lid}; {project.title}")
-            variant = project.lvariants
-            log.debug(f"Variants: {variant}")
-            exist_pool = self.session.query(Project).filter(Project.lvariants == variant,
-                                                            Project.lid.istartswith("pool")).all()
+            unique_variants = []
+            unique_check = set()
+            for project in projects_with_variants:
+                if str(project.lvariants) not in unique_check:
+                    unique_check.add(str(project.lvariants))
+                    unique_variants.append(project)
 
-            if len(exist_pool) > 0:
-                log.debug(f"Found existing pool")
-                if force is True or len(exist_pool) > 1:
+            projects_with_variants = unique_variants
+            log.debug(f"Found {len(projects_with_variants)} unique variants")
 
-                    if len(exist_pool) > 1:
-                        log.warning(f"More than one pool found. Deliting all pools...")
-                    else:
-                        log.debug(f"Deleting existing pool")
+            for project in projects_with_variants:
+                log.debug(f"Processing: {project.lid}; {project.title}")
+                variant = project.lvariants
+                log.debug(f"Variants: {variant}")
+                exist_pool = session.query(Project).filter(Project.lvariants == variant,
+                                                                Project.lid.istartswith("pool")).all()
 
-                    with dep.Session() as session:
+                if len(exist_pool) > 0:
+                    log.debug(f"Found existing pool")
+                    if force is True or len(exist_pool) > 1:
+
+                        if len(exist_pool) > 1:
+                            log.warning(f"More than one pool found. Deliting all pools...")
+                        else:
+                            log.debug(f"Deleting existing pool")
+
                         for pool in exist_pool:
                             log.debug(f"Pool deleting: {pool.lid}")
                             session.delete(pool)
-                        session.commit()
 
-                    log.debug(f"All pools were deleted")
-                else:
-                    # TODO check later if this need at all or not
-                    # self.session.query(Project).filter(Project.lvariants == variant).update({Project.active: False})
-                    # exist_pool[0].active = True
-                    # self.session.commit()
-                    continue
+                        log.debug(f"All pools were deleted")
 
+                    else:
+                        # TODO check later if this need at all or not
+                        session.query(Project).filter(Project.lvariants == variant).update({Project.active: False})
+                        exist_pool[0].active = True
+                        continue
+
+                pool_need_create.append(project.to_dict())
+            session.commit()
+
+        for dict_project in pool_need_create:
             log.debug(f"Creaging new pool")
             projecte = ProjectE(
-                lib_data=self.libs[project.lib],
-                **project.to_dict()
+                lib_data=self.libs[dict_project["lib"]],
+                **dict_project
             )
 
             variants_editor.edit(self, projecte, variant)

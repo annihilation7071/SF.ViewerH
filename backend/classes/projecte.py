@@ -89,9 +89,7 @@ class ProjectE(ProjectDB):
     def model_post_init(self, __context: Any) -> None:
         log.debug(f"Initializing {type(self).__name__}")
         self.path = self.lib_data.path / self.dir_name
-        files = os.listdir(self.path)
 
-        self._update_preview_and_pages(files)
         self._gen_extra_parameters()
 
         log.debug(self)
@@ -101,9 +99,11 @@ class ProjectE(ProjectDB):
         #     project = session.query(Project).filter_by(_id=1).first()
         #     log.warning(project)
 
-    def _update_preview_and_pages(self, files: list) -> None:
+    def update_preview_and_pages(self, session: Session) -> None:
         log.debug("_update_preview_and_pages")
         preview_name: str = ""
+
+        files = os.listdir(self.path)
 
         for file in files:
             if file.startswith("preview") or file.startswith("_preview"):
@@ -118,25 +118,24 @@ class ProjectE(ProjectDB):
                 ".mng", ".flif", ".bpg", ".jxl", ".qoi", ".hif"}
         pages = len([file for file in files if os.path.splitext(file)[1] in exts])
 
-        if preview_name != self.preview:
-            preview_hash = utils.get_imagehash(preview_path)
-            utils.update_vinfo(self.path, ["preview", "preview_hash"], [preview_name, preview_hash])
+        requre_update = False
 
-            with dep.Session() as session:
-                project = session.query(Project).filter_by(lid=self.lid).first()
-                project.preview = preview_name
-                project.preview_hash = preview_hash
-                session.commit()
+        if preview_name != self.preview:
+            log.info(f"Project: {self.lid} found new preview: {preview_name}. Updating...")
+            preview_hash = utils.get_imagehash(preview_path)
+            self.preview = preview_name
+            self.preview_hash = preview_hash
+            requre_update = True
+
+        self.preview_path = preview_path
 
         if pages != self.pages:
-            with dep.Session() as session:
-                project = session.query(Project).filter_by(lid=self.lid).first()
-                project.pages = pages
-                session.commit()
+            log.info(f"Project: {self.lid} has incorrect pages count. Updating...")
+            self.pages = pages
+            requre_update = True
 
-        self.preview = preview_name
-        self.preview_path = preview_path
-        self.pages = pages
+        if requre_update:
+            self.update_(session)
 
     @staticmethod
     def _get_flags_paths(languages: list) -> list:
@@ -214,7 +213,7 @@ class ProjectE(ProjectDB):
             log.exception(str(e))
             raise e
 
-    def soft_update(self, session: Session, only_db: bool = False) -> ProjectInfoFile | None:
+    def update_(self, session: Session, only_db: bool = False) -> ProjectInfoFile | None:
         log.debug(f"soft_update")
         log.info(f"Updating project: {self.title}")
 
@@ -240,27 +239,6 @@ class ProjectE(ProjectDB):
 
         log.info(f"Update completed: {self.title}")
 
-    def update(self, only_db: bool = False) -> None:
-        log.debug(f"update: {self.lid}")
-
-        with dep.Session() as session:
-            self.soft_update(session, only_db=only_db)
-            session.commit()
-            log.info(f"Update commited: {self.title}")
-
-    # def add_to_db(self) -> None:
-    #     log.debug("add_to_db")
-    #     if self._id is not None:
-    #         raise DBError("Cannot add project with specified _id in DB")
-    #
-    #     self._renew_search_body()
-    #     data = {key: getattr(self, key) for key in Project.get_columns(exclude=["_id"])}
-    #
-    #     with dep.Session() as session:
-    #         project = Project(**data)
-    #         session.add(project)
-    #         session.commit()
-
     def _renew_search_body(self) -> None:
         log.debug("renew_search_body")
         self.search_body = utils.make_search_body(self)
@@ -281,6 +259,22 @@ class ProjectE(ProjectDB):
 
         return pages
 
+    @classmethod
+    def load_from_db(cls, lid, session: Session):
+        project = session.query(Project).filter_by(lid=lid).first()
+        libs = utils.read_libs()
+
+        dict_project = {key: getattr(project, key) for key in project.get_columns()}
+
+        projecte = cls(
+            lib_data=libs[project.lib],
+            **dict_project
+        )
+
+        projecte.update_preview_and_pages(session)
+
+        return projecte
+
 
 # noinspection PyDataclass
 class Template(BaseModel):
@@ -298,12 +292,12 @@ class ProjectEPool(ProjectE):
         kw["pool_mark"] = True
         return super().__new__(cls, *args, **kw)
 
-    def parse_parameters(self):
+    def parse_parameters(self, session):
         template = Template()
 
         for variant in self.lvariants:
             lid = variant.split(":")[0]
-            project = dep.projects.get_project_by_lid(lid)
+            project = ProjectE.load_from_db(lid, session)
 
             template.tag = list(set(template.tag) | set(project.tag))
             template.language = list(set(template.language) | set(project.language))
@@ -317,14 +311,9 @@ class ProjectEPool(ProjectE):
 
         self._renew_search_body()
 
-    def update_pool(self, session: Session = None) -> None:
-
-        self.parse_parameters()
-
-        if session is None:
-            self.update(only_db=True)
-        else:
-            self.soft_update(session, only_db=True)
+    def update_pool(self, session: Session) -> None:
+        self.parse_parameters(session)
+        self.soft_update(session, only_db=True)
 
     def add_to_db(self, session: Session) -> None:
         template = ProjectTemplateDB(
@@ -340,4 +329,3 @@ class ProjectEPool(ProjectE):
         log.debug(f"deactivate_variants: {lids}")
 
         session.query(Project).filter(Project.lid.in_(lids)).update({Project.active: False})
-
