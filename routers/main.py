@@ -162,7 +162,8 @@ async def items_list(request: Request, item: str):
                "parody", "artist"]
 
     if item in support:
-        items_count = projects.count_item(item)
+        with dep.Session() as session:
+            items_count = projects.count_item(session, item)
     else:
         raise Exception(f"{item} is not supported")
 

@@ -190,14 +190,14 @@ class Projects:
         log.info("delete_all_data")
         session.query(Project).delete()
 
-    def count_item(self, session: Session, item: str) -> list:
-        log.debug(f"count_item: {item}")
+    def count_item(self, session: Session, item_: str) -> list:
+        log.debug(f"count_item: {item_}")
         result = defaultdict(int)
 
         projects_ = session.scalars(self.active_projects).all()
 
         for project in projects_:
-            items = getattr(project, item)
+            items = getattr(project, item_)
             for item in items:
                 result[item] += 1
 
