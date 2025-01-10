@@ -12,6 +12,7 @@ from backend.logger_new import get_logger
 from backend import utils
 from sqlalchemy.orm import Session
 from backend.classes.templates import ProjectTemplateDB
+from sqlalchemy import select, update, delete
 
 log = get_logger("ProjectE")
 
@@ -25,7 +26,6 @@ class DBErrorPoolHasNotDir(DBError):
 
 
 class ProjectDB(BaseModel):
-    _id: int | None = None
     info_version: int
     lid: str
     lvariants: list[str]
@@ -164,6 +164,7 @@ class ProjectE(ProjectDB):
         self.variants_view = [variant.split(":")[1] for variant in self.lvariants]
         self.flags = self._get_flags_paths(self.language)
         self.lvariants_count = len(self.lvariants)
+        self.preview_path = self.path / self.preview
 
     def update_db(self, session: Session, commit: bool = False) -> None:
         log.debug(f"_update_db: {self.lid}")
@@ -260,7 +261,7 @@ class ProjectE(ProjectDB):
         return pages
 
     @classmethod
-    def load_from_db(cls, lid, session: Session):
+    def load_from_db(cls, session: Session, lid):
         project = session.query(Project).filter_by(lid=lid).first()
         libs = utils.read_libs()
 
@@ -297,7 +298,7 @@ class ProjectEPool(ProjectE):
 
         for variant in self.lvariants:
             lid = variant.split(":")[0]
-            project = ProjectE.load_from_db(lid, session)
+            project = ProjectE.load_from_db(session, lid)
 
             template.tag = list(set(template.tag) | set(project.tag))
             template.language = list(set(template.language) | set(project.language))
@@ -322,10 +323,70 @@ class ProjectEPool(ProjectE):
         template.active = True
 
         template.add_to_db(session)
-        self.__deactivate_variants(session)
+        # self.__deactivate_variants(session)
 
     def __deactivate_variants(self, session: Session) -> None:
         lids = [variant.split(":")[0] for variant in self.lvariants]
         log.debug(f"deactivate_variants: {lids}")
 
-        session.query(Project).filter(Project.lid.in_(lids)).update({Project.active: False})
+        stmt = update(Project).where(Project.lid.in_(lids)).values(active=False)
+        session.execute(stmt)
+
+    @staticmethod
+    def create_pool(session: Session, variants: list) -> 'ProjectEPool':
+
+        lids = [variant.split(":")[0] for variant in variants]
+
+        log.debug(f"Checking availability projects")
+        if dep.projects.check_lids(session, lids) != len(lids):
+            log.warning(f"Not all projects are available. Cancelling create pool.")
+            raise DBError()
+
+        backups = []
+
+        try:
+            log.debug(f"Synchronizing projects variants.")
+            for lid in lids:
+                project = ProjectE.load_from_db(session, lid)
+                project.lvariants = variants
+                project.update_db(session)
+                b = project.update_vinfo()
+                backups.append(b)
+
+            priority, non_priority = utils.separate_priority(variants)
+            log.debug(f"Priority: {priority}, Non-priority: {non_priority}")
+
+            priority_project = ProjectE.load_from_db(session, priority[0][0])
+            del priority_project.lid
+
+            template_pool = ProjectEPool(
+                lid=f"pool_{utils.gen_lid()}",
+                **priority_project.model_dump()
+            )
+
+            if template_pool.lid.startswith("pool_") is False:
+                log.error(f"Template has not been cleaared from lid")
+                raise DBError()
+
+            template_pool.parse_parameters(session)
+            template_pool.__deactivate_variants(session)
+            template_pool.add_to_db(session)
+            log.info(f"Pool: {template_pool.lid} created.")
+            return template_pool
+        except:
+            for b in backups:
+                b.load_model("backup")
+                b.commit()
+            raise
+
+
+
+
+
+
+
+
+
+
+
+

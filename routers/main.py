@@ -1,8 +1,10 @@
+from backend import dep
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from backend.projects.cls import Projects
 from backend.utils import get_visible_pages
+from backend.classes.projecte import ProjectE
 from pathlib import Path
 # noinspection PyUnresolvedReferences
 from urllib.parse import quote, unquote
@@ -32,14 +34,15 @@ def get_with_cache(project_lid: str):
     global project_cache
 
     if project_lid not in project_cache:
-        project = projects.get_project_by_lid(project_lid)
-        images = project.get_images()
-        project_cache = {
-            project_lid: {
-                "data": project,
-                "images": images
+        with dep.Session() as session:
+            project = projects.get_project_by_lid(session, project_lid)
+            images = project.get_images()
+            project_cache = {
+                project_lid: {
+                    "data": project,
+                    "images": images
+                }
             }
-        }
     else:
         project = project_cache[project_lid]["data"]
         if "images" not in project_cache[project_lid]:
@@ -55,7 +58,8 @@ def get_with_cache(project_lid: str):
 async def index(request: Request, page: int = 1, search: str = ""):
     log.debug(f"index")
     search_query = search.strip().lower()
-    displayed_projects = projects.get_page(PPG, page=page, search=search_query)
+    with dep.Session() as session:
+        displayed_projects = projects.get_page(session, PPG, page=page, search=search_query)
 
     total_pages = (projects.len() + PPG - 1) // PPG
     visible_pages = get_visible_pages(page, total_pages)
@@ -184,9 +188,10 @@ async def edit_data(
 ):
     clear_cache()
 
-    project = projects.get_project_by_lid(lid)
+    with dep.Session() as session:
+        project = ProjectE.load_from_db(session, lid)
 
-    r = edit_selector.edit(projects, project, edit_type, data)
+    r = edit_selector.edit(project, edit_type, data)
     if r:
         return RedirectResponse(
             f"/project/lid/{r}?page={page}&search={search}", status_code=303

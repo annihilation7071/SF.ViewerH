@@ -1,3 +1,4 @@
+from backend import dep
 from fastapi import APIRouter, Request, HTTPException, Body
 from backend.projects.cls import Projects, Project
 from backend import utils, downloader

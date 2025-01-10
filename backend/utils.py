@@ -358,3 +358,19 @@ def read_json(path: Path) -> dict | list | ProjectTemplate:
         data = json.load(f)
 
     return data
+
+
+def separate_priority(variants: list) -> tuple[list[list[str]], list[list[str]]]:
+    priority = []
+    non_priority = []
+    for variant in variants:
+        variant = variant.split(":")
+        if len(variant) == 3:
+            if variant[2] in ["priority", "p"]:
+                priority.append(variant)
+            else:
+                raise Exception(f"Unknown marker {variant[2]}")
+        else:
+            non_priority.append(variant)
+
+    return priority, non_priority

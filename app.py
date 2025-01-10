@@ -28,11 +28,13 @@ async def lifespan(app: FastAPI):
     global projects
     dep.libs = utils.read_libs(only_active=True)
     projects = Projects()
+    dep.projects = projects
     main.projects = projects
     extra.projects = projects
     update_projects(projects)
-    projects.checking()
-    dep.projects = projects
+    with dep.Session() as session:
+        projects.renew(session)
+        session.commit()
     yield
 
 app = FastAPI(lifespan=lifespan)

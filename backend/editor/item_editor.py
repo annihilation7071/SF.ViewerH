@@ -18,7 +18,7 @@ edit_types = {
 }
 
 
-def edit(projects: Projects, project: ProjectE | ProjectEPool, edit_type: str, data: str, update_priority: bool = True):
+def edit(project: ProjectE | ProjectEPool, edit_type: str, data: str, update_priority: bool = True):
     log.debug("item_editor.edit")
     log.debug(f"Edit type: {edit_type}")
     log.debug(f"Data: {data}")
@@ -33,15 +33,17 @@ def edit(projects: Projects, project: ProjectE | ProjectEPool, edit_type: str, d
 
     if project.lid.startswith("pool_") and type:
         log.debug(f"Project is a pool. Finding projects...")
-        return multiple_edit(projects, project, edit_type, items)
+        return multiple_edit(project, edit_type, items)
 
     setattr(project, edit_types[edit_type], items)
-    project.update()
+    with dep.Session() as session:
+        project.update_(session)
+        session.commit()
 
     return project.lid
 
 
-def multiple_edit(projects: Projects, project: ProjectEPool, edit_type: str, items: list):
+def multiple_edit(project: ProjectEPool, edit_type: str, items: list):
     log.debug("item_editor.multiple_edit")
     project_items: list = getattr(project, edit_types[edit_type])
     minus = []
@@ -71,7 +73,7 @@ def multiple_edit(projects: Projects, project: ProjectEPool, edit_type: str, ite
                 lid: str = variant.split(":")[0]
                 log.debug(f"Variant: {lid}")
 
-                target_project: ProjectE = projects.get_project_by_lid(lid)
+                target_project: ProjectE = ProjectE.load_from_db(session, lid)
                 data: list = getattr(target_project, edit_types[edit_type])
                 log.debug(f"Old data: {data}")
 
