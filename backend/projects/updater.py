@@ -41,6 +41,7 @@ def update_projects(projects: Projects) -> None:
         path = lib_data.path
         log.debug(f"Lib path: {path}")
         dirs = get_dirs(path, processor.meta_file)
+        log.debug(f"Dirs in lib path: {dirs}")
 
         dirs_not_in_db, dirs_not_exist = check_dirs(projects, lib_name, dirs)
         log.debug(f"dirs_not_in_db: {len(dirs_not_in_db)}")
@@ -99,6 +100,7 @@ def check_dirs(projects: Projects, lib_name: str, dirs: list[str]) -> tuple:
     log.debug("check_dirs")
     exist_dirs = set(dirs)
     dirs_in_db = set(projects.get_dirs(lib_name))
+    log.debug(f"dirs found in db: {dirs_in_db}")
 
     dirs_not_in_db = exist_dirs - dirs_in_db
 

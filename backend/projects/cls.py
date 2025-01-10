@@ -24,14 +24,11 @@ class ProjectsError(Exception):
 class Projects:
     def __init__(self):
         log.debug("load projects...")
+        log.debug(f"Libs: {dep.libs}")
         self.libs = utils.read_libs(only_active=True, check=True)
-        # active_libs = [lib for lib, val in self.libs.items() if val["active"] is True]
-        # self.all_projects = self.session.query(Project).filter(Project.lib.in_(self.libs))
         self.all_projects = select(Project).filter(Project.lib.in_(dep.libs))
-        # self.active_projects = self.all_projects.filter(Project.active == 1)
         self.active_projects = self.all_projects.filter(Project.active == 1)
         self.sorting_method = Project.upload_date
-        # self.projects = self.active_projects.order_by(desc(self.sorting_method))
         self.projects = self.active_projects.order_by(desc(self.sorting_method))
         self.search = ""
         log.debug("projects loaded")
@@ -71,9 +68,9 @@ class Projects:
         if method in available:
             self.sorting_method = getattr(Project, method)
             self.projects = self.projects.order_by(None).order_by(desc(self.sorting_method))
-            ic(f"Sorting method {method} selected")
+            log.info(f"Sorting method {method} selected")
         else:
-            raise Exception(f"Method {method} not supported")
+            raise ProjectsError(f"Method {method} not supported")
 
     def get_page(self, ppg: int, page: int = 1, search: str = None):
         self._filter(search)
@@ -117,7 +114,7 @@ class Projects:
             incorrect_aliases = session.scalars(self.active_projects.filter(or_(*search_query))).all()
 
             for project in incorrect_aliases:
-                projecte = ProjectE(lib_data=self.libs[project.lib], **project.to_dict())
+                projecte = ProjectE.load_from_db(dep.libs[project.lib], session)
                 update = defaultdict(list)
 
                 for category in ["tag", "artist", "group", "parody", "character", "language"]:
@@ -144,7 +141,7 @@ class Projects:
                 update["search_body"] = utils.make_search_body(projecte_updated)
                 projecte_updated.search_body = update["search_body"]
 
-                projecte_updated.soft_update(session)
+                projecte_updated.update(session)
 
             session.commit()
 
@@ -165,8 +162,9 @@ class Projects:
             else:
                 selected_lib = select(Project)
 
-            selected_lib = session.scalars(select(Project)).all()
+            selected_lib = session.scalars(selected_lib).all()
             dirs = set([value.dir_name for value in selected_lib])
+            log.debug(dirs)
             log.debug(f"get_dirs: {len(dirs)}")
 
         return dirs
