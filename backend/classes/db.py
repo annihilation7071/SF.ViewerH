@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, JSON
 from sqlalchemy.orm import DeclarativeBase
-from backend.logger_new import get_logger
+from backend import logger
 
-log = get_logger("db.classes")
+log = logger.get_logger("db.classes")
 
 
 class Base(DeclarativeBase):

@@ -2,32 +2,16 @@ import logging
 import os
 from logging.handlers import SocketHandler, RotatingFileHandler
 from pathlib import Path
+import shutil
+
+
+path = Path("./logs")
+shutil.rmtree(path, ignore_errors=True)
+Path(path).mkdir(parents=True, exist_ok=True)
+
 
 socket_handler = SocketHandler('127.0.0.1', 19996)
 socket_handler.setLevel(logging.DEBUG)
-
-
-class Log:
-    def __init__(self, logger: logging.Logger):
-        self.logger = logger
-
-    def debug(self, msg: str = "", *args, **kwargs):
-        self.logger.debug(msg, *args, **kwargs)
-
-    def info(self, msg: str = "", *args, **kwargs):
-        self.logger.info(msg, *args, **kwargs)
-
-    def warning(self, msg: str = "", *args, **kwargs):
-        self.logger.warning(msg, *args, **kwargs)
-
-    def error(self, msg: str = "", *args, **kwargs):
-        self.logger.error(msg, *args, **kwargs)
-
-    def exception(self, msg: str = "", *args, **kwargs):
-        self.logger.exception(msg, *args, **kwargs)
-
-    def critical(self, msg: str = "", *args, **kwargs):
-        self.logger.critical(msg, *args, **kwargs)
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -36,13 +20,13 @@ def get_logger(name: str) -> logging.Logger:
 
     formatter = logging.Formatter(f"%(asctime)s %(levelname)-8s: {name}: %(message)s")
 
-    file_handler = RotatingFileHandler(filename=f"./logs/{name}.log", mode="w", encoding="utf-8")
+    file_handler = RotatingFileHandler(filename=f"./logs/{name}.log", mode="a", encoding="utf-8")
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.DEBUG)
 
-    file_handler_2 = RotatingFileHandler(filename=f"./logs/All.log", mode="w", encoding="utf-8")
-    file_handler_2.setFormatter(formatter)
-    file_handler_2.setLevel(logging.DEBUG)
+    file_handler_all = RotatingFileHandler(filename=f"./logs/All.log", mode="a", encoding="utf-8")
+    file_handler_all.setFormatter(formatter)
+    file_handler_all.setLevel(logging.DEBUG)
 
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(formatter)
@@ -53,7 +37,7 @@ def get_logger(name: str) -> logging.Logger:
     log.setLevel(logging.DEBUG)
     log.addHandler(socket_handler)
     log.addHandler(file_handler)
-    log.addHandler(file_handler_2)
+    log.addHandler(file_handler_all)
     log.addHandler(stream_handler)
 
     return log
@@ -61,7 +45,7 @@ def get_logger(name: str) -> logging.Logger:
 
 # def log_exception(exc_type, exc_value, exc_tb):
 #     # noinspection PyShadowingNames
-#     log = get_logger("General")
+#     log = logger.get_logger("General")
 #
 #     log.error("Exception", exc_info=(exc_type, exc_value, exc_tb))
 #
@@ -81,7 +65,7 @@ def get_logger(name: str) -> logging.Logger:
 if __name__ == '__main__':
     os.chdir(Path(os.getcwd()).parent)
 
-    log = get_logger("Root logger")
+    log = logger.get_logger("Root logger")
 
     log.debug("A DEBUG Message")
     log.info("An INFO")

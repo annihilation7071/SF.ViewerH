@@ -10,9 +10,9 @@ from pathlib import Path
 from urllib.parse import quote, unquote
 import mimetypes
 from backend.editor import selector as edit_selector
-from backend.logger_new import get_logger
+from backend import logger
 
-log = get_logger("Routers.main")
+log = logger.get_logger("Routers.main")
 
 # noinspection PyTypeChecker
 projects: Projects = None

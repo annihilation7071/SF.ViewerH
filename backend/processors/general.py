@@ -3,12 +3,12 @@ import os
 from backend import utils
 from backend.classes.templates import ProjectTemplate
 from pathlib import Path
-from backend.logger_new import get_logger
+from backend import logger
 from backend.upgrade.vinfo import upgrade
 from importlib import import_module
 from backend.classes.files import ProjectInfoFile
 
-log = get_logger("Processor.general")
+log = logger.get_logger("Processor.general")
 
 meta_file = "metadata.json"
 

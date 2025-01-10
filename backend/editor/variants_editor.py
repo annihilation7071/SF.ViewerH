@@ -1,11 +1,11 @@
 from backend import dep
 from backend.utils import tag_normalizer
-from backend.logger_new import get_logger
+from backend import logger
 from backend.classes.projecte import ProjectE, ProjectEPool
 from backend import utils
 from typing import TYPE_CHECKING
 
-log = get_logger("VariantsEditor")
+log = logger.get_logger("VariantsEditor")
 
 if TYPE_CHECKING:
     from backend.projects.cls import Projects

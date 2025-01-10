@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 from importlib import import_module
 from backend import utils, cmdargs
-from backend.logger_new import get_logger
+from backend import logger
 from backend.projects.cls import Projects
 from backend.upgrade import vinfo
 from backend.processors import general as general
@@ -12,7 +12,7 @@ from dateutil import parser
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
 from backend.classes.files import ProjectInfoFile
 
-log = get_logger("putils")
+log = logger.get_logger("putils")
 
 
 def update_projects(projects: Projects) -> None:

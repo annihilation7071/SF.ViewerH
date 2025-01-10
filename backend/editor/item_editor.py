@@ -1,11 +1,11 @@
 from backend import dep
 from backend.utils import tag_normalizer
 from backend.projects.cls import Projects
-from backend.logger_new import get_logger
+from backend import logger
 from backend.classes.projecte import ProjectE, ProjectEPool
 from backend.classes.files import ProjectInfoFile
 
-log = get_logger("item_editor")
+log = logger.get_logger("item_editor")
 
 
 class ItemEditorError(Exception):

@@ -10,9 +10,9 @@ from routers import main, extra
 import os
 import asyncio
 from backend import utils
-from backend.logger_new import get_logger
+from backend import logger
 
-log = get_logger("App")
+log = logger.get_logger("App.app")
 
 if os.name == 'nt':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())

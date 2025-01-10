@@ -1,8 +1,8 @@
 from backend.editor import item_editor, variants_editor
 from backend.classes.projecte import ProjectE
-from backend.logger_new import get_logger
+from backend import logger
 
-log = get_logger("Editor.selectro")
+log = logger.get_logger("Editor.selectro")
 
 
 def edit(project: ProjectE, edit_type: str, data: str, extra: dict = None):

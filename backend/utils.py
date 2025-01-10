@@ -7,7 +7,7 @@ from PIL import Image
 import imagehash
 from pathlib import Path
 import asyncio
-from backend.logger_new import get_logger
+from backend import logger
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
 from backend.classes.db import Project
 from backend.classes.templates import ProjectTemplate
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from backend.classes.projecte import ProjectE
 
 
-log = get_logger("Utils")
+log = logger.get_logger("Utils")
 
 
 def get_pages(project: 'ProjectE'):

@@ -4,7 +4,7 @@ from typing import Any
 from dateutil import parser
 from pydantic import BaseModel
 from datetime import datetime
-from backend.logger_new import get_logger
+from backend import logger
 from backend import utils
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
@@ -13,7 +13,7 @@ from backend.classes.db import Project
 if TYPE_CHECKING:
     from backend.classes.projecte import ProjectDB, ProjectE
 
-log = get_logger("templates")
+log = logger.get_logger("templates")
 
 
 class ProjectTemplateError(Exception):

@@ -8,13 +8,13 @@ import os
 from backend.classes.lib import Lib
 from backend.classes.files import ProjectInfoFile, ProjectInfoFileError
 import json
-from backend.logger_new import get_logger
+from backend import logger
 from backend import utils
 from sqlalchemy.orm import Session
 from backend.classes.templates import ProjectTemplateDB
 from sqlalchemy import select, update, delete
 
-log = get_logger("ProjectE")
+log = logger.get_logger("ProjectE")
 
 
 class DBError(Exception):

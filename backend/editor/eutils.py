@@ -1,8 +1,8 @@
 # import json
 # from backend.classes.projecte import ProjectE
-# from backend.logger_new import get_logger
+# from backend import logger
 #
-# log = get_logger("Eutils")
+# log = logger.get_logger("Eutils")
 #
 #
 # def update_data(projects,

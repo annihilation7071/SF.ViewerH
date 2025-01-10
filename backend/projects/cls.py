@@ -7,13 +7,13 @@ from backend import utils
 from icecream import ic
 from backend.classes.projecte import ProjectE, ProjectEPool
 from backend.classes.templates import ProjectTemplateDB
-from backend.logger_new import get_logger
+from backend import logger
 from sqlalchemy.orm import Session
 from sqlalchemy import select, delete
 
 ic.configureOutput(includeContext=True)
 
-log = get_logger("Projects")
+log = logger.get_logger("Projects")
 
 
 class ProjectsError(Exception):

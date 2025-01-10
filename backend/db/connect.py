@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from backend.logger_new import get_logger
+from backend import logger
 from backend.classes.db import Base
 
-log = get_logger("Connect")
+log = logger.get_logger("Connect")
 
 
 def get_session():

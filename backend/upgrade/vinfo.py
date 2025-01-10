@@ -2,10 +2,10 @@ import json
 from backend import utils
 from pathlib import Path
 from backend.classes.templates import ProjectTemplate
-from backend.logger_new import get_logger
+from backend import logger
 from backend.classes.files import ProjectInfoFile
 
-log = get_logger("vinfo_upgrader")
+log = logger.get_logger("vinfo_upgrader")
 
 
 class VInfoUpgrageError(Exception):

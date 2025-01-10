@@ -7,9 +7,9 @@ from backend.downloaders.gallerydl import GalleryDLDownloader
 from backend.downloaders.error import DownloaderError
 from backend.projects.cls import Projects
 from backend.projects.updater import update_projects
-from backend.logger_new import get_logger
+from backend import logger
 
-log = get_logger("Downloader")
+log = logger.get_logger("Downloader")
 
 downloader_is_working = False
 

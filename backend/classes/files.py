@@ -2,13 +2,13 @@ from typing import Any
 from pydantic import BaseModel, field_validator
 from pathlib import Path
 from pydantic_core.core_schema import ValidationInfo
-from backend.logger_new import get_logger
+from backend import logger
 from backend import utils
 from backend.classes.templates import ProjectTemplate
 import os
 import re
 
-log = get_logger("classes.files")
+log = logger.get_logger("classes.files")
 
 
 class ProjectInfoFileError(Exception):

@@ -1,10 +1,10 @@
 from backend.utils import run_command
 import os
 import json
-from backend.logger_new import get_logger
+from backend import logger
 from backend.classes.lib import Lib
 
-log = get_logger("NHentaiDownloader")
+log = logger.get_logger("NHentaiDownloader")
 
 
 class NHentaiDownloader:

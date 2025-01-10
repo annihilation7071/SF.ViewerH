@@ -3,9 +3,9 @@ from fastapi import APIRouter, Request, HTTPException, Body
 from backend.projects.cls import Projects, Project
 from backend import utils, downloader
 from sqlalchemy import func, select
-from backend.logger_new import get_logger
+from backend import logger
 
-log = get_logger("Routers.extra")
+log = logger.get_logger("App.routers.extra")
 
 # noinspection PyTypeChecker
 projects: Projects = None

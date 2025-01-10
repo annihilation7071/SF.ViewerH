@@ -6,10 +6,10 @@ from collections import defaultdict
 from backend import utils
 from backend.classes.templates import ProjectTemplate
 from pathlib import Path
-from backend.logger_new import get_logger
+from backend import logger
 from datetime import datetime
 
-log = get_logger("Processor.nhentai")
+log = logger.get_logger("Processor.nhentai")
 
 meta_file = "metadata.json"
 
