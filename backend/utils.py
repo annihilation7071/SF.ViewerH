@@ -6,7 +6,6 @@ import uuid
 from PIL import Image
 import imagehash
 from pathlib import Path
-from icecream import ic
 import asyncio
 from backend.logger_new import get_logger
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
@@ -19,7 +18,7 @@ if TYPE_CHECKING:
     from backend.classes.projecte import ProjectE
 
 
-log = get_logger("utils")
+log = get_logger("Utils")
 
 
 def get_pages(project: 'ProjectE'):
@@ -265,14 +264,14 @@ def separate_url(url: str):
 
         url = f"{protocol}//{site}/{address[0]}/{id_}.html"
 
-        ic(url, site, id_)
+        log.debug(f"url: {url}, site: {site}, id_: {id_}")
         return url, site, id_
 
     if site == "nhentai.net":
         id_ = address[1]
         url = f"{protocol}//{site}/{address[0]}/{id_}"
 
-        ic(url, site, id_)
+        log.debug(f"url: {url}, site: {site}, id_: {id_}")
         return url, site, id_
 
 

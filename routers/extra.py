@@ -2,8 +2,10 @@ from backend import dep
 from fastapi import APIRouter, Request, HTTPException, Body
 from backend.projects.cls import Projects, Project
 from backend import utils, downloader
-from icecream import ic
-ic.configureOutput(includeContext=True)
+from sqlalchemy import func, select
+from backend.logger_new import get_logger
+
+log = get_logger("Routers.extra")
 
 # noinspection PyTypeChecker
 projects: Projects = None
@@ -24,7 +26,7 @@ async def get_status(
         url: str = Body(..., embed=True),
 ):
     # data = await request.json()
-    ic(url)
+    log.debug(f"url={url}")
 
     if not url:
         raise HTTPException(status_code=400, detail="URL not received")
@@ -33,17 +35,21 @@ async def get_status(
         return {"status": "test"}
 
     url, site, id_ = utils.separate_url(url)
-    ic(url, site, id_)
+    log.debug(f"url={url}, site={site}, id_={id_}")
 
-    find_projects = projects.session.query(Project).filter(
-        Project.source == site,
-        Project.source_id == int(id_)
-    ).count()
+    with dep.Session() as session:
+        flt = (
+            Project.source == site,
+            Project.source_id == int(id_),
+        )
 
-    ic(find_projects)
+        stmt = select(func.count(Project.lid)).where(*flt)
+
+        find_projects = session.scalar(stmt)
+
+    log.debug(f"find_projects_count={find_projects}")
 
     if find_projects > 0:
-        ic(url)
         return {"status": "found"}
     else:
         return {"status": "not found"}
