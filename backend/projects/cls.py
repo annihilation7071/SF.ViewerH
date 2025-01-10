@@ -242,6 +242,8 @@ class Projects:
                 unique_check.add(str(project.lvariants))
                 unique_variants.append(project)
 
+        log.debug(f"unique_variants: {len(unique_variants)}")
+
         for project in unique_variants:
             log.debug(f"Processing: {project.lid}; {project.title}")
             variant = project.lvariants
@@ -261,9 +263,10 @@ class Projects:
 
             if len(exist_pool) == 1:
                 log.debug(f"Found existing pool")
-                return
+                continue
 
             if len(exist_pool) == 0:
+                log.info(f"Pool not found. Creating new pool...")
                 ProjectEPool.create_pool(session, variant)
 
         #
