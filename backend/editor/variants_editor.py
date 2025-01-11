@@ -4,6 +4,7 @@ from backend import logger
 from backend.classes.projecte import ProjectE, ProjectEPool
 from backend import utils
 from typing import TYPE_CHECKING
+from sqlalchemy.orm import Session
 
 log = logger.get_logger("Editor.variants")
 
@@ -15,7 +16,7 @@ class VariantsEditorError(Exception):
     pass
 
 
-def edit(project: ProjectE, data: str | list, separator: str = "\n"):
+def edit(session: Session, project: ProjectE, data: str | list, separator: str = "\n"):
     log.debug(f"variant_editor.edit")
     log.debug(f"variants received: {data}")
 
@@ -51,9 +52,9 @@ def edit(project: ProjectE, data: str | list, separator: str = "\n"):
     # Old variants
     old_variants = set()
     old_variants = old_variants | set(project.lvariants)
-    with dep.Session() as session:
-        for lid in lids:
-            old_variants = old_variants | set(ProjectE.load_from_db(session, lid).lvariants)
+
+    for lid in lids:
+        old_variants = old_variants | set(ProjectE.load_from_db(session, lid).lvariants)
 
     old_variants = list(old_variants)
     log.debug(f"Old variants: {old_variants}")
@@ -61,72 +62,70 @@ def edit(project: ProjectE, data: str | list, separator: str = "\n"):
     old_lids = [variant.split(":")[0] for variant in old_variants]
     log.debug(f"Old lids: {old_lids}")
 
-    with dep.Session() as session:
-        # Check availability projects
-        log.debug(f"Check availability old projects")
-        if dep.projects.check_lids_(session, old_lids) != len(old_lids):
-            raise VariantsEditorError("Some projects not loaded")
+    # Check availability projects
+    log.debug(f"Check availability old projects")
+    if dep.projects.check_lids_(session, old_lids) != len(old_lids):
+        raise VariantsEditorError("Some projects not loaded")
 
-        # Clear old variants (pools)
-        log.debug(f"Clear old variants (pools)")
-        unique_variants = [project]
-        unique_check = {str(project.lvariants)}
+    # Clear old variants (pools)
+    log.debug(f"Clear old variants (pools)")
+    unique_variants = [project]
+    unique_check = {str(project.lvariants)}
 
-        for lid in lids + old_lids:
-            log.debug(f"Getting variants for {lid}")
-            prjv = ProjectE.load_from_db(session, lid)
-            if str(prjv.lvariants) not in unique_check:
-                log.debug(f"{prjv}")
-                unique_variants.append(prjv)
-                unique_check.add(str(prjv.lvariants))
+    for lid in lids + old_lids:
+        log.debug(f"Getting variants for {lid}")
+        prjv = ProjectE.load_from_db(session, lid)
+        if str(prjv.lvariants) not in unique_check:
+            log.debug(f"{prjv}")
+            unique_variants.append(prjv)
+            unique_check.add(str(prjv.lvariants))
 
-        for project in unique_variants:
-            log.debug(f"Deleting pools with variant = {project.lvariants}")
-            dep.projects.delete_pool_(session, project.lvariants)
+    for project in unique_variants:
+        log.debug(f"Deleting pools with variant = {project.lvariants}")
+        dep.projects.delete_pool_(session, project.lvariants)
 
-        old_projects = [ProjectE.load_from_db(session, lid) for lid in old_lids]
+    old_projects = [ProjectE.load_from_db(session, lid) for lid in old_lids]
 
-        updated_files = {}
+    updated_files = {}
 
-        try:
-            for t_project in old_projects:
-                t_project.lvariants = []
-                t_project.active = True
-                infofile = t_project.update(session)
+    try:
+        for t_project in old_projects:
+            t_project.lvariants = []
+            t_project.active = True
+            infofile = t_project.update_(session)
+            updated_files[infofile.lid] = infofile
+
+        # Stop if new variants not provided
+        if len(variants) == 0:
+            log.debug("New variants not provided. Stop variants_editor.edit")
+            session.commit()
+            return
+
+        if len(priority) > 1:
+            raise VariantsEditorError("Only one priority marker allowed")
+
+        # Update data in info file and DB
+        log.debug(f"Updating data in DB and file")
+        target_projects = [ProjectE.load_from_db(session, lid) for lid in lids]
+
+        for t_project in target_projects:
+            log.debug(f"{t_project.lid}")
+            t_project.lvariants = variants
+            infofile = t_project.update_(session)
+            if infofile.lid not in updated_files:
                 updated_files[infofile.lid] = infofile
 
-            # Stop if new variants not provided
-            if len(variants) == 0:
-                log.debug("New variants not provided. Stop variants_editor.edit")
-                session.commit()
-                return
+        pool = None
+        # Create priority
+        if len(priority) == 1:
+            log.debug(f"Creating priority: {variants}")
+            pool = ProjectEPool.create_pool(session, variants)
 
-            if len(priority) > 1:
-                raise VariantsEditorError("Only one priority marker allowed")
-
-            # Update data in info file and DB
-            log.debug(f"Updating data in DB and file")
-            target_projects = [ProjectE.load_from_db(session, lid) for lid in lids]
-
-            for t_project in target_projects:
-                log.debug(f"{t_project.lid}")
-                t_project.lvariants = variants
-                infofile = t_project.update_(session)
-                if infofile.lid not in updated_files:
-                    updated_files[infofile.lid] = infofile
-
-            pool_lid = None
-            # Create priority
-            if len(priority) == 1:
-                log.debug(f"Creating priority: {variants}")
-                pool = ProjectEPool.create_pool(session, variants)
-
-            session.commit()
+        if pool:
             return pool.lid
 
-        except Exception as e:
-            log.exception(e)
-            session.rollback()
-            for file in updated_files.values():
-                file.load_model("backup")
-                file.commit()
+    except Exception as e:
+        log.exception(e)
+        for file in updated_files.values():
+            file.load_model("backup")
+            file.commit()

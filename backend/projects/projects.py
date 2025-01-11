@@ -1,7 +1,7 @@
 from backend import dep
 from backend.classes.db import Project
 from backend.classes.lib import Lib
-from sqlalchemy import desc, and_, func, or_, Sequence
+from sqlalchemy import desc, and_, func, or_, Sequence, not_
 from collections import defaultdict
 from backend.editor import variants_editor
 from backend import utils
@@ -10,8 +10,9 @@ from backend.classes.projecte import ProjectE, ProjectEPool
 from backend.classes.templates import ProjectTemplateDB
 from backend import logger
 from sqlalchemy.orm import Session
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update
 from backend.projects import projects_utils
+from backend.editor import selector
 
 ic.configureOutput(includeContext=True)
 
@@ -33,12 +34,17 @@ class Projects:
         self.all_projects = select(Project).where(self.all_projects_filter)
 
         self.active_projects_filter = and_(self.all_projects_filter, Project.active == 1)
-        self.active_projects = select(Project).where(self.all_projects_filter)
+        self.active_projects = select(Project).where(self.active_projects_filter)
 
         self.sorting_method = Project.upload_date
         self.search = ""
 
         self.projects = self.active_projects.order_by(desc(self.sorting_method))
+
+        with dep.Session() as session:
+            result = session.scalars(self.projects).all()
+            log.info(f"result: {len(result)}")
+
         log.debug("projects loaded")
 
     def _normalize_search(self, search: str) -> str:
@@ -140,6 +146,11 @@ class Projects:
                     result[item] += 1
 
         return sorted(result.items(), key=lambda x: x[1], reverse=True)
+
+    def edit(self, project: ProjectE, edit_type: str, data: str):
+        with dep.Session() as session:
+            selector.edit(session, project, edit_type, data)
+            session.commit()
 
     def clear_old_versions_(self, session: Session, target_version: int):
         log.debug(f"clear_old_versions: target version: {target_version}")
@@ -261,6 +272,7 @@ class Projects:
         unique_check = set()
         for project in projects_with_variants:
             if str(project.lvariants) not in unique_check:
+                # noinspection PyUnresolvedReferences
                 unique_check.add(str(project.lvariants))
                 unique_variants.append(project)
 
@@ -285,6 +297,21 @@ class Projects:
 
             if len(exist_pool) == 1:
                 log.debug(f"Found existing pool")
+                # flt = and_(
+                #     Project.lvariants == project.lvariants,
+                #     not_(Project.lid.startswith("pool")),
+                # )
+                #
+                # # stmt = select(Project).where(flt)
+                #
+                # stmt = update(Project).where(flt).values(active=False)
+                #
+                # # log.info(f"{len(session.scalars(select(Project).where(flt)).all())}")
+                #
+                # result = session.execute(stmt)
+                #
+                # # log.info(f"Updated rows: {result.rowcount}")
+
                 continue
 
             if len(exist_pool) == 0:

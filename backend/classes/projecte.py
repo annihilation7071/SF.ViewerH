@@ -168,7 +168,7 @@ class ProjectE(ProjectDB):
 
     def update_db(self, session: Session, commit: bool = False) -> None:
         log.debug(f"_update_db: {self.lid}")
-        self._renew_search_body()
+        self.renew_search_body()
 
         project = session.query(Project).filter_by(lid=self.lid).first()
         keys_db = project.get_columns()
@@ -183,7 +183,7 @@ class ProjectE(ProjectDB):
     def update_vinfo(self) -> None | ProjectInfoFile:
         log.debug(f"_update_vinfo: {self.lid}")
         log.debug(f"_update_vinfo: {self.path}")
-        self._renew_search_body()
+        self.renew_search_body()
 
         if self.lib.startswith("pool_"):
             raise DBError("Cannot update vinfo for pool")
@@ -308,7 +308,7 @@ class ProjectEPool(ProjectE):
         for key in template.model_dump().keys():
             setattr(self, key, getattr(template, key))
 
-        self._renew_search_body()
+        self.renew_search_body()
 
     def update_pool(self, session: Session) -> None:
         self.parse_parameters(session)
@@ -336,7 +336,7 @@ class ProjectEPool(ProjectE):
         lids = [variant.split(":")[0] for variant in variants]
 
         log.debug(f"Checking availability projects")
-        if dep.projects.check_lids(session, lids) != len(lids):
+        if dep.projects.check_lids_(session, lids) != len(lids):
             log.warning(f"Not all projects are available. Cancelling create pool.")
             raise DBError()
 

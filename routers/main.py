@@ -154,7 +154,7 @@ async def edit_data(
 
     project = projects.get_project(lid)
 
-    r = edit_selector.edit(project, edit_type, data)
+    r = projects.edit(project, edit_type, data)
     if r:
         return RedirectResponse(
             f"/project/lid/{r}?page={page}&search={search}", status_code=303
