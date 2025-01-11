@@ -1,6 +1,6 @@
 from backend import dep
 from backend.utils import tag_normalizer
-from backend.projects.cls import Projects
+from backend.projects.projects import Projects
 from backend import logger
 from backend.classes.projecte import ProjectE, ProjectEPool
 from backend.classes.files import ProjectInfoFile

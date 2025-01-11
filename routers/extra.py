@@ -1,6 +1,6 @@
 from backend import dep
 from fastapi import APIRouter, Request, HTTPException, Body
-from backend.projects.cls import Projects, Project
+from backend.projects.projects import Projects, Project
 from backend import utils, downloader
 from sqlalchemy import func, select
 from backend import logger
@@ -37,19 +37,11 @@ async def get_status(
     url, site, id_ = utils.separate_url(url)
     log.debug(f"url={url}, site={site}, id_={id_}")
 
-    with dep.Session() as session:
-        flt = (
-            Project.source == site,
-            Project.source_id == int(id_),
-        )
+    found_projects_count = projects.check_project(site, id_)
 
-        stmt = select(func.count(Project.lid)).where(*flt)
+    log.debug(f"find_projects_count={found_projects_count}")
 
-        find_projects = session.scalar(stmt)
-
-    log.debug(f"find_projects_count={find_projects}")
-
-    if find_projects > 0:
+    if found_projects_count > 0:
         return {"status": "found"}
     else:
         return {"status": "not found"}

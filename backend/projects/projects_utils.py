@@ -4,90 +4,90 @@ import os
 from importlib import import_module
 from backend import utils, cmdargs
 from backend import logger
-from backend.projects.cls import Projects
 from backend.upgrade import vinfo
 from backend.processors import general as general
 import json
 from dateutil import parser
+from sqlalchemy.orm import Session
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
 from backend.classes.files import ProjectInfoFile
+from backend.classes.db import Project
+from backend.classes.lib import Lib
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from backend.projects.projects import Projects
 
 log = logger.get_logger("Projects.updater")
 
 
-def update_projects(projects: Projects) -> None:
+def update_projects(session: Session) -> None:
     log.debug("update_projects")
     log.info("Updating projects ...")
-    libs = utils.read_libs()
 
-    for lib_name, lib_data in libs.items():
-        if lib_data.active is False:
+    if cmdargs.args.reindex is True:
+        log.warning(f"Deleting all data...")
+        cmdargs.args.reindex = False
+        dep.projects.delete_all_data_(session)
+
+    for lib in dep.libs.values():
+        if lib.active is False:
             continue
 
-        processor_name = lib_data.processor
+        processor_name = lib.processor
 
-        log.info(f"Checking {lib_name} ...")
-        if cmdargs.args.reindex is True:
-            log.warning(f"Deleting all data...")
-            cmdargs.args.reindex = False
-            with dep.Session() as session:
-                projects.delete_all_data(session)
-                session.commit()
+        log.info(f"Checking {lib.name} ...")
 
         with open("./backend/v_info.json", "r", encoding="utf-8") as f:
             v_info_example = json.load(f)
 
-        with dep.Session() as session:
-            projects.clear_old_versions(session, v_info_example["info_version"])
-            session.commit()
+        dep.projects.clear_old_versions_(session, v_info_example["info_version"])
 
-        processor = import_module(f"backend.processors.{lib_data.processor}")
+        processor = import_module(f"backend.processors.{lib.processor}")
 
-        path = lib_data.path
+        path = lib.path
         log.debug(f"Lib path: {path}")
         dirs = get_dirs(path, processor.meta_file)
         log.debug(f"Dirs in lib path: {dirs}")
 
-        dirs_not_in_db, dirs_not_exist = check_dirs(lib_name, dirs)
+        dirs_not_in_db, dirs_not_exist = check_dirs(session, lib, dirs)
         log.debug(f"dirs_not_in_db: {len(dirs_not_in_db)}")
         log.debug(dirs_not_in_db)
         log.debug(f"dirs_not_exist: {len(dirs_not_exist)}")
         log.debug(dirs_not_exist)
 
-        if len(dirs_not_exist) > 0:
+        for dir in dirs_not_exist:
             log.info(f"Deleting not exist projects...")
-
-        with dep.Session() as session:
-            for dir in dirs_not_exist:
-                log.debug(f"Deleting {dir} ...")
-                projects.delete_by_dir_and_lib(session, dir, lib_name)
-            session.commit()
+            log.debug(f"Deleting {dir} ...")
+            dep.projects.delete_by_dir_and_lib_(session, dir, lib)
 
         if len(dirs_not_in_db) > 0:
             log.info(f"Adding new projects...")
 
-        with dep.Session() as session:
-            for dir in dirs_not_in_db:
-                log.debug(f"Adding {dir} ...")
-                project_path = path / dir
+        for dir_name in dirs_not_in_db:
+            project_path = path / dir_name
+            add_project_dir_to_db(session, lib, project_path, processor_name)
 
-                project = get_project_info(project_path)
-                if project is None:
-                    log.debug(f"vinfo for {dir} not found...")
-                    log.info(f"Preparing project {dir}...")
-                    general.make_v_info(project_path, processor_name)
-                    project = get_project_info(project_path)
 
-                project_to_db = ProjectTemplateDB(
-                    lib=lib_name,
-                    dir_name=dir,
-                    **project.model_dump()
-                )
+def add_project_dir_to_db(session: Session, lib: Lib, project_path: Path, processor_name: str) -> None:
+    log.debug(f"Adding {project_path.name} ...")
 
-                log.debug(project_to_db)
+    project = get_project_info(project_path)
+    if project is None:
+        log.debug(f"vinfo for {project_path.name} not found...")
+        log.info(f"Preparing project {project_path.name} ...")
+        general.make_v_info(project_path, processor_name)
+        project = get_project_info(project_path)
 
-                project_to_db.add_to_db(session)
-            session.commit()
+    project_to_db = ProjectTemplateDB(
+        lib=lib.name,
+        dir_name=project_path.name,
+        **project.model_dump()
+    )
+
+    log.debug(project_to_db)
+
+    project_to_db.add_to_db(session)
 
 
 def get_dirs(path: Path, meta_file: str) -> list[str]:
@@ -102,11 +102,11 @@ def get_dirs(path: Path, meta_file: str) -> list[str]:
     return dirs
 
 
-def check_dirs(lib_name: str, dirs: list[str]) -> tuple:
+def check_dirs(session: Session, lib: Lib, dirs: list[str]) -> tuple:
     log.debug("check_dirs")
     exist_dirs = set(dirs)
-    with dep.Session() as session:
-        dirs_in_db = set(dep.projects.get_dirs(session, lib_name))
+
+    dirs_in_db = set(dep.projects.get_dirs(session, lib.name))
 
     log.debug(f"dirs found in db: {dirs_in_db}")
 

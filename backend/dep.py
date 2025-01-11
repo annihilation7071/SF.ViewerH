@@ -4,7 +4,7 @@ from backend.classes.lib import Lib
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from backend.projects.cls import Projects
+    from backend.projects.projects import Projects
 
 
 Session = connect.get_session()

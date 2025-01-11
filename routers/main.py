@@ -2,7 +2,7 @@ from backend import dep
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
-from backend.projects.cls import Projects
+from backend.projects.projects import Projects
 from backend.utils import get_visible_pages
 from backend.classes.projecte import ProjectE
 from pathlib import Path
@@ -34,15 +34,14 @@ def get_with_cache(project_lid: str):
     global project_cache
 
     if project_lid not in project_cache:
-        with dep.Session() as session:
-            project = projects.get_project_by_lid(session, project_lid)
-            images = project.get_images()
-            project_cache = {
-                project_lid: {
-                    "data": project,
-                    "images": images
-                }
+        project = projects.get_project(project_lid)
+        images = project.get_images()
+        project_cache = {
+            project_lid: {
+                "data": project,
+                "images": images
             }
+        }
     else:
         project = project_cache[project_lid]["data"]
         if "images" not in project_cache[project_lid]:
@@ -58,8 +57,8 @@ def get_with_cache(project_lid: str):
 async def index(request: Request, page: int = 1, search: str = ""):
     log.debug(f"index")
     search_query = search.strip().lower()
-    with dep.Session() as session:
-        displayed_projects = projects.get_page(session, PPG, page=page, search=search_query)
+
+    displayed_projects = projects.get_page(PPG, page=page, search=search_query)
 
     total_pages = (projects.len() + PPG - 1) // PPG
     visible_pages = get_visible_pages(page, total_pages)
@@ -76,20 +75,6 @@ async def index(request: Request, page: int = 1, search: str = ""):
     )
 
 
-# @router.get("/project/{project_id}", response_class=HTMLResponse)
-# async def detail_view(request: Request, project_id: int):
-#     project = projects.get_project_by_id(project_id)
-#     images = utils.get_pages(project)
-#     return templates.TemplateResponse(
-#         "detailview.html",
-#         {
-#             "request": request,
-#             "project": project,
-#             "images": images
-#         },
-#     )
-
-
 @router.get("/project/lid/{project_lid}", response_class=HTMLResponse)
 async def detail_view(request: Request, project_lid: str):
     project, images = get_with_cache(project_lid)
@@ -102,27 +87,6 @@ async def detail_view(request: Request, project_lid: str):
             "images": images
         },
     )
-
-
-# @router.get("/project/{project_id}/{page_id}", response_class=HTMLResponse)
-# async def reader(request: Request, project_id: int, page_id: int):
-#     project = projects.get_project_by_id(project_id)
-#     images = utils.get_pages(project)
-#     page = page_id
-#     image = images[page - 1]["path"]
-#     total_pages = len(images)
-#     visible_pages = get_visible_pages(page, total_pages)
-#     return templates.TemplateResponse(
-#         "reader.html",
-#         {
-#             "request": request,
-#             "image": image,
-#             "current_page": page,
-#             "project_id": project_id,
-#             "total_pages": total_pages,
-#             "visible_pages": visible_pages,
-#         },
-#     )
 
 
 @router.get("/project/lid/{project_lid}/{page_id}", response_class=HTMLResponse)
@@ -162,8 +126,7 @@ async def items_list(request: Request, item: str):
                "parody", "artist"]
 
     if item in support:
-        with dep.Session() as session:
-            items_count = projects.count_item(session, item)
+        items_count = projects.count_item(item)
     else:
         raise Exception(f"{item} is not supported")
 
@@ -189,8 +152,7 @@ async def edit_data(
 ):
     clear_cache()
 
-    with dep.Session() as session:
-        project = ProjectE.load_from_db(session, lid)
+    project = projects.get_project(lid)
 
     r = edit_selector.edit(project, edit_type, data)
     if r:

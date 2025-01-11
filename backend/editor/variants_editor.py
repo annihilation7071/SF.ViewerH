@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 log = logger.get_logger("Editor.variants")
 
 if TYPE_CHECKING:
-    from backend.projects.cls import Projects
+    from backend.projects.projects import Projects
 
 
 class VariantsEditorError(Exception):

@@ -3,8 +3,8 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from backend.projects.cls import Projects
-from backend.projects.updater import update_projects
+from backend.projects.projects import Projects
+from backend.projects.projects_utils import update_projects
 from fastapi.middleware.cors import CORSMiddleware
 from routers import main, extra
 import os
@@ -31,10 +31,8 @@ async def lifespan(app: FastAPI):
     dep.projects = projects
     main.projects = projects
     extra.projects = projects
-    update_projects(projects)
-    with dep.Session() as session:
-        projects.renew(session)
-        session.commit()
+    projects.update_projects()
+    projects.renew()
     yield
 
 app = FastAPI(lifespan=lifespan)

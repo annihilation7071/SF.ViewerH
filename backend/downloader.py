@@ -5,8 +5,8 @@ import asyncio
 from backend.downloaders.nhentai import NHentaiDownloader
 from backend.downloaders.gallerydl import GalleryDLDownloader
 from backend.downloaders.error import DownloaderError
-from backend.projects.cls import Projects
-from backend.projects.updater import update_projects
+from backend.projects.projects import Projects
+from backend.projects.projects_utils import update_projects
 from backend import logger
 
 log = logger.get_logger("Downloader.main")
