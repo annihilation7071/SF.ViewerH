@@ -12,7 +12,7 @@ from dateutil import parser
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
 from backend.classes.files import ProjectInfoFile
 
-log = logger.get_logger("putils")
+log = logger.get_logger("Projects.updater")
 
 
 def update_projects(projects: Projects) -> None:

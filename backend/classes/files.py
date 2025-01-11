@@ -8,7 +8,7 @@ from backend.classes.templates import ProjectTemplate
 import os
 import re
 
-log = logger.get_logger("classes.files")
+log = logger.get_logger("Classes.files")
 
 
 class ProjectInfoFileError(Exception):

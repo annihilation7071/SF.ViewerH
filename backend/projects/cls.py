@@ -13,7 +13,7 @@ from sqlalchemy import select, delete
 
 ic.configureOutput(includeContext=True)
 
-log = logger.get_logger("Projects")
+log = logger.get_logger("Projects.main")
 
 
 class ProjectsError(Exception):

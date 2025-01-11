@@ -5,7 +5,7 @@ from backend import logger
 from backend.classes.projecte import ProjectE, ProjectEPool
 from backend.classes.files import ProjectInfoFile
 
-log = logger.get_logger("item_editor")
+log = logger.get_logger("Editor.item")
 
 
 class ItemEditorError(Exception):

@@ -5,7 +5,7 @@ from backend.classes.projecte import ProjectE, ProjectEPool
 from backend import utils
 from typing import TYPE_CHECKING
 
-log = logger.get_logger("VariantsEditor")
+log = logger.get_logger("Editor.variants")
 
 if TYPE_CHECKING:
     from backend.projects.cls import Projects

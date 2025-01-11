@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from backend import logger
 from backend.classes.db import Base
 
-log = logger.get_logger("Connect")
+log = logger.get_logger("DB")
 
 
 def get_session():

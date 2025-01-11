@@ -12,7 +12,7 @@ import mimetypes
 from backend.editor import selector as edit_selector
 from backend import logger
 
-log = logger.get_logger("Routers.main")
+log = logger.get_logger("App.routers.main")
 
 # noinspection PyTypeChecker
 projects: Projects = None

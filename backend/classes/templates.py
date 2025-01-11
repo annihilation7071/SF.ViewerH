@@ -13,7 +13,7 @@ from backend.classes.db import Project
 if TYPE_CHECKING:
     from backend.classes.projecte import ProjectDB, ProjectE
 
-log = logger.get_logger("templates")
+log = logger.get_logger("Classes.templates")
 
 
 class ProjectTemplateError(Exception):

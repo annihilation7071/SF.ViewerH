@@ -5,7 +5,7 @@ from backend.classes.templates import ProjectTemplate
 from backend import logger
 from backend.classes.files import ProjectInfoFile
 
-log = logger.get_logger("vinfo_upgrader")
+log = logger.get_logger("Upgrader")
 
 
 class VInfoUpgrageError(Exception):

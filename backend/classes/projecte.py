@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from backend.classes.templates import ProjectTemplateDB
 from sqlalchemy import select, update, delete
 
-log = logger.get_logger("ProjectE")
+log = logger.get_logger("Classes.projects")
 
 
 class DBError(Exception):

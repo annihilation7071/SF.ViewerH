@@ -4,7 +4,7 @@ import json
 from backend import logger
 from backend.classes.lib import Lib
 
-log = logger.get_logger("NHentaiDownloader")
+log = logger.get_logger("Downloader.gallerydl")
 
 
 class GalleryDLDownloader:

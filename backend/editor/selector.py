@@ -2,7 +2,7 @@ from backend.editor import item_editor, variants_editor
 from backend.classes.projecte import ProjectE
 from backend import logger
 
-log = logger.get_logger("Editor.selectro")
+log = logger.get_logger("Editor.selector")
 
 
 def edit(project: ProjectE, edit_type: str, data: str, extra: dict = None):

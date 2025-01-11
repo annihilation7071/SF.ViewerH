@@ -9,7 +9,7 @@ from backend.projects.cls import Projects
 from backend.projects.updater import update_projects
 from backend import logger
 
-log = logger.get_logger("Downloader")
+log = logger.get_logger("Downloader.main")
 
 downloader_is_working = False
 
