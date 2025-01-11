@@ -1,5 +1,6 @@
 import json
 import os
+from backend import dep
 from backend import utils
 import asyncio
 from backend.downloaders.nhentai import NHentaiDownloader
@@ -55,7 +56,9 @@ async def _download(url: str, projects: Projects):
     match lib.processor:
 
         case "nhentai":
-            downloader = NHentaiDownloader(id_=id_, lib=lib)
+            downloader = NHentaiDownloader(id_=id_,
+                                           lib=lib)
+
             process = await downloader.start()
 
         case "gallery-dl-nhentai" | "gallery-dl-hitomila":
@@ -71,7 +74,7 @@ async def _download(url: str, projects: Projects):
 
     if process.returncode == 0:
         log.info(f"Download successful: {url}")
-        update_projects(projects)
+        dep.projects.update_projects()
     else:
         downloader_is_working = False
         e = DownloaderError(f"Command failed with return code: {process.returncode}")

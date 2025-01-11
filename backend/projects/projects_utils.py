@@ -106,7 +106,7 @@ def check_dirs(session: Session, lib: Lib, dirs: list[str]) -> tuple:
     log.debug("check_dirs")
     exist_dirs = set(dirs)
 
-    dirs_in_db = set(dep.projects.get_dirs(session, lib.name))
+    dirs_in_db = set(dep.projects.get_dirs_(session, lib.name))
 
     log.debug(f"dirs found in db: {dirs_in_db}")
 

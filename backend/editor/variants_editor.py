@@ -64,7 +64,7 @@ def edit(project: ProjectE, data: str | list, separator: str = "\n"):
     with dep.Session() as session:
         # Check availability projects
         log.debug(f"Check availability old projects")
-        if dep.projects.check_lids(session, old_lids) != len(old_lids):
+        if dep.projects.check_lids_(session, old_lids) != len(old_lids):
             raise VariantsEditorError("Some projects not loaded")
 
         # Clear old variants (pools)
@@ -82,7 +82,7 @@ def edit(project: ProjectE, data: str | list, separator: str = "\n"):
 
         for project in unique_variants:
             log.debug(f"Deleting pools with variant = {project.lvariants}")
-            dep.projects.delete_pool(session, project.lvariants)
+            dep.projects.delete_pool_(session, project.lvariants)
 
         old_projects = [ProjectE.load_from_db(session, lid) for lid in old_lids]
 
@@ -130,5 +130,3 @@ def edit(project: ProjectE, data: str | list, separator: str = "\n"):
             for file in updated_files.values():
                 file.load_model("backup")
                 file.commit()
-
-

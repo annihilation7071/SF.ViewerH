@@ -221,7 +221,6 @@ class ProjectE(ProjectDB):
         try:
             self.update_db(session)
         except Exception as e:
-            session.rollback()
             log.exception(f"Failed to update project: {self.title}")
             raise e
 
@@ -234,13 +233,12 @@ class ProjectE(ProjectDB):
         except DBErrorPoolHasNotDir as e:
             log.debug("Updating pool; v_info file will not be updated", exc_info=e)
         except Exception as e:
-            session.rollback()
             log.exception(f"Failed to update project: {self.title}")
             raise e
 
         log.info(f"Update completed: {self.title}")
 
-    def _renew_search_body(self) -> None:
+    def renew_search_body(self) -> None:
         log.debug("renew_search_body")
         self.search_body = utils.make_search_body(self)
 

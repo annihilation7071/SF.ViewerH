@@ -65,7 +65,7 @@ def get_logger(name: str) -> logging.Logger:
 if __name__ == '__main__':
     os.chdir(Path(os.getcwd()).parent)
 
-    log = logger.get_logger("Root logger")
+    log = get_logger("Root logger")
 
     log.debug("A DEBUG Message")
     log.info("An INFO")

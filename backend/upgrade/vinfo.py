@@ -1,4 +1,3 @@
-import json
 from backend import utils
 from pathlib import Path
 from backend.classes.templates import ProjectTemplate
