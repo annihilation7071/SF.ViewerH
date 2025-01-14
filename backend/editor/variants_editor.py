@@ -5,6 +5,7 @@ from backend.classes.projecte import ProjectE, ProjectEPool
 from backend import utils
 from typing import TYPE_CHECKING
 from sqlalchemy.orm import Session
+from backend.modules.filesession import FileSession, FSession
 
 log = logger.get_logger("Editor.variants")
 
@@ -16,7 +17,7 @@ class VariantsEditorError(Exception):
     pass
 
 
-def edit(session: Session, project: ProjectE, data: str | list, separator: str = "\n"):
+def edit(session: Session, fs: FSession, project: ProjectE, data: str | list, separator: str = "\n"):
     log.debug(f"variant_editor.edit")
     log.debug(f"variants received: {data}")
 
@@ -35,6 +36,8 @@ def edit(session: Session, project: ProjectE, data: str | list, separator: str =
 
     # Sorting variants:
     # Priority first others sorting
+    if len(priority) == 0:
+        priority = [""]
     variants = [":".join(priority[0])] + [":".join(variant) for variant in sorted(non_priority, key=lambda x: x[1])]
     variants = [variant for variant in variants if len(variant) > 0]
     log.debug(f"Variants after sorting: {variants}")
@@ -54,7 +57,7 @@ def edit(session: Session, project: ProjectE, data: str | list, separator: str =
     old_variants = old_variants | set(project.lvariants)
 
     for lid in lids:
-        old_variants = old_variants | set(ProjectE.load_from_db(session, lid).lvariants)
+        old_variants = old_variants | set(ProjectE.load_from_db(session, fs, lid).lvariants)
 
     old_variants = list(old_variants)
     log.debug(f"Old variants: {old_variants}")
@@ -74,7 +77,7 @@ def edit(session: Session, project: ProjectE, data: str | list, separator: str =
 
     for lid in lids + old_lids:
         log.debug(f"Getting variants for {lid}")
-        prjv = ProjectE.load_from_db(session, lid)
+        prjv = ProjectE.load_from_db(session, fs, lid)
         if str(prjv.lvariants) not in unique_check:
             log.debug(f"{prjv}")
             unique_variants.append(prjv)
@@ -84,48 +87,36 @@ def edit(session: Session, project: ProjectE, data: str | list, separator: str =
         log.debug(f"Deleting pools with variant = {project.lvariants}")
         dep.projects.delete_pool_(session, project.lvariants)
 
-    old_projects = [ProjectE.load_from_db(session, lid) for lid in old_lids]
+    old_projects = [ProjectE.load_from_db(session, fs, lid) for lid in old_lids]
 
-    updated_files = {}
+    for t_project in old_projects:
+        t_project.lvariants = []
+        t_project.active = True
+        infofile = t_project.update_(session, fs=fs)
 
-    try:
-        for t_project in old_projects:
-            t_project.lvariants = []
-            t_project.active = True
-            infofile = t_project.update_(session)
-            updated_files[infofile.lid] = infofile
+    # Stop if new variants not provided
+    if len(variants) == 0:
+        log.debug("New variants not provided. Stop variants_editor.edit")
+        return
 
-        # Stop if new variants not provided
-        if len(variants) == 0:
-            log.debug("New variants not provided. Stop variants_editor.edit")
-            session.commit()
-            return
+    if len(priority) > 1:
+        raise VariantsEditorError("Only one priority marker allowed")
 
-        if len(priority) > 1:
-            raise VariantsEditorError("Only one priority marker allowed")
+    # Update data in info file and DB
+    log.debug(f"Updating data in DB and file")
+    target_projects = [ProjectE.load_from_db(session, fs, lid) for lid in lids]
 
-        # Update data in info file and DB
-        log.debug(f"Updating data in DB and file")
-        target_projects = [ProjectE.load_from_db(session, lid) for lid in lids]
+    for t_project in target_projects:
+        log.debug(f"{t_project.lid}")
+        t_project.lvariants = variants
+        infofile = t_project.update_(session, fs=fs)
 
-        for t_project in target_projects:
-            log.debug(f"{t_project.lid}")
-            t_project.lvariants = variants
-            infofile = t_project.update_(session)
-            if infofile.lid not in updated_files:
-                updated_files[infofile.lid] = infofile
+    pool = None
+    # Create priority
+    if len(priority) == 1:
+        log.debug(f"Creating priority: {variants}")
+        pool = ProjectEPool.create_pool(session, fs, variants)
 
-        pool = None
-        # Create priority
-        if len(priority) == 1:
-            log.debug(f"Creating priority: {variants}")
-            pool = ProjectEPool.create_pool(session, variants)
-
-        if pool:
-            return pool.lid
-
-    except Exception as e:
-        log.exception(e)
-        for file in updated_files.values():
-            file.load_model("backup")
-            file.commit()
+    if pool:
+        log.debug(f"Returning: {pool.lid}")
+        return pool.lid

@@ -13,6 +13,7 @@ from backend import utils
 from sqlalchemy.orm import Session
 from backend.classes.templates import ProjectTemplateDB
 from sqlalchemy import select, update, delete
+from backend.modules.filesession import FileSession, FSession
 
 log = logger.get_logger("Classes.projects")
 
@@ -99,7 +100,7 @@ class ProjectE(ProjectDB):
         #     project = session.query(Project).filter_by(_id=1).first()
         #     log.warning(project)
 
-    def update_preview_and_pages(self, session: Session) -> None:
+    def update_preview_and_pages(self, session: Session, fs: FSession) -> None:
         log.debug("_update_preview_and_pages")
         preview_name: str = ""
 
@@ -135,7 +136,7 @@ class ProjectE(ProjectDB):
             requre_update = True
 
         if requre_update:
-            self.update_(session)
+            self.update_(session, fs)
 
     @staticmethod
     def _get_flags_paths(languages: list) -> list:
@@ -180,7 +181,7 @@ class ProjectE(ProjectDB):
         if commit:
             session.commit()
 
-    def update_vinfo(self) -> None | ProjectInfoFile:
+    def update_vinfo(self, fs: FSession) -> None | ProjectInfoFile:
         log.debug(f"_update_vinfo: {self.lid}")
         log.debug(f"_update_vinfo: {self.path}")
         self.renew_search_body()
@@ -196,8 +197,6 @@ class ProjectE(ProjectDB):
 
         log.debug(f"v_info: {v_info}")
 
-        infofile.save_model("backup")
-
         try:
             for key in self.keys():
                 if hasattr(v_info, key):
@@ -207,16 +206,19 @@ class ProjectE(ProjectDB):
 
             # Save
             infofile.set(v_info)
-            infofile.commit()
+            infofile.save(fs)
             return infofile
 
         except Exception as e:
             log.exception(str(e))
             raise e
 
-    def update_(self, session: Session, only_db: bool = False) -> ProjectInfoFile | None:
+    def update_(self, session: Session, fs: FSession, only_db: bool = False) -> ProjectInfoFile | None:
         log.debug(f"soft_update")
         log.info(f"Updating project: {self.title}")
+
+        if only_db is not None and fs is None:
+            raise DBError("fs required for update")
 
         try:
             self.update_db(session)
@@ -229,7 +231,7 @@ class ProjectE(ProjectDB):
             return
 
         try:
-            return self.update_vinfo()
+            return self.update_vinfo(fs)
         except DBErrorPoolHasNotDir as e:
             log.debug("Updating pool; v_info file will not be updated", exc_info=e)
         except Exception as e:
@@ -259,7 +261,7 @@ class ProjectE(ProjectDB):
         return pages
 
     @classmethod
-    def load_from_db(cls, session: Session, lid):
+    def load_from_db(cls, session: Session, fs: FSession, lid):
         project = session.query(Project).filter_by(lid=lid).first()
         libs = utils.read_libs()
 
@@ -270,7 +272,7 @@ class ProjectE(ProjectDB):
             **dict_project
         )
 
-        projecte.update_preview_and_pages(session)
+        projecte.update_preview_and_pages(session, fs)
 
         return projecte
 
@@ -291,12 +293,12 @@ class ProjectEPool(ProjectE):
         kw["pool_mark"] = True
         return super().__new__(cls, *args, **kw)
 
-    def parse_parameters(self, session):
+    def parse_parameters(self, session: Session, fs: FSession):
         template = Template()
 
         for variant in self.lvariants:
             lid = variant.split(":")[0]
-            project = ProjectE.load_from_db(session, lid)
+            project = ProjectE.load_from_db(session, fs, lid)
 
             template.tag = list(set(template.tag) | set(project.tag))
             template.language = list(set(template.language) | set(project.language))
@@ -310,9 +312,9 @@ class ProjectEPool(ProjectE):
 
         self.renew_search_body()
 
-    def update_pool(self, session: Session) -> None:
-        self.parse_parameters(session)
-        self.soft_update(session, only_db=True)
+    def update_pool(self, session: Session, fs: FSession) -> None:
+        self.parse_parameters(session, fs)
+        self.update_(session, fs, only_db=True)
 
     def add_to_db(self, session: Session) -> None:
         template = ProjectTemplateDB(
@@ -331,7 +333,7 @@ class ProjectEPool(ProjectE):
         session.execute(stmt)
 
     @staticmethod
-    def create_pool(session: Session, variants: list) -> 'ProjectEPool':
+    def create_pool(session: Session, fs: FSession, variants: list) -> 'ProjectEPool':
 
         lids = [variant.split(":")[0] for variant in variants]
 
@@ -340,42 +342,34 @@ class ProjectEPool(ProjectE):
             log.warning(f"Not all projects are available. Cancelling create pool.")
             raise DBError()
 
-        backups = []
+        log.debug(f"Synchronizing projects variants.")
+        for lid in lids:
+            project = ProjectE.load_from_db(session, fs, lid)
+            project.lvariants = variants
+            project.update_db(session)
+            project.update_vinfo(fs)
 
-        try:
-            log.debug(f"Synchronizing projects variants.")
-            for lid in lids:
-                project = ProjectE.load_from_db(session, lid)
-                project.lvariants = variants
-                project.update_db(session)
-                b = project.update_vinfo()
-                backups.append(b)
+        priority, non_priority = utils.separate_priority(variants)
+        log.debug(f"Priority: {priority}, Non-priority: {non_priority}")
 
-            priority, non_priority = utils.separate_priority(variants)
-            log.debug(f"Priority: {priority}, Non-priority: {non_priority}")
+        priority_project = ProjectE.load_from_db(session, fs, priority[0][0])
+        del priority_project.lid
 
-            priority_project = ProjectE.load_from_db(session, priority[0][0])
-            del priority_project.lid
+        template_pool = ProjectEPool(
+            lid=f"pool_{utils.gen_lid()}",
+            **priority_project.model_dump()
+        )
 
-            template_pool = ProjectEPool(
-                lid=f"pool_{utils.gen_lid()}",
-                **priority_project.model_dump()
-            )
+        if template_pool.lid.startswith("pool_") is False:
+            log.error(f"Template has not been cleaared from lid")
+            raise DBError()
 
-            if template_pool.lid.startswith("pool_") is False:
-                log.error(f"Template has not been cleaared from lid")
-                raise DBError()
+        template_pool.parse_parameters(session, fs)
+        template_pool.__deactivate_variants(session)
+        template_pool.add_to_db(session)
+        log.info(f"Pool: {template_pool.lid} created.")
+        return template_pool
 
-            template_pool.parse_parameters(session)
-            template_pool.__deactivate_variants(session)
-            template_pool.add_to_db(session)
-            log.info(f"Pool: {template_pool.lid} created.")
-            return template_pool
-        except:
-            for b in backups:
-                b.load_model("backup")
-                b.commit()
-            raise
 
 
 

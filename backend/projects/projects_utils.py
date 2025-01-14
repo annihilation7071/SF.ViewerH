@@ -14,6 +14,7 @@ from backend.classes.files import ProjectInfoFile
 from backend.classes.db import Project
 from backend.classes.lib import Lib
 from typing import TYPE_CHECKING
+from backend.modules.filesession import FileSession, FSession
 
 if TYPE_CHECKING:
     from backend.projects.projects import Projects
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
 log = logger.get_logger("Projects.updater")
 
 
-def update_projects(session: Session) -> None:
+def update_projects(session: Session, fs: FSession) -> None:
     log.debug("update_projects")
     log.info("Updating projects ...")
 
@@ -66,18 +67,18 @@ def update_projects(session: Session) -> None:
 
         for dir_name in dirs_not_in_db:
             project_path = path / dir_name
-            add_project_dir_to_db(session, lib, project_path, processor_name)
+            add_project_dir_to_db(session, fs, lib, project_path, processor_name)
 
 
-def add_project_dir_to_db(session: Session, lib: Lib, project_path: Path, processor_name: str) -> None:
+def add_project_dir_to_db(session: Session, fs: FSession, lib: Lib, project_path: Path, processor_name: str) -> None:
     log.debug(f"Adding {project_path.name} ...")
 
-    project = get_project_info(project_path)
+    project = get_project_info(fs, project_path)
     if project is None:
         log.debug(f"vinfo for {project_path.name} not found...")
         log.info(f"Preparing project {project_path.name} ...")
-        general.make_v_info(project_path, processor_name)
-        project = get_project_info(project_path)
+        general.make_v_info(fs, project_path, processor_name)
+        project = get_project_info(fs, project_path)
 
     project_to_db = ProjectTemplateDB(
         lib=lib.name,
@@ -117,7 +118,7 @@ def check_dirs(session: Session, lib: Lib, dirs: list[str]) -> tuple:
     return dirs_not_in_db, dirs_not_exist
 
 
-def get_project_info(path: Path) -> ProjectTemplate | None:
+def get_project_info(fs, path: Path) -> ProjectTemplate | None:
     log.debug("get_v_info")
     with open('./backend/v_info.json', 'r', encoding='utf-8') as f:
         v_info_example = json.load(f)
@@ -136,9 +137,9 @@ def get_project_info(path: Path) -> ProjectTemplate | None:
             project_info = vinfo.upgrade(path, project_info)
 
             project_infofile.set(project_info)
-            project_infofile.commit()
+            project_infofile.save(fs)
 
-            return get_project_info(path)
+            return get_project_info(fs, path)
 
     else:
         return None

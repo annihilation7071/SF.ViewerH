@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, update
 from backend.projects import projects_utils
 from backend.editor import selector
+from backend.modules.filesession import FileSession, FSession
 
 ic.configureOutput(includeContext=True)
 
@@ -91,11 +92,15 @@ class Projects:
 
         projects = []
 
-        with dep.Session() as session:
+        with dep.Session() as session, FileSession() as fs:
+            # Plus update preview and pages count
             selected_projects = session.scalars(self.projects.offset(((page - 1) * ppg)).limit(ppg))
 
             for project in selected_projects:
-                projects.append(ProjectE.load_from_db(session, project.lid))
+                projects.append(ProjectE.load_from_db(session, fs, project.lid))
+
+            session.commit()
+            fs.commit()
 
         return projects
 
@@ -105,15 +110,20 @@ class Projects:
             return session.scalar(stmt)
 
     def renew(self):
-        with dep.Session() as session:
-            self.update_pools_(session)
-            self.update_aliases_(session)
+        with dep.Session() as session, FileSession() as fs:
+            self.update_pools_(session, fs)
+            self.update_aliases_(session, fs)
             session.commit()
+            fs.commit()
 
     def get_project(self, lid: str) -> ProjectE:
         log.debug("get_project")
-        with dep.Session() as session:
-            return ProjectE.load_from_db(session, lid)
+        with dep.Session() as session, FileSession() as fs:
+            # Plus update preview and pages count
+            projecte = ProjectE.load_from_db(session, fs, lid)
+            session.commit()
+            fs.commit()
+            return projecte
 
     def check_project(self, site: str, id_: str | int):
         id_ = str(id_)
@@ -129,9 +139,10 @@ class Projects:
             return session.scalar(stmt)
 
     def update_projects(self):
-        with dep.Session() as session:
-            projects_utils.update_projects(session)
+        with dep.Session() as session, FileSession() as fs:
+            projects_utils.update_projects(session, fs)
             session.commit()
+            fs.commit()
 
     def count_item(self, item_: str) -> list:
         log.debug(f"count_item: {item_}")
@@ -148,9 +159,11 @@ class Projects:
         return sorted(result.items(), key=lambda x: x[1], reverse=True)
 
     def edit(self, project: ProjectE, edit_type: str, data: str):
-        with dep.Session() as session:
-            selector.edit(session, project, edit_type, data)
+        with dep.Session() as session, FileSession() as fs:
+            r = selector.edit(session, fs, project, edit_type, data)
             session.commit()
+            fs.commit()
+            return r
 
     def clear_old_versions_(self, session: Session, target_version: int):
         log.debug(f"clear_old_versions: target version: {target_version}")
@@ -160,16 +173,16 @@ class Projects:
     def delete_by_dir_and_lib_(self, session: Session, dir_name: str, lib: Lib):
         log.debug(f"delete_by_dir_and_lib: {dir_name}, {lib.name}", )
         stmt = select(Project).filter_by(dir_name=dir_name, lib=lib.name)
-        with dep.Session() as session:
-            project = session.scalars(self.all_projects.filter_by(dir_name=dir_name, lib=lib.name)).first()
 
-            if project:
-                session.delete(project)
-                session.commit()
+        project = session.scalars(self.all_projects.filter_by(dir_name=dir_name, lib=lib.name)).first()
 
-                log.debug("project deleted from db")
-            else:
-                log.error("Project not found in db")
+        if project:
+            session.delete(project)
+            session.commit()
+
+            log.debug("project deleted from db")
+        else:
+            log.error("Project not found in db")
 
     def get_dirs_(self, session: Session, lib_name: str = None):
         log.debug("get_dirs")
@@ -191,7 +204,7 @@ class Projects:
         log.info("delete_all_data")
         session.query(Project).delete()
 
-    def update_aliases_(self, session: Session):
+    def update_aliases_(self, session: Session, fs: FSession):
         aliases = utils.get_aliases()
         aliases["nothing"] = "nothing"
         stmt = [
@@ -208,7 +221,7 @@ class Projects:
         incorrect_aliases = session.scalars(self.active_projects.where(or_(*stmt))).all()
 
         for project in incorrect_aliases:
-            projecte = ProjectE.load_from_db(dep.libs[project.lib], session)
+            projecte = ProjectE.load_from_db(session, fs, project.lid)
             update = defaultdict(list)
 
             for category in ["tag", "artist", "group", "parody", "character", "language"]:
@@ -235,7 +248,7 @@ class Projects:
             projecte_updated = projecte.model_copy(update=update)
             projecte_updated.renew_search_body()
 
-            projecte_updated.update_(session)
+            projecte_updated.update_(session, fs=fs)
 
     def delete_pool_(self, session: Session, variants: list) -> None:
         log.debug(f"delete_pool: {variants}")
@@ -250,15 +263,16 @@ class Projects:
     # noinspection da
     def create_priority_(self,
                          session: Session,
+                         fs: FSession,
                          variants: list,
                          ) -> str:
         log.debug("create_priority")
 
-        pool = ProjectEPool.create_pool(session, variants)
+        pool = ProjectEPool.create_pool(session, fs, variants)
 
         return pool.lid
 
-    def update_pools_(self, session: Session, force: bool = False):
+    def update_pools_(self, session: Session, fs: FSession, force: bool = False):
         log.info(f"Updating pools...")
 
         pool_need_create = []
@@ -316,4 +330,4 @@ class Projects:
 
             if len(exist_pool) == 0:
                 log.info(f"Pool not found. Creating new pool...")
-                ProjectEPool.create_pool(session, variant)
+                ProjectEPool.create_pool(session, fs, variant)

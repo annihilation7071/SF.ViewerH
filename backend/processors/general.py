@@ -4,6 +4,7 @@ from backend import utils
 from backend.classes.templates import ProjectTemplate
 from pathlib import Path
 from backend import logger
+from backend.modules.filesession import FSession
 from backend.upgrade.vinfo import upgrade
 from importlib import import_module
 from backend.classes.files import ProjectInfoFile
@@ -13,7 +14,7 @@ log = logger.get_logger("Processor.general")
 meta_file = "metadata.json"
 
 
-def make_v_info(path: Path, processor_name: str) -> None:
+def make_v_info(fs: FSession, path: Path, processor_name: str) -> None:
     log.debug("make_v_info")
     log.info(f"Processing: {path}")
     template = ProjectTemplate()
@@ -35,5 +36,5 @@ def make_v_info(path: Path, processor_name: str) -> None:
         template=template,
     )
 
-    project_info_file.create()
+    project_info_file.create(fs)
 

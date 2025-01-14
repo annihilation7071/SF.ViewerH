@@ -13,6 +13,7 @@ from backend.classes.db import Project
 from backend.classes.templates import ProjectTemplate
 from typing import TYPE_CHECKING, Annotated
 from importlib import import_module
+from backend.modules.filesession import FileSession, FSession
 
 if TYPE_CHECKING:
     from backend.classes.projecte import ProjectE
@@ -335,21 +336,29 @@ def make_search_body(project: Annotated[dict, 'ProjectE', Project, ProjectTempla
     return search_body
 
 
-def write_json(path: Path, data: dict | list | ProjectTemplate) -> None:
-    try:
-        if isinstance(data, list | dict):
-            with open(path, 'w', encoding="utf-8") as f:
-                # noinspection PyTypeChecker
-                json.dump(data, f, indent=4, ensure_ascii=False)
-        elif isinstance(data, ProjectTemplate):
-            with open(path, 'w', encoding="utf-8") as f:
-                # noinspection PyTypeChecker
-                json.dump(json.loads(data.model_dump_json()), f, indent=4, ensure_ascii=False)
-        else:
-            raise TypeError(f"Unsupported type {type(data)}")
-    except:
-        log.exception("Failed to write json")
-        raise
+def write_json(path: Path, data: dict | list | ProjectTemplate, fs: FSession = None) -> None:
+
+    def f(fs_: FSession):
+        try:
+            if isinstance(data, list | dict):
+                with fs_.open(path, 'w', encoding="utf-8") as f:
+                    # noinspection PyTypeChecker
+                    json.dump(data, f, indent=4, ensure_ascii=False)
+            elif isinstance(data, ProjectTemplate):
+                with fs_.open(path, 'w', encoding="utf-8") as f:
+                    # noinspection PyTypeChecker
+                    json.dump(json.loads(data.model_dump_json()), f, indent=4, ensure_ascii=False)
+            else:
+                raise TypeError(f"Unsupported type {type(data)}")
+        except:
+            log.exception("Failed to write json")
+            raise
+
+    if fs is None:
+        with FileSession() as fs:
+            f(fs)
+    else:
+        f(fs)
 
 
 def read_json(path: Path) -> dict | list | ProjectTemplate:

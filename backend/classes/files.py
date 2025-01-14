@@ -74,17 +74,14 @@ class ProjectInfoFile(BaseModel):
             log.exception(str(e), exc_info=e)
             raise e
 
-    def commit(self) -> None:
+    def save(self, fs) -> None:
         log.debug("")
         if self.__status == "prepared_to_edit":
-            try:
-                utils.write_json(self.__path, self.__data)
-                self.__backup = None
-                self.__status = "ready"
-            except Exception:
-                utils.write_json(self.__path, self.__backup)
-                log.exception("Failed to write project info file. Returning original data.")
-                raise
+
+            utils.write_json(self.__path, self.__data, fs=fs)
+            self.__backup = None
+            self.__status = "ready"
+
         elif self.__status == "not exist":
             e = ProjectInfoFileError("Project info file not existing. Use write to create file.")
             log.exception(e)
@@ -94,7 +91,7 @@ class ProjectInfoFile(BaseModel):
             log.exception(str(e), exc_info=e)
             raise e
 
-    def rollback(self) -> None:
+    def cancel_changes(self) -> None:
         log.debug("")
         if self.__status == "prepared_to_edit":
             self.__data = self.__backup
@@ -112,37 +109,23 @@ class ProjectInfoFile(BaseModel):
             log.exception(str(e), exc_info=e)
             raise e
 
-    def save_model(self, name: str) -> None:
-        log.debug("")
-        if self.__status == "ready":
-            self.__saves[name] = self.__data
-        else:
-            raise ProjectInfoFileError("Save project able only when model is ready.")
-
-    def load_model(self, name: str) -> None:
-        log.debug("")
-        if self.__status == "ready":
-            self.set(self.__saves[name])
-        elif self.__status == "prepared_to_edit":
-            self.__data = self.__saves[name]
-
     @property
     def data(self) -> ProjectTemplate:
         return self.__data.model_copy(deep=True)
 
-    def create(self, force: bool = False) -> None:
+    def create(self, fs, force: bool = False) -> None:
         log.debug("")
         if self.__status != "not exist":
             if self.__status == "ready" and force:
                 os.makedirs(self.__path.parent, exist_ok=True)
-                utils.write_json(self.__path, self.__data)
+                utils.write_json(self.__path, self.__data, fs=fs)
                 log.info("File written successfully.")
             e = ProjectInfoFileError("Project must not exist to create file. Or use force to create file.")
             log.exception(e)
             raise e
         else:
             os.makedirs(self.__path.parent, exist_ok=True)
-            utils.write_json(self.__path, self.__data)
+            utils.write_json(self.__path, self.__data, fs=fs)
             log.info("File written successfully.")
 
     @property
