@@ -345,9 +345,10 @@ class ProjectEPool(ProjectE):
         log.debug(f"Synchronizing projects variants.")
         for lid in lids:
             project = ProjectE.load_from_db(session, fs, lid)
-            project.lvariants = variants
-            project.update_db(session)
-            project.update_vinfo(fs)
+            if project.lvariants != variants:
+                project.lvariants = variants
+                project.update_db(session)
+                project.update_vinfo(fs)
 
         priority, non_priority = utils.separate_priority(variants)
         log.debug(f"Priority: {priority}, Non-priority: {non_priority}")

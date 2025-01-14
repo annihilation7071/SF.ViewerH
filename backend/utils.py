@@ -224,24 +224,6 @@ def get_imagehash(path: str | Path) -> str:
     return hash_
 
 
-def update_vinfo(project_path: str | Path, keys: list, values: list):
-    path = Path(project_path)
-    path = path / "sf.viewer/v_info.json"
-
-    with open(path, 'r', encoding="utf-8") as f:
-        vinfo = json.load(f)
-
-    for i in range(len(keys)):
-        if keys[i] in vinfo:
-            vinfo[keys[i]] = values[i]
-        else:
-            raise IOError(f"ERROR: Key {keys[i]} not in vinfo")
-
-    with open(path, 'w', encoding="utf-8") as f:
-        # noinspection PyTypeChecker
-        json.dump(vinfo, f, indent=4)
-
-
 def separate_url(url: str):
     allowed_sites = {
         "nhentai.net",
@@ -337,6 +319,7 @@ def make_search_body(project: Annotated[dict, 'ProjectE', Project, ProjectTempla
 
 
 def write_json(path: Path, data: dict | list | ProjectTemplate, fs: FSession = None) -> None:
+    log.debug("write_json")
 
     def f(fs_: FSession):
         try:
