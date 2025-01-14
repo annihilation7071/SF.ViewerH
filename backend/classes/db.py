@@ -23,16 +23,16 @@ class Base(DeclarativeBase):
 class Project(Base):
     __tablename__ = 'projects'
     _id = Column(Integer, primary_key=True, index=True, nullable=False)
-    info_version = Column(Integer)
+    info_version = Column(Integer, index=True)
     lid = Column(String, unique=True, index=True)
-    lvariants = Column(JSON)
-    source_id = Column(String)
-    source = Column(String)
+    lvariants = Column(JSON, index=True)
+    source_id = Column(String, index=True)
+    source = Column(String, index=True)
     url = Column(String(length=500))
     downloader = Column(String)
     title = Column(String(length=500))
     subtitle = Column(String(length=500))
-    upload_date = Column(DateTime)
+    upload_date = Column(DateTime, index=True)
     preview = Column(String(length=500))
     parody = Column(JSON)
     character = Column(JSON)
@@ -43,11 +43,11 @@ class Project(Base):
     category = Column(JSON)
     series = Column(JSON)
     pages = Column(Integer)
-    dir_name = Column(String(length=500))
-    lib = Column(String)
-    search_body = Column(String(length=3000))
-    active = Column(Boolean, default=True)
-    preview_hash = Column(String(length=500))
+    dir_name = Column(String(length=500), index=True)
+    lib = Column(String, index=True)
+    search_body = Column(String(length=3000), index=True)
+    active = Column(Boolean, default=True, index=True)
+    preview_hash = Column(String(length=500), index=True)
 
     @classmethod
     def get_columns(cls, exclude: list = None) -> list:
