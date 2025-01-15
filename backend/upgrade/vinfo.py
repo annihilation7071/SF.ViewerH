@@ -35,6 +35,11 @@ def upgrade(project_path: Path, template_: ProjectTemplate = None) -> None | Pro
         template = upgrade_to_3(project_path, template)
         upgraded = True
 
+    if template.info_version == 3:
+        log.debug("Current version is 3. Upgrading to 4.")
+        template = upgrade_to_4(template)
+        upgraded = True
+
     if upgraded is False:
         log.debug("Upgrading not need.")
         if template_:
@@ -62,4 +67,16 @@ def upgrade_to_3(project_path: Path, template: ProjectTemplate) -> ProjectTempla
     template.info_version = 3
 
     log.debug(f"Upgrade to version 3 completed")
+    return template
+
+
+def upgrade_to_4(template: ProjectTemplate) -> ProjectTemplate:
+    log.debug("Upgrading to v4.")
+
+    template.episodes = []
+    log.debug(template.preview_hash)
+
+    template.info_version = 4
+
+    log.debug(f"Upgrade to version 4 completed")
     return template

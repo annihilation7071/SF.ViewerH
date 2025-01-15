@@ -48,6 +48,7 @@ class Project(Base):
     search_body = Column(String(length=3000), index=True)
     active = Column(Boolean, default=True, index=True)
     preview_hash = Column(String(length=500), index=True)
+    episodes = Column(JSON)
 
     @classmethod
     def get_columns(cls, exclude: list = None) -> list:

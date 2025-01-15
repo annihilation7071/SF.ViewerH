@@ -2,7 +2,7 @@ from backend import dep
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, ValidationInfo
 from backend.classes.db import Project
 import os
 from backend.classes.lib import Lib
@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from backend.classes.templates import ProjectTemplateDB
 from sqlalchemy import select, update, delete
 from backend.modules.filesession import FileSession, FSession
+import re
 
 log = logger.get_logger("Classes.projects")
 
@@ -52,9 +53,18 @@ class ProjectDB(BaseModel):
     search_body: str
     active: bool
     preview_hash: str
+    episodes: list[str]
 
     class Config:
         arbitrary_types_allowed = True
+
+    @field_validator("lvariants", mode="after")
+    @classmethod
+    def check_lvariants(cls, v: list[str], info: ValidationInfo) -> list[str]:
+        for variant in v:
+            if not re.fullmatch(r'^[a-zA-Z\d]*_[a-zA-Z\d]*:[^:]*($|:(p|P|priority))$', variant):
+                raise ValueError("Incorrect variants")
+        return v
 
     def attr(self) -> list[str]:
         return [key for key in self.__dict__.keys() if key.startswith("_") is False]

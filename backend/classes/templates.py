@@ -2,13 +2,14 @@ from sqlalchemy.orm import Session
 from backend import dep
 from typing import Any
 from dateutil import parser
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator, ValidationInfo, field_validator
 from datetime import datetime
 from backend import logger
 from backend import utils
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
 from backend.classes.db import Project
+import re
 
 if TYPE_CHECKING:
     from backend.classes.projecte import ProjectDB, ProjectE
@@ -42,9 +43,18 @@ class ProjectTemplate(BaseModel):
     series: list[str] = None
     pages: int = None
     preview_hash: str = None
+    episodes: list[str] = None
 
     class Config:
         arbitrary_types_allowed = True
+
+    @field_validator("lvariants", mode="after")
+    @classmethod
+    def check_lvariants(cls, v: list[str], info: ValidationInfo) -> list[str]:
+        for variant in v:
+            if not re.fullmatch(r'^[a-zA-Z\d]*_[a-zA-Z\d]*:[^:]*($|:(p|P|priority))$', variant):
+                raise ValueError("Incorrect variants")
+        return v
 
     def attr(self) -> list[str]:
         return [key for key in self.__dict__.keys() if key.startswith("_") is False]
@@ -63,7 +73,7 @@ class ProjectTemplate(BaseModel):
 
         jdata["upload date"] = parser.parse(jdata["upload_date"])
         model = cls(**jdata)
-        model.check_not_none()
+        # model.check_not_none()
         return model
 
     @classmethod
