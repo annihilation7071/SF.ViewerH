@@ -7,7 +7,7 @@ from PIL import Image
 import imagehash
 from pathlib import Path
 import asyncio
-from backend import logger
+from backend.modules import logger
 from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
 from backend.classes.db import Project
 from backend.classes.templates import ProjectTemplate

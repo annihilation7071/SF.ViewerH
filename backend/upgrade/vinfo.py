@@ -1,7 +1,7 @@
 from backend import utils
 from pathlib import Path
 from backend.classes.templates import ProjectTemplate
-from backend import logger
+from backend.modules import logger
 from backend.classes.files import ProjectInfoFile
 
 log = logger.get_logger("Upgrader")

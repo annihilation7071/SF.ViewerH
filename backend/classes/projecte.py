@@ -8,7 +8,7 @@ import os
 from backend.classes.lib import Lib
 from backend.classes.files import ProjectInfoFile, ProjectInfoFileError
 import json
-from backend import logger
+from backend.modules import logger
 from backend import utils
 from sqlalchemy.orm import Session
 from backend.classes.templates import ProjectTemplateDB

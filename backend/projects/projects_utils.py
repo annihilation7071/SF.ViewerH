@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 from importlib import import_module
 from backend import utils, cmdargs
-from backend import logger
+from backend.modules import logger
 from backend.upgrade import vinfo
 from backend.processors import general as general
 import json

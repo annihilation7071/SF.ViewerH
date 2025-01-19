@@ -7,7 +7,7 @@ from collections import defaultdict
 from backend import utils
 from backend.classes.templates import ProjectTemplate
 from pathlib import Path
-from backend import logger
+from backend.modules import logger
 from datetime import datetime
 
 log = logger.get_logger("Processor.gallery-dl-hitomila")

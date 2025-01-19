@@ -8,7 +8,7 @@ from backend import utils
 from icecream import ic
 from backend.classes.projecte import ProjectE, ProjectEPool
 from backend.classes.templates import ProjectTemplateDB
-from backend import logger
+from backend.modules import logger
 from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, update
 from backend.projects import projects_utils

@@ -1,7 +1,7 @@
 from backend.utils import run_command
 import os
 import json
-from backend import logger
+from backend.modules import logger
 from backend.classes.lib import Lib
 
 log = logger.get_logger("Downloader.gallerydl")

@@ -10,7 +10,8 @@ from pathlib import Path
 from urllib.parse import quote, unquote
 import mimetypes
 from backend.editor import selector as edit_selector
-from backend import logger
+from backend.modules import logger
+from datetime import datetime
 
 log = logger.get_logger("App.routers.main")
 
@@ -56,12 +57,14 @@ def get_with_cache(project_lid: str):
 @router.get("/", response_class=HTMLResponse, name="index")
 async def index(request: Request, page: int = 1, search: str = ""):
     log.debug(f"index")
+    timer = datetime.now()
     search_query = search.strip().lower()
 
     displayed_projects = projects.get_page(PPG, page=page, search=search_query)
 
     total_pages = (projects.len() + PPG - 1) // PPG
     visible_pages = get_visible_pages(page, total_pages)
+    log.debug(f"Loading time: {datetime.now() - timer}")
 
     return templates.TemplateResponse(
         "index.html",

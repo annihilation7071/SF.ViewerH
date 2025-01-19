@@ -8,7 +8,7 @@ from backend.downloaders.gallerydl import GalleryDLDownloader
 from backend.downloaders.error import DownloaderError
 from backend.projects.projects import Projects
 from backend.projects.projects_utils import update_projects
-from backend import logger
+from backend.modules import logger
 
 log = logger.get_logger("Downloader.main")
 

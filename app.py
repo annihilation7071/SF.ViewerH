@@ -6,11 +6,12 @@ from fastapi.templating import Jinja2Templates
 from backend.projects.projects import Projects
 from backend.projects.projects_utils import update_projects
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from routers import main, extra
 import os
 import asyncio
 from backend import utils
-from backend import logger
+from backend.modules import logger
 
 log = logger.get_logger("App.app")
 
@@ -51,6 +52,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(main.router)
 app.include_router(extra.router)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("static/favicon.ico")
 
 
 if __name__ == "__main__":

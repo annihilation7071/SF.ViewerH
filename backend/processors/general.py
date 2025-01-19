@@ -3,7 +3,7 @@ import os
 from backend import utils
 from backend.classes.templates import ProjectTemplate
 from pathlib import Path
-from backend import logger
+from backend.modules import logger
 from backend.modules.filesession import FSession
 from backend.upgrade.vinfo import upgrade
 from importlib import import_module

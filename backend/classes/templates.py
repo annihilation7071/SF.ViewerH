@@ -4,7 +4,7 @@ from typing import Any
 from dateutil import parser
 from pydantic import BaseModel, model_validator, ValidationInfo, field_validator
 from datetime import datetime
-from backend import logger
+from backend.modules import logger
 from backend import utils
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated

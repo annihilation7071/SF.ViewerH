@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from backend import logger
+from backend.modules import logger
 from backend.classes.db import Base
 
 log = logger.get_logger("DB")
