@@ -62,7 +62,7 @@ async def index(request: Request, page: int = 1, search: str = ""):
 
     displayed_projects = projects.get_page(PPG, page=page, search=search_query)
 
-    total_pages = (len(displayed_projects) + PPG - 1) // PPG
+    total_pages = (projects.len() + PPG - 1) // PPG
     visible_pages = get_visible_pages(page, total_pages)
     log.debug(f"Loading time: {datetime.now() - timer}")
 

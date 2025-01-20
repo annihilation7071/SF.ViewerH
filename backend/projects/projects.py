@@ -40,7 +40,8 @@ class Projects:
         self.sorting_method = Project.upload_date
         self.search = ""
 
-        self.projects = self.active_projects.order_by(desc(self.sorting_method))
+        self.projects_filter = self.active_projects_filter
+        self.projects = select(Project).where(self.projects_filter).order_by(desc(self.sorting_method))
 
         with dep.Session() as session:
             result = session.scalars(self.projects).all()
@@ -62,7 +63,8 @@ class Projects:
 
         if search is None or search == "":
             self.search = ""
-            self.projects = self.active_projects.order_by(desc(self.sorting_method))
+            self.projects_filter = self.active_projects_filter
+            self.projects = select(Project).where(self.projects_filter).order_by(desc(self.sorting_method))
             return
 
         def f(item: str):
@@ -75,8 +77,8 @@ class Projects:
         search = search.split(",")
         search_query = [Project.search_body.icontains(f(item)) for item in search]
 
-        self.projects = self.active_projects.filter(and_(*search_query))
-        self.projects = self.projects.order_by(desc(self.sorting_method))
+        self.projects_filter = and_(self.active_projects_filter, *search_query)
+        self.projects = select(Project).where(self.projects_filter).order_by(desc(self.sorting_method))
 
     def select_sorting_method(self, method: str):
         available = {"upload_date", "preview_hash"}
@@ -106,7 +108,7 @@ class Projects:
 
     def len(self):
         with dep.Session() as session:
-            stmt = select(func.count(Project.lid)).where(self.active_projects_filter)
+            stmt = select(func.count(Project.lid)).where(self.projects_filter)
             return session.scalar(stmt)
 
     def renew(self):
