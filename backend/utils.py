@@ -74,21 +74,21 @@ def read_libs_old(check: bool = True, only_active: bool = True) -> dict:
 
 
 def read_libs(check: bool = True, only_active: bool = True) -> dict[str, Lib]:
-    files = os.listdir("./settings/libs/")
+    libsdir = Path("./settings/libs").absolute()
+    files = os.listdir(libsdir)
     files = [file for file in files if file.startswith('libs_') and file.endswith('.json') and file != "libs_example.json"]
 
     libs = {}
     for file in files:
-        with open(os.path.join("./settings/libs", file), 'r', encoding="utf-8") as f:
+        libfile = libsdir / file
+        with open(libfile, 'r', encoding="utf-8") as f:
             lib = json.load(f)
 
         a = len(libs)
         if len(libs.keys() - lib.keys()) > a:
             raise IOError(f"ERROR: Libs files contain the same names")
 
-        libs.update(lib)
-
-    libs = {key: Lib(name=key, **value) for key, value in libs.items()}
+        libs.update({key: Lib(name=key, libfile=libfile, **value) for key, value in lib.items()})
 
     if only_active:
         non_active = []
@@ -365,3 +365,10 @@ def separate_priority(variants: list) -> tuple[list[list[str]], list[list[str]]]
             non_priority.append(variant)
 
     return priority, non_priority
+
+
+def truncate_text(text: str, max_len: int) -> str:
+    if len(text) > max_len:
+        return text[:max_len-3] + "..."
+    else:
+        return text
