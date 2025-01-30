@@ -9,7 +9,6 @@ misc.xml
 !/settings/download/config_gallery-dl_example.json
 !/settings/download/download_targets_default.json
 /settings/libs/*
-!/settings/libs/libs_default.json
 saved_page
 saved_page.html
 /downloads/*

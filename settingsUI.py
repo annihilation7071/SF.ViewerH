@@ -1,5 +1,6 @@
 import customtkinter
 from backend.settingsUI.mainframe import MainFrame
+from backend import init
 
 
 class App(customtkinter.CTk):
@@ -19,5 +20,6 @@ class App(customtkinter.CTk):
 
 
 if __name__ == '__main__':
+    init.init()
     app = App()
     app.mainloop()

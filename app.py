@@ -12,6 +12,7 @@ import os
 import asyncio
 from backend import utils
 from backend.modules import logger
+from backend import init
 
 log = logger.get_logger("App.app")
 
@@ -25,6 +26,8 @@ project: Projects = None
 # noinspection PyShadowingNames
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    init.init()
+
     # noinspection PyGlobalUndefined
     global projects
     dep.libs = utils.read_libs(only_active=True)

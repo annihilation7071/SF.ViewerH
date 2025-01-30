@@ -8,7 +8,9 @@ from backend.classes.lib import Lib
 from pathlib import Path
 from backend.settingsUI.general import SelectFolder
 
-renew = None
+
+def renew():
+    pass
 
 
 class LibsFrame(customtkinter.CTkFrame):
@@ -255,7 +257,6 @@ class EditorFields(customtkinter.CTkFrame):
             active=bool(self.active_checkbox.get()),
             path=Path(self.path_entry.get())
         )
-        print(lib)
         return lib
 
 
