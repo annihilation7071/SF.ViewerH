@@ -1,5 +1,4 @@
 import os
-from backend.classes.lib import Lib
 import json
 from datetime import datetime
 import uuid
@@ -17,6 +16,7 @@ from backend.modules.filesession import FileSession, FSession
 
 if TYPE_CHECKING:
     from backend.classes.projecte import ProjectE
+    from backend.classes.lib import Lib
 
 
 log = logger.get_logger("Utils")
@@ -73,10 +73,12 @@ def read_libs_old(check: bool = True, only_active: bool = True) -> dict:
     return libs
 
 
-def read_libs(check: bool = True, only_active: bool = True) -> dict[str, Lib]:
+def read_libs(check: bool = True, only_active: bool = True) -> dict[str, 'Lib']:
     libsdir = Path("./settings/libs").absolute()
     files = os.listdir(libsdir)
     files = [file for file in files if file.startswith('libs_') and file.endswith('.json') and file != "libs_example.json"]
+
+    Lib = import_module("backend.classes.lib").Lib
 
     libs = {}
     for file in files:
@@ -340,6 +342,7 @@ def write_json(path: Path, data: dict | list | ProjectTemplate, fs: FSession = N
     if fs is None:
         with FileSession() as fs:
             f(fs)
+            fs.commit()
     else:
         f(fs)
 

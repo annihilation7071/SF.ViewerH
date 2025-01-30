@@ -6,11 +6,17 @@ from tkinter import ttk
 from backend import utils
 from backend.classes.lib import Lib
 from pathlib import Path
+from backend.settingsUI.general import SelectFolder
+
+renew = None
 
 
 class LibsFrame(customtkinter.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+        global renew
+
+        self.master = master
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -18,67 +24,27 @@ class LibsFrame(customtkinter.CTkFrame):
         self.table = LibsList(self)
         self.table.grid(row=0, column=0, sticky='nsew')
 
-        # self.label = customtkinter.CTkLabel(self, text="test")
-        # self.label.grid(row=0, column=2, sticky='nsew')
+        renew = self.renew
 
-
-# class Table(customtkinter.CTkFrame):
-#     def __init__(self, master, **kwargs):
-#         super().__init__(master, **kwargs)
-#
-#         self.grid_rowconfigure(0, weight=1)
-#         self.grid_columnconfigure(0, weight=1)
-#
-#         temp_columnt = ["Lib name", "Downloader", "Active"]
-#         temp_data = [["Example_lib_1", "Example_downloader_1", True],
-#                      ["Example_lib_2", "Example_downloader_2", True],
-#                      ["Example_lib_3", "Example_downloader_3", True],]
-#
-#         self.table = ttk.Treeview(self, columns=temp_columnt, show="headings")
-#         self.table.grid(row=0, column=0, sticky="nsew")
-#
-#         for lib in temp_data:
-#             self.table.insert("", "end", values=lib)
+    def renew(self):
+        self.master.master.renew()
 
 
 class LibsList(customtkinter.CTkScrollableFrame):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master: LibsFrame, **kwargs):
         super().__init__(master, **kwargs)
+
+        self.master = master
 
         self.grid_columnconfigure(0, weight=1)
 
         libs = utils.read_libs(check=False, only_active=False)
 
-        self.make_headers()
+        self.headers = Headers(master=self)
 
         for i in range(len(libs)):
             row = LibField(master=self, lib=list(libs.values())[i])
             row.grid(row=i + 1, column=0, sticky='ew', padx=5, pady=5)
-
-    def make_headers(self):
-        headers = customtkinter.CTkFrame(self)
-        headers.grid(row=0, column=0, sticky='ew', padx=5, pady=5)
-        headers.grid_columnconfigure((0, 1, 2, 3), weight=1)
-
-        headers.header_1 = customtkinter.CTkLabel(
-            headers, text="Lib name", anchor="w", width=300
-        )
-        headers.header_1.grid(row=0, column=0, sticky='w', padx=(5, 25), pady=5)
-
-        headers.header_2 = customtkinter.CTkLabel(
-            headers, text="Processor", width=200, anchor="center"
-        )
-        headers.header_2.grid(row=0, column=1, sticky='ew', padx=(25, 5), pady=5)
-
-        headers.header_3 = customtkinter.CTkLabel(
-            headers, text="Active", width=100, anchor="center"
-        )
-        headers.header_3.grid(row=0, column=2, sticky='ew', padx=(5, 0), pady=5)
-
-        headers.header_4 = customtkinter.CTkButton(
-            headers, text="Add lib", width=117, command=self.create
-        )
-        headers.header_4.grid(row=0, column=3, sticky='e', padx=(0, 5), pady=5)
 
     def create(self):
         new_lib = Lib(
@@ -93,13 +59,42 @@ class LibsList(customtkinter.CTkScrollableFrame):
         editor.grab_set()
 
 
-class LibField(customtkinter.CTkFrame):
-    def __init__(self, master, lib: Lib, **kwargs):
+class Headers(customtkinter.CTkFrame):
+    def __init__(self, master: LibsList, **kwargs):
         super().__init__(master, **kwargs)
 
-        self.columnconfigure((0, 1, 2), weight=1)
+        self.grid(row=0, column=0, sticky='ew', padx=5, pady=5)
+        self.grid_columnconfigure((0, 1, 2, 3), weight=1)
+    
+        self.header_1 = customtkinter.CTkLabel(
+            self, text="Lib name", anchor="w", width=300
+        )
+        self.header_1.grid(row=0, column=0, sticky='w', padx=5, pady=5)
+    
+        self.header_2 = customtkinter.CTkLabel(
+            self, text="Processor", width=200, anchor="center"
+        )
+        self.header_2.grid(row=0, column=1, sticky='ew', padx=5, pady=5)
+    
+        self.header_3 = customtkinter.CTkLabel(
+            self, text="Active", width=50, anchor="w"
+        )
+        self.header_3.grid(row=0, column=2, sticky='ew', padx=5, pady=5)
+    
+        self.header_4 = customtkinter.CTkButton(
+            self, text="Add lib", width=100, command=master.create, fg_color="#4179BC"
+        )
+        self.header_4.grid(row=0, column=3, sticky='e', padx=5, pady=5)
+
+
+class LibField(customtkinter.CTkFrame):
+    def __init__(self, master: LibsList, lib: Lib, **kwargs):
+        super().__init__(master, **kwargs)
+
+        self.columnconfigure((0, 1, 2, 3), weight=1)
 
         self.lib = lib
+        self.master = master
 
         # Lib name
         self.label_1 = customtkinter.CTkLabel(
@@ -145,17 +140,19 @@ class LibField(customtkinter.CTkFrame):
         editor.grab_set()
 
     def set_status(self, *args):
-        print(self.status.get())
+        self.lib.active = bool(self.status.get())
+        self.lib.save()
 
 
 class Editor(customtkinter.CTkToplevel):
-    def __init__(self, master, mode, lib: Lib, **kwargs):
+    def __init__(self, master: LibField | LibsList, mode, lib: Lib, **kwargs):
         super().__init__(master, **kwargs)
 
         self.geometry("800x300")
         self.title("Editor")
 
         self.lib = lib
+        self.master = master
 
         self.grid_rowconfigure((0, 1), weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -167,11 +164,29 @@ class Editor(customtkinter.CTkToplevel):
         self.buttons.grid(row=1, column=0, sticky='nsew', padx=5, pady=5)
 
     def save(self):
-        pass
+        lib = self.labels.get()
+        lib.save()
+        self.cancel()
+        renew()
+
+    def create(self):
+        lib = self.labels.get()
+        lib.create()
+        self.cancel()
+        renew()
+
+    def delete(self):
+        lib = self.labels.get()
+        lib.delete()
+        self.cancel()
+        renew()
+
+    def cancel(self):
+        self.destroy()
 
 
 class EditorFields(customtkinter.CTkFrame):
-    def __init__(self, master, lib: Lib, mode, **kwargs):
+    def __init__(self, master: Editor, lib: Lib, mode, **kwargs):
         super().__init__(master, **kwargs)
 
         # self.grid_rowconfigure(0, weight=1)
@@ -214,9 +229,12 @@ class EditorFields(customtkinter.CTkFrame):
         self.processor = customtkinter.CTkLabel(self, text="Processor")
         self.processor.grid(row=3, column=0, sticky='w', padx=5, pady=5)
 
+        processors = os.listdir(Path("./backend/processors"))
+        processors = [os.path.splitext(processor)[0] for processor in processors]
+        processors = [processor for processor in processors if processor.startswith("__") is False]
         self.processor_menu = customtkinter.CTkOptionMenu(
             self,
-            values=["Example_downloader_1", "Example_downloader_2", "Example_downloader_3"],
+            values=processors,
         )
         self.processor_menu.set(lib.processor)
         self.processor_menu.grid(row=3, column=1, sticky='nsew', padx=5, pady=5)
@@ -225,35 +243,37 @@ class EditorFields(customtkinter.CTkFrame):
         self.path = customtkinter.CTkLabel(self, text="Path")
         self.path.grid(row=4, column=0, sticky='w', padx=5, pady=5)
 
-        self.path_entry = customtkinter.CTkEntry(self, width=20)
-        self.path_entry.insert(0, lib.path)
+        self.path_entry = SelectFolder(self, width=20)
+        self.path_entry.set(lib.path)
         self.path_entry.grid(row=4, column=1, sticky='nsew', padx=5, pady=5)
 
-    def get(self):
-        return Lib(
+    def get(self) -> Lib:
+        lib = Lib(
             libfile=Path(f"./settings/libs/{self.libfile_entry.get()}.json"),
             name=self.name_entry.get(),
             processor=self.processor_menu.get(),
             active=bool(self.active_checkbox.get()),
             path=Path(self.path_entry.get())
         )
+        print(lib)
+        return lib
 
 
 class EditButtons(customtkinter.CTkFrame):
-    def __init__(self, master, mode, **kwargs):
+    def __init__(self, master: Editor, mode, **kwargs):
         super().__init__(master, **kwargs)
 
-        self.cancel = customtkinter.CTkButton(self, text="Cancel")
+        self.cancel = customtkinter.CTkButton(self, text="Cancel", command=master.cancel)
         self.cancel.grid(row=0, column=2, sticky='nsew', padx=5, pady=5)
 
         if mode == "edit":
             self.grid_columnconfigure((0, 1, 2), weight=1)
-            self.save = customtkinter.CTkButton(self, text="Save")
+            self.save = customtkinter.CTkButton(self, text="Save", command=master.save)
             self.save.grid(row=0, column=0, sticky='nsew', padx=5, pady=5)
-            self.delete = customtkinter.CTkButton(self, text="Delete", fg_color="#6B1917")
+            self.delete = customtkinter.CTkButton(self, text="Delete", fg_color="#6B1917", command=master.delete)
             self.delete.grid(row=0, column=1, sticky='nsew', padx=5, pady=5)
         elif mode == "create":
             self.grid_columnconfigure((0, 1), weight=1)
-            self.create = customtkinter.CTkButton(self, text="Create")
+            self.create = customtkinter.CTkButton(self, text="Create", command=master.create)
             self.create.grid(row=0, column=0, sticky='nsew', padx=5, pady=5)
             self.cancel.grid(row=0, column=1, sticky='nsew', padx=5, pady=5)
