@@ -5,14 +5,12 @@ venv.bat
 misc.xml
 .idea
 /settings/download/*
-!/settings/download/config_nhentai_example.json
-!/settings/download/config_gallery-dl_example.json
-!/settings/download/download_targets_default.json
 /settings/libs/*
 saved_page
 saved_page.html
 /downloads/*
-!/downloads
+/downloads/default-*/*
+!/downloads/default-*
 /extension/**/*.pem
 __pycache__
 /.gitconfig

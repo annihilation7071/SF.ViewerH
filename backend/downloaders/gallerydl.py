@@ -3,6 +3,7 @@ import os
 import json
 from backend.modules import logger
 from backend.classes.lib import Lib
+from backend.classes.dsettings import GalleryDLSettings
 
 log = logger.get_logger("Downloader.gallerydl")
 
@@ -22,33 +23,16 @@ class GalleryDLDownloader:
         output += f"\\{self.id_}"
         command = f"gallery-dl --write-info-json --directory={output}"
 
-        if os.path.exists("./settings/download/config_gallery-dl.json"):
-            with open("./settings/download/config_gallery-dl.json", "r", encoding="utf-8") as f:
-                params = json.load(f)
+        settings = GalleryDLSettings.load(site)
 
-        if site in params and "proxy" in params[site]:
-            log.debug(f"proxy: {params[site]['proxy']}")
-            com = f' --proxy="{params[site]["proxy"]}"'
-            command += com
-        elif "proxy" in params["all"]:
-            log.debug(f"proxy: {params['all']['proxy']}")
-            com = f' --proxy="{params["all"]["proxy"]}"'
-            command += com
+        if settings.proxy:
+            command += f' --proxy="{settings.proxy}"'
 
-        if site in params and "user-agent" in params[site]:
-            log.debug(f"user-agent: {params[site]['user-agent']}")
-            com = f' --user-agent="{params[site]["user-agent"]}"'
-            command += com
-        elif "user-agent" in params["all"]:
-            log.debug(f"user-agent: {params['all']['user-agent']}")
-            com = f' --user-agent="{params["all"]["user-agent"]}"'
-            command += com
+        if settings.user_agent:
+            command += f' --user-agent="{settings.user_agent}"'
 
-        if site in params and "cookies" in params[site]:
-            if params[site]["cookies"] is not None and params[site]["cookies"] != "E:\\example\\cookies_file.txt":
-                log.debug(f"cookies: {params[site]['cookies']}")
-                com = f' --cookies="{params[site]["cookies"]}"'
-                command += com
+        if settings.cookies:
+            command += f' --cookies="{settings.cookies}"'
 
         command += f" {self.url}"
         self.command = command

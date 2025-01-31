@@ -19,6 +19,7 @@ class MainFrame(customtkinter.CTkTabview):
         self.libsframe = LibsFrame(master=self.libstab)
         self.libsframe.grid(row=0, column=0, sticky="nsew", rowspan=2, columnspan=2)
 
+
     def renew(self):
         self.libsframe.destroy()
         self.libsframe = LibsFrame(master=self.libstab)

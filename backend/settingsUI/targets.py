@@ -1,0 +1,4 @@
+import customtkinter
+
+
+class TargetsFrame:

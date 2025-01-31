@@ -9,6 +9,9 @@ from backend.downloaders.error import DownloaderError
 from backend.projects.projects import Projects
 from backend.projects.projects_utils import update_projects
 from backend.modules import logger
+from backend.classes.dsettings import NhentaiSettings, GalleryDLSettings
+from backend import utils
+from pathlib import Path
 
 log = logger.get_logger("Downloader.main")
 
@@ -34,12 +37,7 @@ async def _download(url: str, projects: Projects):
 
     url, site, id_ = utils.separate_url(url)
 
-    if os.path.exists("./settings/download/download_targets.json"):
-        with open("./settings/download/download_targets.json", "r", encoding="utf-8") as f:
-            targets = json.load(f)
-    else:
-        with open("./settings/download/download_targets_default.json", "r", encoding="utf-8") as f:
-            targets = json.load(f)
+    targets = utils.read_json(Path("./settings/download/download_targets.json"))
 
     if site not in targets:
         raise DownloaderError(f"Not found setting for {site} in download_targets.json")
@@ -92,5 +90,3 @@ async def download(url: str, projects: Projects):
         await _download(url, projects)
     finally:
         downloader_is_working = False
-
-

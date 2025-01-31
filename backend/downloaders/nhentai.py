@@ -3,6 +3,7 @@ import os
 import json
 from backend.modules import logger
 from backend.classes.lib import Lib
+from backend.classes.dsettings import NhentaiSettings
 
 log = logger.get_logger("Downloader.nhentai")
 
@@ -17,27 +18,18 @@ class NHentaiDownloader:
     @staticmethod
     def prepare():
         log.debug("prepare")
-        if os.path.exists("./settings/download/config_nhentai.json"):
-            with open("./settings/download/config_nhentai.json", "r", encoding="utf-8") as f:
-                params = json.load(f)
+        settings = NhentaiSettings.load()
 
-        if "proxy" in params:
-            log.debug(f"proxy: {params['proxy']}")
-            com = f"nhentai --proxy={params['proxy']}"
+        if settings.proxy:
+            com = f"nhentai --proxy={settings.proxy}"
             os.system(com)
 
-        if "useragent" in params:
-            log.debug(f"useragent: {params['useragent']}")
-            com = f"nhentai --user-agent={params['useragent']}"
+        if settings.user_agent:
+            com = f"nhentai --user-agent={settings.user_agent}"
             os.system(com)
 
-        if "csrftoken" in params and \
-                "sessionid" in params and \
-                "cf_clearance" in params:
-            log.debug(f"csrftoken: {params['csrftoken']}")
-            log.debug(f"sessionid: {params['sessionid']}")
-            log.debug(f"cf_clearance: {params['cf_clearance']}")
-            com = f'nhentai --cookie="csrftoken={params["csrftoken"]}; sessionid={params["sessionid"]}; cf_clearence={params["cf_clearance"]}"'
+        if settings.cookies:
+            com = f'nhentai --cookie="{settings.cookies}"'
             os.system(com)
 
     async def start(self):

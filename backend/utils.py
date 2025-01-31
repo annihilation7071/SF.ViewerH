@@ -2,6 +2,7 @@ import os
 import json
 from datetime import datetime
 import uuid
+import re
 from PIL import Image
 import imagehash
 from pathlib import Path
@@ -13,6 +14,8 @@ from backend.classes.templates import ProjectTemplate
 from typing import TYPE_CHECKING, Annotated
 from importlib import import_module
 from backend.modules.filesession import FileSession, FSession
+from http import cookiejar
+from pathlib import Path
 
 if TYPE_CHECKING:
     from backend.classes.projecte import ProjectE
@@ -234,7 +237,6 @@ def separate_url(url: str):
 
     url = url.split('//')
     url = [url[0]] + url[1].split('/')
-    print(url)
     protocol = url[0]
     site = url[1]
     address = url[2:]
@@ -253,7 +255,7 @@ def separate_url(url: str):
         return url, site, id_
 
     if site == "nhentai.net":
-        id_ = address[1]
+        id_ = address[1].split("#")[0]
         url = f"{protocol}//{site}/{address[0]}/{id_}"
 
         log.debug(f"url: {url}, site: {site}, id_: {id_}")
@@ -375,3 +377,15 @@ def truncate_text(text: str, max_len: int) -> str:
         return text[:max_len-3] + "..."
     else:
         return text
+
+
+def load_cookies_from_file(path: Path) -> dict:
+    cookie_jar = cookiejar.MozillaCookieJar()
+    cookie_jar.load(str(path), ignore_discard=True, ignore_expires=True)
+
+    cookies = {}
+
+    for cookie in cookie_jar:
+        cookies[cookie.name] = cookie.value
+
+    return cookies
