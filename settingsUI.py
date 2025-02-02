@@ -1,6 +1,7 @@
 import customtkinter
-from backend.settingsUI.mainframe import MainFrame
+from backend.settingsUIb.mainframe import MainFrame
 from backend import init
+from backend import dep
 
 
 class App(customtkinter.CTk):
@@ -15,11 +16,14 @@ class App(customtkinter.CTk):
         self.mainframe = MainFrame(self)
         self.mainframe.grid(column=0, row=0, padx=10, pady=(0, 10), sticky="nsew")
 
-
-
+    def renew(self):
+        self.mainframe.destroy()
+        self.mainframe = MainFrame(self)
+        self.mainframe.grid(column=0, row=0, padx=10, pady=(0, 10), sticky="nsew")
 
 
 if __name__ == '__main__':
     init.init()
     app = App()
+    dep.settingsUI = app
     app.mainloop()

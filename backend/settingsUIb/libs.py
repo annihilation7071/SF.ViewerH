@@ -6,17 +6,13 @@ from tkinter import ttk
 from backend import utils
 from backend.classes.lib import Lib
 from pathlib import Path
-from backend.settingsUI.general import SelectFolder
-
-
-def renew():
-    pass
+from backend.settingsUIb.general import SelectFolder
+from backend import dep
 
 
 class LibsFrame(customtkinter.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        global renew
 
         self.master = master
 
@@ -25,11 +21,6 @@ class LibsFrame(customtkinter.CTkFrame):
 
         self.table = LibsList(self)
         self.table.grid(row=0, column=0, sticky='nsew')
-
-        renew = self.renew
-
-    def renew(self):
-        self.master.master.renew()
 
 
 class LibsList(customtkinter.CTkScrollableFrame):
@@ -169,19 +160,19 @@ class Editor(customtkinter.CTkToplevel):
         lib = self.labels.get()
         lib.save()
         self.cancel()
-        renew()
+        dep.settingsUI.renew()
 
     def create(self):
         lib = self.labels.get()
         lib.create()
         self.cancel()
-        renew()
+        dep.settingsUI.renew()
 
     def delete(self):
         lib = self.labels.get()
         lib.delete()
         self.cancel()
-        renew()
+        dep.settingsUI.renew()
 
     def cancel(self):
         self.destroy()
