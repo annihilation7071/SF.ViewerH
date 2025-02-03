@@ -6,6 +6,7 @@ import http.cookiejar
 from pathlib import Path
 from backend import utils
 from backend.modules import logger
+from collections import defaultdict
 
 log = logger.get_logger("Downloader.settings")
 
@@ -49,17 +50,17 @@ class NhentaiSettings(DSettings):
 
     @classmethod
     def load(cls):
-        settings = utils.read_json(Path("./settings/download/settings.json"))
+        settings = BaseSettings.load()
 
-        proxy = settings["nhentai"]["proxy"]
+        proxy = settings["nhentai"].proxy
         if proxy is None:
-            proxy = settings["general"]["proxy"]
+            proxy = settings["general"].proxy
 
-        user_agent = settings["nhentai"]["user_agent"]
+        user_agent = settings["nhentai"].user_agent
         if user_agent is None:
-            user_agent = settings["general"]["user_agent"]
+            user_agent = settings["general"].user_agent
 
-        cookies = settings["nhentai"]["cookies"]
+        cookies = settings["nhentai"].cookies
 
         return cls(
             proxy=proxy,
@@ -74,21 +75,21 @@ class GalleryDLSettings(DSettings):
 
     @classmethod
     def load(cls, site: str):
-        settings = utils.read_json(Path("./settings/download/settings.json"))
+        settings = BaseSettings.load()
 
-        proxy = settings[f"gallery-dl-({site})"]["proxy"]
+        proxy = settings[f"gallery-dl-({site})"].proxy
         if proxy is None:
-            proxy = settings[f"gallery-dl-general"]["proxy"]
+            proxy = settings[f"gallery-dl-general"].proxy
         if proxy is None:
-            proxy = settings[f"general"]["proxy"]
+            proxy = settings[f"general"].proxy
 
-        user_agent = settings[f"gallery-dl-({site})"]["user_agent"]
+        user_agent = settings[f"gallery-dl-({site})"].user_agent
         if user_agent is None:
-            user_agent = settings[f"gallery-dl-general"]["user_agent"]
+            user_agent = settings[f"gallery-dl-general"].user_agent
         if user_agent is None:
-            user_agent = settings[f"general"]["user_agent"]
+            user_agent = settings[f"general"].user_agent
 
-        cookies = settings[f"gallery-dl-({site})"]["cookies"]
+        cookies = settings[f"gallery-dl-({site})"].cookies
         if cookies is not None:
             cookies = Path(cookies)
             if cookies.exists() is False:
@@ -100,5 +101,49 @@ class GalleryDLSettings(DSettings):
             user_agent=user_agent,
             cookies=cookies
         )
+
+
+class BaseSettings(BaseModel):
+    _downloader: str
+    proxy: str | None
+    user_agent: str | None
+    cookies: Path | str | None
+
+    @classmethod
+    def load(cls) -> dict[str, 'BaseSettings']:
+        data: dict[str, dict[str, str]] = utils.read_json(Path("./settings/download/settings.json"))
+        data = {key: defaultdict(lambda: "N/A", val) for key, val in data.items()}
+
+        result = {}
+
+        for key in data.keys():
+            result[key] = cls(
+                _downloader=key,
+                proxy=data[key]["proxy"],
+                user_agent=data[key]["user_agent"],
+                cookies=data[key]["cookies"]
+            )
+
+        return result
+
+    def save(self):
+        data = dict[str, dict[str, str]] = utils.read_json(Path("./settings/download/settings.json"))
+
+        atr = list(self.model_dump())
+
+        changed = False
+
+        for key, value in data[self._downloader].items():
+            if getattr(self, key) != value:
+                changed = True
+                break
+
+        if changed:
+            for key in atr:
+                data[self._downloader][key] = getattr(self, key)
+
+            utils.write_json(Path("./settings/download/settings.json"), data)
+            log.debug(f"Changes were saved: {self._downloader}")
+
 
 
