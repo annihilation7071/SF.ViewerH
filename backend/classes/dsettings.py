@@ -104,7 +104,7 @@ class GalleryDLSettings(DSettings):
 
 
 class BaseSettings(BaseModel):
-    _downloader: str
+    name: str
     proxy: str | None
     user_agent: str | None
     cookies: Path | str | None
@@ -118,7 +118,7 @@ class BaseSettings(BaseModel):
 
         for key in data.keys():
             result[key] = cls(
-                _downloader=key,
+                name=key,
                 proxy=data[key]["proxy"],
                 user_agent=data[key]["user_agent"],
                 cookies=data[key]["cookies"]
@@ -128,22 +128,20 @@ class BaseSettings(BaseModel):
 
     def save(self):
         data = dict[str, dict[str, str]] = utils.read_json(Path("./settings/download/settings.json"))
-
-        atr = list(self.model_dump())
+        atr = list(self.model_dump(exclude={"name"}))
 
         changed = False
-
-        for key, value in data[self._downloader].items():
+        for key, value in data[self.name].items():
             if getattr(self, key) != value:
                 changed = True
                 break
 
         if changed:
             for key in atr:
-                data[self._downloader][key] = getattr(self, key)
+                data[self.name][key] = getattr(self, key)
 
             utils.write_json(Path("./settings/download/settings.json"), data)
-            log.debug(f"Changes were saved: {self._downloader}")
+            log.debug(f"Changes were saved: {self.name}")
 
 
 
