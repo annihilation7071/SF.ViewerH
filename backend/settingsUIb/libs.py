@@ -113,7 +113,7 @@ class LibField(customtkinter.CTkFrame):
             self,
             width=50,
             text="",
-            command=self.set_status
+            command=self._set_status
         )
         self.status.grid(row=0, column=2, sticky='ew', padx=5, pady=5)
         if lib.active:
@@ -122,17 +122,17 @@ class LibField(customtkinter.CTkFrame):
             self.status.deselect()
 
         # Button
-        self.button = customtkinter.CTkButton(self, text="Edit", command=self.edit, width=100)
+        self.button = customtkinter.CTkButton(self, text="Edit", command=self._edit, width=100)
         self.button.grid(row=0, column=3, sticky='e', padx=5, pady=5)
 
         if lib.libfile.name == "libs_default.json":
             self.button.configure(state=DISABLED)
 
-    def edit(self):
+    def _edit(self):
         editor = Editor(master=self, lib=self.lib, mode="edit")
         editor.grab_set()
 
-    def set_status(self, *args):
+    def _set_status(self, *args):
         self.lib.active = bool(self.status.get())
         self.lib.save()
 
@@ -224,7 +224,7 @@ class EditorFields(customtkinter.CTkFrame):
 
         processors = os.listdir(Path("./backend/processors"))
         processors = [os.path.splitext(processor)[0] for processor in processors]
-        processors = [processor for processor in processors if processor.startswith("__") is False]
+        processors = [processor for processor in processors if processor.startswith("__") is False and processor != "general"]
         self.processor_menu = customtkinter.CTkOptionMenu(
             self,
             values=processors,

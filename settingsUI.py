@@ -16,9 +16,9 @@ class App(customtkinter.CTk):
         self.mainframe = MainFrame(self)
         self.mainframe.grid(column=0, row=0, padx=10, pady=(0, 10), sticky="nsew")
 
-    def renew(self):
+    def renew(self, active_tab: int = 0):
         self.mainframe.destroy()
-        self.mainframe = MainFrame(self)
+        self.mainframe = MainFrame(self, active_tab=active_tab)
         self.mainframe.grid(column=0, row=0, padx=10, pady=(0, 10), sticky="nsew")
 
 

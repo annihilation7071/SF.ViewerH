@@ -25,7 +25,7 @@ class NHentaiDownloader:
             os.system(com)
 
         if settings.user_agent:
-            com = f"nhentai --user-agent={settings.user_agent}"
+            com = f'nhentai --user-agent="{settings.user_agent}"'
             os.system(com)
 
         if settings.cookies:
