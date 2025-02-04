@@ -38,8 +38,15 @@ def init():
 
     if settings.filehandler_separated or settings.filehandler_all:
         __path = Path(settings.path)
-        shutil.rmtree(__path, ignore_errors=True)
         Path(__path).mkdir(parents=True, exist_ok=True)
+        files = os.listdir(__path)
+
+        for file in files:
+            if file != ".gitkeep":
+                try:
+                    shutil.rmtree(__path / file, ignore_errors=True)
+                except:
+                    os.remove(__path / file)
 
     if settings.sockethandler:
         ip = settings.sockethandler_settings.split(":")[0]

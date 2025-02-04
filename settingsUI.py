@@ -9,7 +9,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("SF.ViewerH Settings")
-        self.geometry("800x500")
+        self.geometry("800x500+500+400")
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
