@@ -72,10 +72,12 @@ There is an extension for chromium-based browsers in the ```./extension director
 It can be installed via the browser extensions menu (*just **drag** the .crx into the extensions tab and
 click **install***).
 The extension simply downloads the open project to the library specified in **settings**.
+
 <br>
 <img src="./docs/screenshot_settings_3.png" alt="image" width=400>
 
 *You can specify some additional downloader parameters*
+
 <br>
 <img src="./docs/screenshot_settings_4.png" alt="image" width=400>
 ---
