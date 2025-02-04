@@ -27,7 +27,15 @@ ___
 
 ### Install and run:
 
-#### Using system python
+#### Way 1: Using standalone version
+1. Download from releases
+2. Unzip in any directory
+3. Use settings.bat for set your directoro with downloads and select proper processor
+4. Use update.bat for update application
+5. Use run.bat for start application
+
+
+#### Way 2: Using system python
 
 ```bash
 git clone https://github.com/annihilation7071/SF.ViewerH.git
@@ -36,7 +44,7 @@ pip install -r requirements.txt
 app.py
 ```
 
-#### Using venv
+#### Way 3: Using venv
 
 ```bash
 git clone https://github.com/annihilation7071/SF.ViewerH.git
@@ -51,25 +59,25 @@ app.py
 
 1. Upload files using [nhentai][1] or [gallery-dl][2]. (```--write-info-json``` parameter **MUST** be used
    for [gallery-dl][2])
-2. Create a library settings file.
-    + You can use the file ```./settings/libs/libs_example.json``` as a reference. You can simply copy it and rename it.
-      All files matching the pattern ```libs_NAME.json``` will be read, except ```libs_example.json```.
-    + Processor must be selected according to the downloader and the site.
-        + ```nhentai``` or ```gallery-dl-nhentai``` for **nhentai.net**
-        + ```gallery-dl-hitomila``` for **hitomi.la**
-3. Run **app.py**, the server IP address will appear in the terminal.
+2. Use **settings.bat** or **settingsui.py** to configure libs.
+3. Use **run.bat** or **app.py**, the server IP address will appear in the terminal.
+<br>
+<img src="./docs/screenshot_settings_1.png" alt="image" width=400>
+<img src="./docs/screenshot_settings_2.png" alt="image" width=400>
+
 
 ### Chrome-Extension
 
 There is an extension for chromium-based browsers in the ```./extension directory```.
 It can be installed via the browser extensions menu (*just **drag** the .crx into the extensions tab and
-click **install***). The extension simply downloads the open project to the library specified in
-```./settings/download/download_targets.json``` (which must exist in ```./sittings/libs```).
+click **install***).
+The extension simply downloads the open project to the library specified in **settings**.
+<br>
+<img src="./docs/screenshot_settings_3.png" alt="image" width=400>
 
-*You can specify some additional downloader parameters by creating
-a ```config_nhentai.json```/```config_gallery-dl.json``` file in the ```./settings/download directory```, an example
-file is there under the name ```config_nhentai_example.json```/```config_gallery-dl_example.json```.*
-
+*You can specify some additional downloader parameters*
+<br>
+<img src="./docs/screenshot_settings_4.png" alt="image" width=400>
 ---
 There are two versions of the extension: **Lite** and **Extended**.
 
