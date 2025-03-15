@@ -8,12 +8,12 @@ from backend import utils
 from icecream import ic
 from backend.classes.projecte import ProjectE, ProjectEPool
 from backend.classes.templates import ProjectTemplateDB
-from backend.modules import logger
+from backend.utils import logger
 from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, update
 from backend.projects import projects_utils
 from backend.editor import selector
-from backend.modules.filesession import FileSession, FSession
+from backend.utils.filesession import FileSession, FSession
 
 ic.configureOutput(includeContext=True)
 

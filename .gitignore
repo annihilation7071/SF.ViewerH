@@ -2,6 +2,7 @@
 !/data/index/
 test*
 venv.bat
+settings.bat
 misc.xml
 .idea
 /settings/download/*

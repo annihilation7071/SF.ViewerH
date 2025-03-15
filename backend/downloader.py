@@ -8,7 +8,7 @@ from backend.downloaders.gallerydl import GalleryDLDownloader
 from backend.downloaders.error import DownloaderError
 from backend.projects.projects import Projects
 from backend.projects.projects_utils import update_projects
-from backend.modules import logger
+from backend.utils import logger
 from backend.classes.dsettings import NhentaiSettings, GalleryDLSettings
 from backend import utils
 from pathlib import Path

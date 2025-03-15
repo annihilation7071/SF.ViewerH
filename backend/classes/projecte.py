@@ -8,12 +8,12 @@ import os
 from backend.classes.lib import Lib
 from backend.classes.files import ProjectInfoFile, ProjectInfoFileError
 import json
-from backend.modules import logger
+from backend.utils import logger
 from backend import utils
 from sqlalchemy.orm import Session
 from backend.classes.templates import ProjectTemplateDB
 from sqlalchemy import select, update, delete
-from backend.modules.filesession import FileSession, FSession
+from backend.utils.filesession import FileSession, FSession
 import re
 
 log = logger.get_logger("Classes.projects")

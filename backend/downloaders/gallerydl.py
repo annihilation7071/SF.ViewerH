@@ -1,7 +1,7 @@
 from backend.utils import run_command
 import os
 import json
-from backend.modules import logger
+from backend.utils import logger
 from backend.classes.lib import Lib
 from backend.classes.dsettings import GalleryDLSettings
 

@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import quote, unquote
 import mimetypes
 from backend.editor import selector as edit_selector
-from backend.modules import logger
+from backend.utils import logger
 from datetime import datetime
 
 log = logger.get_logger("App.routers.main")

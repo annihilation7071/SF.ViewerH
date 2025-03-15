@@ -1,7 +1,9 @@
+from backend.main_import import *
+from backend.utils import *
 from backend.db import connect
 from backend import cmdargs
 from backend.classes.lib import Lib
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from backend.projects.projects import Projects
@@ -14,6 +16,6 @@ args = cmdargs.args
 # noinspection PyTypeChecker
 projects: 'Projects' = None
 # noinspection PyTypeChecker
-libs: dict[str, Lib] = None
+libs: dict[str, Lib] = utils.read_libs()
 # noinspection PyTypeChecker
 settingsUI: 'App' = None

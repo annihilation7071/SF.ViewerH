@@ -11,7 +11,7 @@ from routers import main, extra
 import os
 import asyncio
 from backend import utils
-from backend.modules import logger
+from backend.utils import logger
 from backend import init
 
 log = logger.get_logger("App.app")

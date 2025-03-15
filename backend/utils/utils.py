@@ -1,24 +1,9 @@
-import os
-import json
-from datetime import datetime
-import uuid
-import re
-from PIL import Image
-import imagehash
-from pathlib import Path
-import asyncio
-from backend.modules import logger
-from backend.classes.templates import ProjectTemplate, ProjectTemplateDB
-from backend.classes.db import Project
-from backend.classes.templates import ProjectTemplate
-from typing import TYPE_CHECKING, Annotated
-from importlib import import_module
-from backend.modules.filesession import FileSession, FSession
-from http import cookiejar
-from pathlib import Path
+from backend.main_import import *
+
 
 if TYPE_CHECKING:
     from backend.classes.projecte import ProjectE
+    from backend.classes.db import Project
     from backend.classes.lib import Lib
 
 
@@ -296,7 +281,7 @@ async def run_command(command: str):
     return process
 
 
-def make_search_body(project: Annotated[dict, 'ProjectE', Project, ProjectTemplateDB]) -> str:
+def make_search_body(project: Annotated[dict, 'ProjectE', 'Project']) -> str:
     include = ["source_id", "source", "url", "downloader", "title", "subtitle",
                "parody", "character", "tag", "artist", "group", "language",
                "category", "series", "lib"]
@@ -322,7 +307,7 @@ def make_search_body(project: Annotated[dict, 'ProjectE', Project, ProjectTempla
     return search_body
 
 
-def write_json(path: Path, data: dict | list | ProjectTemplate, fs: FSession = None) -> None:
+def write_json(path: Path, data: dict | list, fs: FSession = None) -> None:
     log.debug("write_json")
 
     def f(fs_: FSession):
@@ -331,7 +316,7 @@ def write_json(path: Path, data: dict | list | ProjectTemplate, fs: FSession = N
                 with fs_.open(path, 'w', encoding="utf-8") as f:
                     # noinspection PyTypeChecker
                     json.dump(data, f, indent=4, ensure_ascii=False)
-            elif isinstance(data, ProjectTemplate):
+            elif isinstance(data, Project):
                 with fs_.open(path, 'w', encoding="utf-8") as f:
                     # noinspection PyTypeChecker
                     json.dump(json.loads(data.model_dump_json()), f, indent=4, ensure_ascii=False)
@@ -349,7 +334,7 @@ def write_json(path: Path, data: dict | list | ProjectTemplate, fs: FSession = N
         f(fs)
 
 
-def read_json(path: Path) -> dict | list | ProjectTemplate:
+def read_json(path: Path) -> dict | list:
     with open(path, 'r', encoding="utf-8") as f:
         data = json.load(f)
 

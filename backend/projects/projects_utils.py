@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 from importlib import import_module
 from backend import utils, cmdargs
-from backend.modules import logger
+from backend.utils import logger
 from backend.upgrade import vinfo
 from backend.processors import general as general
 import json
@@ -14,7 +14,7 @@ from backend.classes.files import ProjectInfoFile
 from backend.classes.db import Project
 from backend.classes.lib import Lib
 from typing import TYPE_CHECKING
-from backend.modules.filesession import FileSession, FSession
+from backend.utils.filesession import FileSession, FSession
 
 if TYPE_CHECKING:
     from backend.projects.projects import Projects

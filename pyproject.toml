@@ -1,0 +1,18 @@
+[project]
+	name = "SF.ViewerH"
+	version = "1.0.0"
+	description = "Viewer for project downloaded via nhentai\\gallery-dl"
+	readme = "README.md"
+	requires-python = ">=3.11"
+	keywords = [
+        "gallery", "downloader", "viewer", "manga",
+        "manga-reader", "hentai", "hitomi", "nhentai",
+        "manga-downloader", "manga-viewer", "gallery-viewer",
+        "hentai-downloader", "nhentai-downloader", "hitomi-la",
+        "gallery-dl", "hentai-viewer", "gallery-downloader"
+    ]
+	authors = [
+		{name = "annihilation7071", email = "annihilation7071@proton.me"}
+	]
+	dependencies = [
+	]

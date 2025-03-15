@@ -1,8 +1,8 @@
 from backend.editor import item_editor, variants_editor
 from backend.classes.projecte import ProjectE
-from backend.modules import logger
+from backend.utils import logger
 from sqlalchemy.orm import Session
-from backend.modules.filesession import FSession
+from backend.utils.filesession import FSession
 
 log = logger.get_logger("Editor.selector")
 

@@ -1,11 +1,11 @@
 from backend import dep
 from backend.utils import tag_normalizer
-from backend.modules import logger
+from backend.utils import logger
 from backend.classes.projecte import ProjectE, ProjectEPool
 from backend import utils
 from typing import TYPE_CHECKING
 from sqlalchemy.orm import Session
-from backend.modules.filesession import FileSession, FSession
+from backend.utils.filesession import FileSession, FSession
 
 log = logger.get_logger("Editor.variants")
 
