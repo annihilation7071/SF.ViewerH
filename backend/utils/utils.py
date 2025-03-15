@@ -2,7 +2,6 @@ from backend.main_import import *
 
 
 if TYPE_CHECKING:
-    from backend.classes.projecte import ProjectE
     from backend.classes.db import Project
     from backend.classes.lib import Lib
 
@@ -10,7 +9,7 @@ if TYPE_CHECKING:
 log = logger.get_logger("Utils")
 
 
-def get_pages(project: 'ProjectE'):
+def get_pages(project: 'Project'):
     extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.avif', '.webp']
 
     path = project['path']
@@ -281,7 +280,7 @@ async def run_command(command: str):
     return process
 
 
-def make_search_body(project: Annotated[dict, 'ProjectE', 'Project']) -> str:
+def make_search_body(project: Annotated[dict | 'Project']) -> str:
     include = ["source_id", "source", "url", "downloader", "title", "subtitle",
                "parody", "character", "tag", "artist", "group", "language",
                "category", "series", "lib"]
@@ -293,7 +292,7 @@ def make_search_body(project: Annotated[dict, 'ProjectE', 'Project']) -> str:
         ProjectE = import_module("backend.classes.projecte").ProjectE
         if isinstance(project, dict):
             v = project[k]
-        elif isinstance(project, ProjectE | Project | ProjectTemplate):
+        elif isinstance(project, Project):
             v = getattr(project, k)
         else:
             raise ValueError("Project must be of type dict or ProjectE")

@@ -1,10 +1,13 @@
-import os.path
-
 from backend.main_import import *
 from backend.utils import *
+from backend.filesession import FileSession, FSession
 from backend import dep
 
 log = logger.get_logger("Classes.db")
+
+
+class ProjectError(Exception):
+    pass
 
 
 class ProjectBase(SQLModel):
@@ -122,11 +125,32 @@ class Project(ProjectBase, table=True):
     def lvariants_count(self) -> int:
         return len(self.lvariants)
 
+    @property
+    def images(self) -> list[dict[str, Path | int]]:
+        exts = self._images_exts
+        files = os.listdir(self.path)
+        pages = []
+
+        for file in files:
+            if os.path.splitext(file)[1].lower() in exts:
+                pages.append(self.path / file)
+
+        pages = sorted(pages, key=lambda x: str(x))
+        pages = [{"idx": i, "path": pages[i]} for i in range(len(pages))]
+
+        return pages
+
     @classmethod
     def project_file_load(cls, file: Path) -> None:
         raise IOError("This method allowed only for ProjectBase class.")
 
-    def _project_update_pages(self) -> bool:
+    @classmethod
+    def project_load_from_db(cls, session: Session, lid: str) -> 'Project':
+        stmt = select(Project).where(Project.lid == lid)
+        project = session.scalar(stmt)
+        return project
+
+    def _project_renew_pages(self) -> bool:
         exts = self._images_exts
         files = os.listdir(self.path)
         pages_count = len([file for file in files if os.path.splitext(file)[1].lower() in exts])
@@ -135,7 +159,7 @@ class Project(ProjectBase, table=True):
             return True
         return False
 
-    def _project_update_preview(self) -> bool:
+    def _project_renew_preview(self) -> bool:
         preview_name = ""
 
         files = os.listdir(self.path)
@@ -155,4 +179,61 @@ class Project(ProjectBase, table=True):
             self.preview_hash = utils.get_imagehash(self.preview_path)
             return True
         return False
+
+    def _project_renew_search_body(self) -> bool:
+        log.debug(f"_update_search_body")
+        search_body = utils.make_search_body(self)
+        if self.search_body != search_body:
+            self.search_body = search_body
+            return True
+        return False
+
+    def project_renew_all(self) -> bool:
+        return any([
+            self.project_renew_search_body(),
+            self._project_renew_pages(),
+            self._project_renew_preview(),
+        ])
+
+    def project_db_update(self, session: Session) -> None:
+        log.debug(f"_update_db: {self.lid}")
+        session.merge(self)
+
+    def project_file_update(self, fs: FSession) -> None:
+        log.debug(f"_update_file: {self.lid}")
+        if self.is_pool:
+            raise ProjectError(f"Cannot update vinfo for pool: {self.lid}")
+
+        file = self.path / "sf.viewer/v_info.json"
+        if file.exists():
+            self.prolect_file_save(fs=fs)
+        else:
+            raise FileNotFoundError(f"File {file} not found")
+
+    def project_update_project(self, session: Session, fs: FSession, renew: bool = False) -> None:
+        log.debug(f"_update_project: {self.lid}")
+        if renew:
+            self.project_renew_all()
+
+        self.project_db_update(session=session)
+
+        if self.is_pool:
+            log.debug(f"Project {self.lid} is pool. Info file will not be updated.")
+            return
+        else:
+            self.project_file_update(fs=fs)
+
+    def project_add_to_db(self, session: Session) -> None:
+        log.debug(f"_add_to_db: {self.lid}")
+        session.add(self)
+
+    def project_pool_create(self, session: Session) -> None:
+        pool = Project
+
+
+
+
+
+
+
 
