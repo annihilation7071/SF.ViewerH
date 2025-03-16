@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
     dep.projects = projects
     main.projects = projects
     extra.projects = projects
-    # projects.update_projects()
+    projects.update_projects()
     # projects.renew()
     yield
 

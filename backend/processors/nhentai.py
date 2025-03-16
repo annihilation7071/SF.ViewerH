@@ -45,14 +45,17 @@ def parse(path: Path, template: ProjectBase) -> ProjectBase:
 
     def f(key: str) -> list | str:
         return utils.tag_normalizer(metadata[key])
-    
-    template.parody = f("parody") or ["unknown"]
-    template.character = f("character") or ["unknown"]
-    template.tag = f("tag") or ["unknown"]
-    template.artist = f("artist") or ["unknown"]
-    template.group = f("group") or ["unknown"]
-    template.language = f("language") or ["unknown"]
-    template.category = f("category") or ["unknown"]
+
+    attributes = ["parody", "character", "tag",
+                  "artist", "group", "language",
+                  "category"]
+
+    for attr in attributes:
+        a = f(attr) or ["unknown"]
+        if isinstance(a, str):
+            a = [a]
+        setattr(template, attr, a)
+
     template.pages = f("Pages") or -1
 
     return template

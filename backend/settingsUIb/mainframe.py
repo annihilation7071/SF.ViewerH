@@ -1,8 +1,9 @@
-import customtkinter
+from backend.main_import import *
+from backend.utils import *
 from backend.settingsUIb.libs import LibsFrame
 from backend.settingsUIb.targets import TargetsFrame
 from backend.settingsUIb.download_settings import DSFrame
-from backend.utils import logger
+from backend import logger
 
 log = logger.get_logger("SenntinsUI.mainframe")
 

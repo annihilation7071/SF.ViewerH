@@ -13,7 +13,7 @@ class ProjectError(Exception):
 
 class ProjectBase(SQLModel):
     lid: str = Field(..., unique=True, nullable=False)
-    info_version: int = Field(..., index=True)
+    info_version: int = Field(default=4, index=True)
     lvariants: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
     source_id: str = Field(default="unknown", index=True)
     source: str = Field(default="unknown", index=True)
@@ -93,10 +93,10 @@ class Project(ProjectBase, table=True):
     __tablename__ = "projects"
 
     id: int = Field(sa_column=Column("_id", Integer, primary_key=True))
-    dir_name: str = Field(default=None, index=True)
-    search_body: str = Field(default=None, index=True)
+    dir_name: str = Field(..., index=True)
+    search_body: str = Field(default="undefined", index=True)
     active: bool = Field(default=True, index=True)
-    lib: str = Field(default=None, index=True)
+    lib: str = Field(..., index=True)
 
 
     @property
@@ -229,7 +229,7 @@ class Project(ProjectBase, table=True):
     def project_renew_all(self) -> bool:
         log.debug("project_renew_all")
         return any([
-            self.project_renew_search_body(),
+            self._project_renew_search_body(),
             self._project_renew_pages(),
             self._project_renew_preview(),
         ])
@@ -264,6 +264,7 @@ class Project(ProjectBase, table=True):
 
     def project_add_to_db(self, session: Session) -> None:
         log.debug(f"project_add_to_db: {self.lid}")
+        self.project_renew_all()
         session.add(self)
 
     def project_pool_create(self, session: Session) -> None:

@@ -2,7 +2,7 @@ import json
 import os
 from pathlib import Path
 from datetime import datetime
-from pydantic import BaseModel, ValidationError, PrivateAttr
+from pydantic import BaseModel, ValidationError, PrivateAttr, field_validator, ValidationError
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, DateTime, Column, ARRAY
 from typing import Optional, List, Dict, Any, ClassVar
 from datetime import datetime
@@ -22,3 +22,7 @@ from more_itertools import first_true
 from random import randint
 from sqlalchemy.sql.type_api import Variant
 from collections import defaultdict
+import customtkinter
+from tkinter import ttk
+from tkinter import filedialog
+import re

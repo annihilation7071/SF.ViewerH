@@ -15,7 +15,7 @@ from backend.filesession import FileSession, FSession
 
 ic.configureOutput(includeContext=True)
 
-log = logger.get_logger("Projects.main")
+log = logger.get_logger("Projects.projects")
 
 
 class ProjectsError(Exception):

@@ -15,9 +15,12 @@ def make_v_info(fs: FSession, path: Path, processor_name: str) -> None:
     log.info(f"Processing: {path}")
     template = ProjectBase(
         lid=utils.gen_lid(),
-        info_version=2,
-        _path=path
+        info_version=2
     )
+
+    template._path = path
+
+    log.debug(f"path: {template._path}")
 
     processor = import_module(f"backend.processors.{processor_name}")
     template = processor.parse(path, template)

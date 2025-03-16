@@ -1,13 +1,9 @@
-import os.path
-
-import customtkinter
-from tkinter import *
-from tkinter import ttk
-from backend import utils
-from backend.classes.lib import Lib
-from pathlib import Path
-from backend.settingsUIb.general import SelectFolder
+from backend.main_import import *
+from backend.utils import *
 from backend import dep
+from tkinter import *
+from backend.classes.lib import Lib
+from backend.settingsUIb.general import SelectFolder
 
 
 class LibsFrame(customtkinter.CTkFrame):

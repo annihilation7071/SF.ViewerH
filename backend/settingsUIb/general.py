@@ -1,6 +1,5 @@
-import customtkinter
-from tkinter import filedialog
-from pathlib import Path
+from backend.main_import import *
+from backend.utils import *
 
 
 class SelectFolder(customtkinter.CTkFrame):

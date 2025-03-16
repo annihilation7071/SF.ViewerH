@@ -2,7 +2,7 @@ from backend.main_import import *
 
 
 if TYPE_CHECKING:
-    from backend.classes.db import Project
+    from backend.db import Project, ProjectBase
     from backend.classes.lib import Lib
 
 
@@ -280,7 +280,7 @@ async def run_command(command: str):
     return process
 
 
-def make_search_body(project: Annotated['dict', 'Project']) -> str:
+def make_search_body(project: 'Project') -> str:
     include = ["source_id", "source", "url", "downloader", "title", "subtitle",
                "parody", "character", "tag", "artist", "group", "language",
                "category", "series", "lib"]
@@ -289,10 +289,8 @@ def make_search_body(project: Annotated['dict', 'Project']) -> str:
 
     for k in include:
         # noinspection PyPep8Naming,PyShadowingNames
-        ProjectE = import_module("backend.classes.projecte").ProjectE
-        if isinstance(project, dict):
-            v = project[k]
-        elif isinstance(project, Project):
+        Project = import_module("backend.db").Project
+        if isinstance(project, Project):
             v = getattr(project, k)
         else:
             raise ValueError("Project must be of type dict or ProjectE")

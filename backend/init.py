@@ -3,7 +3,6 @@ from backend.utils import *
 from backend.filesession import FileSession
 
 
-
 def libs_settings():
     data = {
         "download-default-nhentai": {

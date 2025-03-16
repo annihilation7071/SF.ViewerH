@@ -1,10 +1,8 @@
-import customtkinter
-from backend import utils
-from pathlib import Path
-from backend.classes.lib import Lib
+from backend.main_import import *
+from backend.utils import *
 from backend import dep
+from backend.classes.lib import Lib
 from backend.classes.dsettings import BaseSettings
-from tkinter import filedialog
 
 dsettings: dict[str, BaseSettings] | None = None
 
