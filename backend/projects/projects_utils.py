@@ -92,7 +92,7 @@ def get_dirs(path: Path, meta_file: str) -> list[str]:
         os.makedirs(path)
     files = os.listdir(path)
     for file in files:
-        if os.path.exists(os.path.join(path, file) + f"/{meta_file}"):
+        if (path / file / f"{meta_file}").exists():
             dirs.append(file)
     return dirs
 

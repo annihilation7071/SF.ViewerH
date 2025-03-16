@@ -37,12 +37,22 @@ class Lib(BaseModel):
     def create(self):
         log.debug(f"Creating {self.name}")
 
-        lib = {
-            self.name: {
-                "active": self.active,
-                "processor": self.processor,
-                "path": str(self.path)
-            }
-        }
+        if self.libfile.exists():
+            file = utils.read_json(self.libfile)
 
-        utils.write_json(self.libfile, lib)
+            file[self.name] = {
+                    "active": self.active,
+                    "processor": self.processor,
+                    "path": str(self.path)
+                }
+
+        else:
+            file = {
+                self.name: {
+                    "active": self.active,
+                    "processor": self.processor,
+                    "path": str(self.path)
+                }
+            }
+
+        utils.write_json(self.libfile, file)
