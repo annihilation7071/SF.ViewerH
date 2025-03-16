@@ -1,9 +1,8 @@
-from sqlalchemy.sql.type_api import Variant
-
 from backend.main_import import *
 from backend.utils import *
-from backend.filesession import FileSession, FSession
 from backend import dep
+from backend.filesession import FileSession, FSession
+
 
 log = logger.get_logger("Classes.db")
 
@@ -62,6 +61,11 @@ class ProjectBase(SQLModel):
         lids = [self.Variant.read(*variant.split(":")) for variant in self.lvariants]
         return lids
 
+    @property
+    def preview_path(self) -> Path:
+        log.debug("preview_path")
+        return self.path / self.preview
+
     @classmethod
     def project_file_load(cls, file: Path):
         log.debug("project_file_load")
@@ -112,11 +116,6 @@ class Project(ProjectBase, table=True):
     def path(self) -> Path:
         log.debug("path")
         return Path(dep.libs[self.lib].path / self.dir_name)
-
-    @property
-    def preview_path(self) -> Path:
-        log.debug("preview_path")
-        return self.path / self.preview
 
     @property
     def upload_date_str(self) -> str:

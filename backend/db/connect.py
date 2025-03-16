@@ -1,6 +1,6 @@
 from backend.main_import import *
 from backend.utils import *
-from backend.db.project import Project
+from backend.db import Project
 
 log = logger.get_logger("DB")
 

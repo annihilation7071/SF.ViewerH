@@ -1,21 +1,17 @@
 # https://github.com/mikf/gallery-dl
 # --write-info-json
 
-import json
-import os
-from collections import defaultdict
-from backend import utils
-from backend.classes.templates import ProjectTemplate
-from pathlib import Path
-from backend.utils import logger
-from datetime import datetime
+from backend.main_import import *
+from backend.utils import *
+from backend.db import ProjectBase
+from backend import logger
 
 log = logger.get_logger("Processor.gallery-dl-nhentai")
 
 meta_file = "info.json"
 
 
-def parse(path: Path, template: ProjectTemplate) -> ProjectTemplate:
+def parse(path: Path, template: ProjectBase) -> ProjectBase:
     log.debug("gallery-dl-nhentai.parse")
 
     with open(os.path.join(path, meta_file), "r", encoding='utf-8') as f:
