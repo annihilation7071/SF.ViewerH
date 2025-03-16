@@ -18,3 +18,4 @@ import asyncio
 from http import cookiejar
 from importlib import import_module
 from typing import TYPE_CHECKING, Annotated
+from more_itertools import first_true

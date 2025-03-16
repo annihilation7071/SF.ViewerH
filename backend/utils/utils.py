@@ -280,7 +280,7 @@ async def run_command(command: str):
     return process
 
 
-def make_search_body(project: Annotated[dict | 'Project']) -> str:
+def make_search_body(project: Annotated['dict', 'Project']) -> str:
     include = ["source_id", "source", "url", "downloader", "title", "subtitle",
                "parody", "character", "tag", "artist", "group", "language",
                "category", "series", "lib"]

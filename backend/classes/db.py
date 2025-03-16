@@ -1,3 +1,5 @@
+from sqlalchemy.sql.type_api import Variant
+
 from backend.main_import import *
 from backend.utils import *
 from backend.filesession import FileSession, FSession
@@ -43,6 +45,20 @@ class ProjectBase(SQLModel):
     def path(self) -> Path:
         return self._path
 
+    class Variant(BaseModel):
+        lid: str
+        description: str
+        priority: bool
+
+        @classmethod
+        def read(cls, lid: str, description: str, priority: bool = False) -> "Variant":
+            return Variant(lid=lid, description=description, priority=priority)
+
+    @property
+    def lvariants_lids(self) -> list[Variant]:
+        lids = [self.Variant.read(*variant.split(":")) for variant in self.lvariants]
+        return lids
+
     @classmethod
     def project_file_load(cls, file: Path):
         data = utils.read_json(file)
@@ -52,12 +68,14 @@ class ProjectBase(SQLModel):
     def prolect_file_save(self, file: Path = None, fs: FSession = None):
         if file is None:
             file = self.path / "sf.viewer/v_info.json"
-        exclude = {
-            "id", "dir_name",
-            "search_body", "active",
-            "lib"
-        }
-        data = self.model_dump_json(exclude=exclude)
+        # exclude = {
+        #     "id", "dir_name",
+        #     "search_body", "active",
+        #     "lib"
+        # }
+        # noinspection PyUnresolvedReferences
+        include = set(ProjectBase.model_fields.keys())
+        data = self.model_dump_json(include=include)
         file.parent.mkdir(parents=True, exist_ok=True)
         utils.write_json(file, json.loads(data), fs=fs)
 
@@ -83,7 +101,7 @@ class Project(ProjectBase, table=True):
 
     @property
     def path(self) -> Path:
-        return Path(dep.libs[self.lib] / self.dir_name)
+        return Path(dep.libs[self.lib].path / self.dir_name)
 
     @property
     def preview_path(self) -> Path:
@@ -228,7 +246,21 @@ class Project(ProjectBase, table=True):
         session.add(self)
 
     def project_pool_create(self, session: Session) -> None:
-        pool = Project
+        variants = self.lvariants_lids
+
+        priority = first_true(variants, pred=lambda v: v.priority is True)
+
+        # pool_lid = f"pool_{priority.lid}"
+        #
+        # stmt = select(Project).where(Project.lid == pool_lid)
+        # exist = session.scalar(stmt)
+        # if exist:
+        #     raise ProjectError(f"Project {pool_lid} already exists")
+        #
+        # pool = Project(**priority.model_dump(exclude={"id", "lid"}), lid=pool_lid)
+
+
+
 
 
 
