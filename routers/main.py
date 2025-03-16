@@ -1,16 +1,17 @@
+from backend.main_import import main
 from backend import dep
+from backend.utils import *
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from backend.projects.projects import Projects
-from backend.utils import get_visible_pages
-from backend.classes.projecte import ProjectE
+from backend.db import Project
 from pathlib import Path
 # noinspection PyUnresolvedReferences
 from urllib.parse import quote, unquote
 import mimetypes
 from backend.editor import selector as edit_selector
-from backend.utils import logger
+from backend import logger
 from datetime import datetime
 
 log = logger.get_logger("App.routers.main")
@@ -36,22 +37,20 @@ def get_with_cache(project_lid: str):
 
     if project_lid not in project_cache:
         project = projects.get_project(project_lid)
-        images = project.get_images()
         project_cache = {
             project_lid: {
                 "data": project,
-                "images": images
+                "images": project.images
             }
         }
     else:
         project = project_cache[project_lid]["data"]
         if "images" not in project_cache[project_lid]:
-            images = project.get_images()
-            project_cache[project_lid]["images"] = images
+            project_cache[project_lid]["images"] = project.images
         else:
             images = project_cache[project_lid]["images"]
 
-    return project, images
+    return project, project.images
 
 
 @router.get("/", response_class=HTMLResponse, name="index")
@@ -63,7 +62,7 @@ async def index(request: Request, page: int = 1, search: str = ""):
     displayed_projects = projects.get_page(PPG, page=page, search=search_query)
 
     total_pages = (projects.len() + PPG - 1) // PPG
-    visible_pages = get_visible_pages(page, total_pages)
+    visible_pages = utils.get_visible_pages(page, total_pages)
     log.debug(f"Loading time: {datetime.now() - timer}")
 
     return templates.TemplateResponse(
@@ -99,7 +98,7 @@ async def reader(request: Request, project_lid: str, page_id: int):
     page = page_id
     image = images[page - 1]["path"]
     total_pages = len(images)
-    visible_pages = get_visible_pages(page, total_pages)
+    visible_pages = utils.get_visible_pages(page, total_pages)
     return templates.TemplateResponse(
         "reader.html",
         {

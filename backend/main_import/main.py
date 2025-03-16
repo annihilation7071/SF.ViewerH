@@ -2,9 +2,9 @@ import json
 import os
 from pathlib import Path
 from datetime import datetime
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, PrivateAttr
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, DateTime, Column, ARRAY
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, ClassVar
 from datetime import datetime
 import shutil
 from os import PathLike
@@ -19,3 +19,4 @@ from http import cookiejar
 from importlib import import_module
 from typing import TYPE_CHECKING, Annotated
 from more_itertools import first_true
+from random import randint

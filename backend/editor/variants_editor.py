@@ -1,11 +1,9 @@
+from backend.main_import import *
 from backend import dep
-from backend.utils import tag_normalizer
-from backend.utils import logger
-from backend.classes.projecte import ProjectE, ProjectEPool
-from backend import utils
-from typing import TYPE_CHECKING
-from sqlalchemy.orm import Session
-from backend.utils.filesession import FileSession, FSession
+from backend.utils import *
+from backend import logger
+from backend.filesession import FileSession, FSession
+from backend.db import Project, ProjectBase
 
 log = logger.get_logger("Editor.variants")
 
@@ -17,7 +15,7 @@ class VariantsEditorError(Exception):
     pass
 
 
-def edit(session: Session, fs: FSession, project: ProjectE, data: str | list, separator: str = "\n"):
+def edit(session: Session, fs: FSession, project: Project, data: str | list, separator: str = "\n"):
     log.debug(f"variant_editor.edit")
     log.debug(f"variants received: {data}")
 

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Request, HTTPException, Body
 from backend.projects.projects import Projects, Project
 from backend import utils, downloader
 from sqlalchemy import func, select
-from backend.utils import logger
+from backend import logger
 
 log = logger.get_logger("App.routers.extra")
 

@@ -13,7 +13,6 @@ class ProjectError(Exception):
 
 
 class ProjectBase(SQLModel):
-    _path: Path | None = None
     lid: str = Field(..., unique=True, nullable=False)
     info_version: int = Field(..., index=True)
     lvariants: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
@@ -37,12 +36,15 @@ class ProjectBase(SQLModel):
     episodes: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
     preview_hash: str = Field(default="undefined", index=True)
 
+    _path: Path | None = None
+
     class Config:
         validate_assignment = True
         allow_arbitrary_types = False
 
     @property
     def path(self) -> Path:
+        log.debug("path")
         return self._path
 
     class Variant(BaseModel):
@@ -56,16 +58,19 @@ class ProjectBase(SQLModel):
 
     @property
     def lvariants_lids(self) -> list[Variant]:
+        log.debug("lvariants_lids")
         lids = [self.Variant.read(*variant.split(":")) for variant in self.lvariants]
         return lids
 
     @classmethod
     def project_file_load(cls, file: Path):
+        log.debug("project_file_load")
         data = utils.read_json(file)
         data["_path"] = file.parent.parent
         return cls.model_validate(data)
 
     def prolect_file_save(self, file: Path = None, fs: FSession = None):
+        log.debug("project_file_save")
         if file is None:
             file = self.path / "sf.viewer/v_info.json"
         # exclude = {
@@ -89,36 +94,45 @@ class Project(ProjectBase, table=True):
     active: bool = Field(default=True, index=True)
     lib: str = Field(default=None, index=True)
 
-    _images_exts = {".png", ".jpg", ".jpeg", ".gif", ".avif", ".webp",
-                    ".bmp", ".tif", ".tiff", ".apng",
-                    ".mng", ".flif", ".bpg", ".jxl", ".qoi", ".hif"}
+
+    @property
+    def _images_exts(self) -> set[str]:
+        return {".png", ".jpg", ".jpeg", ".gif", ".avif", ".webp",
+                ".bmp", ".tif", ".tiff", ".apng",
+                ".mng", ".flif", ".bpg", ".jxl", ".qoi", ".hif"}
 
     @property
     def is_pool(self) -> bool:
+        log.debug("is_pool")
         if self.lid.startswith("pool_"):
             return True
         return False
 
     @property
     def path(self) -> Path:
+        log.debug("path")
         return Path(dep.libs[self.lib].path / self.dir_name)
 
     @property
     def preview_path(self) -> Path:
+        log.debug("preview_path")
         return self.path / self.preview
 
     @property
     def upload_date_str(self) -> str:
+        log.debug("upload_date_str")
         return self.upload_date.replace(microsecond=0).isoformat()
 
     @property
     def variants_view(self) -> list[str]:
+        log.debug("variants_view")
         variants = [x.split(":") for x in self.lvariants]
         variants = [x[1] for x in variants]
         return variants
 
     @property
     def flags(self) -> list[Path]:
+        log.debug("flags")
         exclude = ["rewrite", "translated"]
 
         flags_path = Path(os.getcwd()) / "data/flags"
@@ -141,10 +155,13 @@ class Project(ProjectBase, table=True):
 
     @property
     def lvariants_count(self) -> int:
+        log.debug("lvariants_count")
         return len(self.lvariants)
 
     @property
     def images(self) -> list[dict[str, Path | int]]:
+        log.debug("images")
+
         exts = self._images_exts
         files = os.listdir(self.path)
         pages = []
@@ -160,15 +177,18 @@ class Project(ProjectBase, table=True):
 
     @classmethod
     def project_file_load(cls, file: Path) -> None:
+        log.debug("project_file_load")
         raise IOError("This method allowed only for ProjectBase class.")
 
     @classmethod
     def project_load_from_db(cls, session: Session, lid: str) -> 'Project':
+        log.debug("project_load_from_db")
         stmt = select(Project).where(Project.lid == lid)
         project = session.scalar(stmt)
         return project
 
     def _project_renew_pages(self) -> bool:
+        log.debug("project_renew_pages")
         exts = self._images_exts
         files = os.listdir(self.path)
         pages_count = len([file for file in files if os.path.splitext(file)[1].lower() in exts])
@@ -178,6 +198,7 @@ class Project(ProjectBase, table=True):
         return False
 
     def _project_renew_preview(self) -> bool:
+        log.debug("_project_renew_preview")
         preview_name = ""
 
         files = os.listdir(self.path)
@@ -199,7 +220,7 @@ class Project(ProjectBase, table=True):
         return False
 
     def _project_renew_search_body(self) -> bool:
-        log.debug(f"_update_search_body")
+        log.debug("_project_renew_search_body")
         search_body = utils.make_search_body(self)
         if self.search_body != search_body:
             self.search_body = search_body
@@ -207,6 +228,7 @@ class Project(ProjectBase, table=True):
         return False
 
     def project_renew_all(self) -> bool:
+        log.debug("project_renew_all")
         return any([
             self.project_renew_search_body(),
             self._project_renew_pages(),
@@ -214,11 +236,11 @@ class Project(ProjectBase, table=True):
         ])
 
     def project_db_update(self, session: Session) -> None:
-        log.debug(f"_update_db: {self.lid}")
+        log.debug(f"project_db_update: {self.lid}")
         session.merge(self)
 
     def project_file_update(self, fs: FSession) -> None:
-        log.debug(f"_update_file: {self.lid}")
+        log.debug(f"project_file_update: {self.lid}")
         if self.is_pool:
             raise ProjectError(f"Cannot update vinfo for pool: {self.lid}")
 
@@ -229,7 +251,7 @@ class Project(ProjectBase, table=True):
             raise FileNotFoundError(f"File {file} not found")
 
     def project_update_project(self, session: Session, fs: FSession, renew: bool = False) -> None:
-        log.debug(f"_update_project: {self.lid}")
+        log.debug(f"project_update_project: {self.lid}")
         if renew:
             self.project_renew_all()
 
@@ -242,10 +264,11 @@ class Project(ProjectBase, table=True):
             self.project_file_update(fs=fs)
 
     def project_add_to_db(self, session: Session) -> None:
-        log.debug(f"_add_to_db: {self.lid}")
+        log.debug(f"project_add_to_db: {self.lid}")
         session.add(self)
 
     def project_pool_create(self, session: Session) -> None:
+        log.debug(f"project_pool_create: {self.lid}")
         variants = self.lvariants_lids
 
         priority = first_true(variants, pred=lambda v: v.priority is True)
@@ -258,14 +281,3 @@ class Project(ProjectBase, table=True):
         #     raise ProjectError(f"Project {pool_lid} already exists")
         #
         # pool = Project(**priority.model_dump(exclude={"id", "lid"}), lid=pool_lid)
-
-
-
-
-
-
-
-
-
-
-

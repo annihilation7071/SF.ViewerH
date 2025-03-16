@@ -1,7 +1,6 @@
-from backend.utils import run_command
-import os
-import json
-from backend.utils import logger
+from backend.main_import import *
+from backend.utils import *
+from backend import logger
 from backend.classes.lib import Lib
 from backend.classes.dsettings import GalleryDLSettings
 

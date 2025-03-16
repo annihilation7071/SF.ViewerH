@@ -5,7 +5,7 @@ import re
 import http.cookiejar
 from pathlib import Path
 from backend import utils
-from backend.utils import logger
+from backend import logger
 from collections import defaultdict
 
 log = logger.get_logger("Downloader.settings")

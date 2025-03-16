@@ -1,7 +1,7 @@
-from backend.utils import run_command
+from backend.utils import *
 import os
 import json
-from backend.utils import logger
+from backend import logger
 from backend.classes.lib import Lib
 from backend.classes.dsettings import NhentaiSettings
 

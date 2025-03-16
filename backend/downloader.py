@@ -7,8 +7,8 @@ from backend.downloaders.nhentai import NHentaiDownloader
 from backend.downloaders.gallerydl import GalleryDLDownloader
 from backend.downloaders.error import DownloaderError
 from backend.projects.projects import Projects
-from backend.projects.projects_utils import update_projects
-from backend.utils import logger
+# from backend.projects.projects_utils import update_projects
+from backend import logger
 from backend.classes.dsettings import NhentaiSettings, GalleryDLSettings
 from backend import utils
 from pathlib import Path
