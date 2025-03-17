@@ -10,10 +10,10 @@ import os
 class Settings:
     path: str = "./logs"
 
-    filehandler_separated: bool = True
+    filehandler_separated: bool = False
     filehandler_separated_level: int = logging.DEBUG
 
-    filehandler_all: bool = True
+    filehandler_all: bool = False
     filehandler_all_level: int = logging.DEBUG
 
     streamhandler: bool = True

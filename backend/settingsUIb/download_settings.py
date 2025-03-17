@@ -1,7 +1,4 @@
 from backend.main_import import *
-from backend.utils import *
-from backend import dep
-from backend.classes.lib import Lib
 from backend.classes.dsettings import BaseSettings
 
 dsettings: dict[str, BaseSettings] | None = None

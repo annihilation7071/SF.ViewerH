@@ -1,7 +1,4 @@
 from backend.main_import import *
-from backend.utils import *
-from backend import logger
-from backend.db import ProjectBase
 
 log = logger.get_logger("Upgrader")
 

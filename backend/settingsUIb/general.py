@@ -1,5 +1,4 @@
 from backend.main_import import *
-from backend.utils import *
 
 
 class SelectFolder(customtkinter.CTkFrame):

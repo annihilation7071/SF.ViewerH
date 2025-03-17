@@ -1,4 +1,7 @@
-from backend.main_import import *
+import shutil
+from pathlib import Path
+import os
+from os import PathLike
 
 
 class FileSession:

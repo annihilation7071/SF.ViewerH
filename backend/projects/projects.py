@@ -1,19 +1,22 @@
-from backend import dep
-from backend.db import Project
-from backend.classes.lib import Lib
-from sqlalchemy import desc, and_, func, or_, Sequence, not_
-from collections import defaultdict
-from backend.editor import variants_editor
-from backend.utils import *
-from icecream import ic
-from backend import logger
-from sqlalchemy.orm import Session
-from sqlalchemy import select, delete, update
-from backend.projects import projects_utils
-from backend.editor import selector
-from backend.filesession import FileSession, FSession
+from backend.main_import import *
+from . import projects_utils
 
-ic.configureOutput(includeContext=True)
+
+# from backend import dep
+# from backend.db import Project
+# from backend.classes.lib import Lib
+# from sqlalchemy import desc, and_, func, or_, Sequence, not_
+# from collections import defaultdict
+# from backend.editor import variants_editor
+# from backend.utils import *
+# from icecream import ic
+# from backend import logger
+# from sqlalchemy.orm import Session
+# from sqlalchemy import select, delete, update
+# from backend.projects import projects_utils
+# from backend.editor import selector
+# from backend.filesession import FileSession, FSession
+
 
 log = logger.get_logger("Projects.projects")
 
@@ -100,12 +103,12 @@ class Projects:
             stmt = select(func.count(Project.lid)).where(self.projects_filter)
             return session.scalar(stmt)
 
-    def renew(self):
-        with dep.Session() as session, FileSession() as fs:
-            self.update_pools_(session, fs)
-            self.update_aliases_(session, fs)
-            session.commit()
-            fs.commit()
+    # def renew(self):
+    #     with dep.Session() as session, FileSession() as fs:
+    #         self.update_pools_(session, fs)
+    #         self.update_aliases_(session, fs)
+    #         session.commit()
+    #         fs.commit()
 
     def get_project(self, lid: str) -> Project:
         log.debug("get_project")
@@ -150,12 +153,12 @@ class Projects:
 
         return sorted(result.items(), key=lambda x: x[1], reverse=True)
 
-    def edit(self, project: Project, edit_type: str, data: str):
-        with dep.Session() as session, FileSession() as fs:
-            r = selector.edit(session, fs, project, edit_type, data)
-            session.commit()
-            fs.commit()
-            return r
+    # def edit(self, project: Project, edit_type: str, data: str):
+    #     with dep.Session() as session, FileSession() as fs:
+    #         r = selector.edit(session, fs, project, edit_type, data)
+    #         session.commit()
+    #         fs.commit()
+    #         return r
 
     def clear_old_versions_(self, session: Session, target_version: int):
         log.debug(f"clear_old_versions: target version: {target_version}")
@@ -194,57 +197,59 @@ class Projects:
 
     def delete_all_data_(self, session: Session) -> None:
         log.info("delete_all_data")
-        session.query(Project).delete()
+        stmt = select(Project)
 
-    def update_aliases_(self, session: Session, fs: FSession):
-        aliases = utils.get_aliases()
-        aliases["nothing"] = "nothing"
-        stmt = [
-            or_(
-                Project.tag.icontains(f'"{alias}"'),
-                Project.artist.icontains(f'"{alias}"'),
-                Project.character.icontains(f'"{alias}"'),
-                Project.parody.icontains(f'"{alias}"'),
-                Project.group.icontains(f'"{alias}"'),
-            )
-            for alias in aliases.keys()
-        ]
+        session.delete(Project)
 
-        incorrect_aliases = session.scalars(self.active_projects.where(or_(*stmt))).all()
+    # def update_aliases_(self, session: Session, fs: FSession):
+    #     aliases = utils.get_aliases()
+    #     aliases["nothing"] = "nothing"
+    #     stmt = [
+    #         or_(
+    #             Project.tag.icontains(f'"{alias}"'),
+    #             Project.artist.icontains(f'"{alias}"'),
+    #             Project.character.icontains(f'"{alias}"'),
+    #             Project.parody.icontains(f'"{alias}"'),
+    #             Project.group.icontains(f'"{alias}"'),
+    #         )
+    #         for alias in aliases.keys()
+    #     ]
+    #
+    #     incorrect_aliases = session.scalars(self.active_projects.where(or_(*stmt))).all()
+    #
+    #     for project in incorrect_aliases:
+    #         projecte = Project.project_load_from_db(session, fs, project.lid)
+    #         update = defaultdict(list)
+    #
+    #         for category in ["tag", "artist", "group", "parody", "character", "language"]:
+    #             items = getattr(projecte, category)
+    #             new_items = []
+    #             for item in items:
+    #                 if not item:
+    #                     continue
+    #                 if item not in aliases:
+    #                     new_items.append(item)
+    #                 else:
+    #                     if isinstance(aliases[item], str):
+    #                         # noinspection PyUnresolvedReferences
+    #                         new_items.append(aliases[item])
+    #                     elif isinstance(aliases[item], list):
+    #                         new_items.extend(aliases[item])
+    #                     else:
+    #                         raise Exception(f"Unknown item {item}")
+    #
+    #             update[category] = list(set(new_items))
+    #
+    #         update = dict(update)
+    #         # noinspection PyDictCreation
+    #         projecte_updated = projecte.model_copy(update=update)
+    #         projecte_updated.renew_search_body()
+    #
+    #         projecte_updated.update_(session, fs=fs)
 
-        for project in incorrect_aliases:
-            projecte = Project.project_load_from_db(session, fs, project.lid)
-            update = defaultdict(list)
-
-            for category in ["tag", "artist", "group", "parody", "character", "language"]:
-                items = getattr(projecte, category)
-                new_items = []
-                for item in items:
-                    if not item:
-                        continue
-                    if item not in aliases:
-                        new_items.append(item)
-                    else:
-                        if isinstance(aliases[item], str):
-                            # noinspection PyUnresolvedReferences
-                            new_items.append(aliases[item])
-                        elif isinstance(aliases[item], list):
-                            new_items.extend(aliases[item])
-                        else:
-                            raise Exception(f"Unknown item {item}")
-
-                update[category] = list(set(new_items))
-
-            update = dict(update)
-            # noinspection PyDictCreation
-            projecte_updated = projecte.model_copy(update=update)
-            projecte_updated.renew_search_body()
-
-            projecte_updated.update_(session, fs=fs)
-
-    def delete_pool_(self, session: Session, variants: list) -> None:
-        log.debug(f"delete_pool: {variants}")
-        session.execute(delete(Project).filter(and_(Project.lid.icontains("pool_"), Project.lvariants == variants)))
+    # def delete_pool_(self, session: Session, variants: list) -> None:
+    #     log.debug(f"delete_pool: {variants}")
+    #     session.execute(delete(Project).filter(and_(Project.lid.icontains("pool_"), Project.lvariants == variants)))
 
     def check_lids_(self, session: Session, lids: list) -> int:
         log.debug(f"check_lids: {lids}")

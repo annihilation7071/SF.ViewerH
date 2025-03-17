@@ -1,18 +1,4 @@
-from backend.main_import import main
-from backend import dep
-from backend.utils import *
-from fastapi import APIRouter, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
-from fastapi.templating import Jinja2Templates
-from backend.projects.projects import Projects
-from backend.db import Project
-from pathlib import Path
-# noinspection PyUnresolvedReferences
-from urllib.parse import quote, unquote
-import mimetypes
-from backend.editor import selector as edit_selector
-from backend import logger
-from datetime import datetime
+from backend.main_import import *
 
 log = logger.get_logger("App.routers.main")
 

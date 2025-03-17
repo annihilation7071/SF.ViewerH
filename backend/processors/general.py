@@ -1,8 +1,4 @@
 from backend.main_import import *
-from backend.utils import *
-from backend import logger
-from backend.filesession import FSession
-from backend.db import Project, ProjectBase
 from backend.upgrade.vinfo import upgrade
 
 log = logger.get_logger("Processor.general")

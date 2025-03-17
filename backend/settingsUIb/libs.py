@@ -1,8 +1,4 @@
 from backend.main_import import *
-from backend.utils import *
-from backend import dep
-from tkinter import *
-from backend.classes.lib import Lib
 from backend.settingsUIb.general import SelectFolder
 
 
@@ -122,7 +118,7 @@ class LibField(customtkinter.CTkFrame):
         self.button.grid(row=0, column=3, sticky='e', padx=5, pady=5)
 
         if lib.libfile.name == "libs_default.json":
-            self.button.configure(state=DISABLED)
+            self.button.configure(state=tk.DISABLED)
 
     def _edit(self):
         editor = Editor(master=self, lib=self.lib, mode="edit")
@@ -190,7 +186,7 @@ class EditorFields(customtkinter.CTkFrame):
         self.libfile_entry.grid(row=0, column=1, sticky='nsew', padx=5, pady=5)
 
         if mode == "edit":
-            self.libfile_entry.configure(state=DISABLED, fg_color="#B2BBBC")
+            self.libfile_entry.configure(state=tk.DISABLED, fg_color="#B2BBBC")
 
         # Name
         self.name = customtkinter.CTkLabel(self, text="Name")
@@ -201,7 +197,7 @@ class EditorFields(customtkinter.CTkFrame):
         self.name_entry.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
 
         if mode == "edit":
-            self.name_entry.configure(state=DISABLED, fg_color="#B2BBBC")
+            self.name_entry.configure(state=tk.DISABLED, fg_color="#B2BBBC")
 
         # Status
         self.active = customtkinter.CTkLabel(self, text="Active")

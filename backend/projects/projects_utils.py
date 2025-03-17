@@ -1,14 +1,7 @@
 from backend.main_import import *
-from backend.utils import *
-from backend.db import ProjectBase, Project
-from backend import logger
-from backend.filesession import FileSession, FSession
-from backend import dep
-from backend.classes.lib import Lib
 from backend import processors
 from backend import upgrade
 
-cmdargs = dep.cmdargs
 
 if TYPE_CHECKING:
     from backend.projects.projects import Projects
@@ -20,9 +13,9 @@ def update_projects(session: Session, fs: FSession) -> None:
     log.debug("update_projects")
     log.info("Updating projects ...")
 
-    if cmdargs.args.reindex is True:
+    if cmdargs.reindex is True:
         log.warning(f"Deleting all data...")
-        cmdargs.args.reindex = False
+        cmdargs.reindex = False
         dep.projects.delete_all_data_(session)
 
     for lib in dep.libs.values():
