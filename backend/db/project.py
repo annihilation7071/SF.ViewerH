@@ -3,7 +3,7 @@ from backend.main_import import *
 
 log = logger.get_logger("Classes.db.project")
 
-info_version = 4
+info_version = dep.DB_VERSION
 
 
 class ProjectError(Exception):
@@ -156,9 +156,15 @@ class Project(ProjectBase, table=True):
         log.debug("lvariants_count")
         return len(self.lvariants)
 
+    __cache_images__ = None
+
     @property
     def images(self) -> list[dict[str, Path | int]]:
         log.debug("images")
+
+        if self.__cache_images__ is not None:
+            log.debug("using_cache_images")
+            return self.__cache_images__
 
         exts = self._images_exts
         files = os.listdir(self.path)
@@ -170,6 +176,8 @@ class Project(ProjectBase, table=True):
 
         pages = sorted(pages, key=lambda x: str(x))
         pages = [{"idx": i, "path": pages[i]} for i in range(len(pages))]
+
+        self.__cache_images__ = pages
 
         return pages
 

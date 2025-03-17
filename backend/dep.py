@@ -6,6 +6,8 @@ if TYPE_CHECKING:
     from settingsUI import App
     from backend.classes import Lib
 
+DB_VERSION = 4
+
 # noinspection PyTypeChecker
 Session: sqlmodel.Session = None
 # noinspection PyTypeChecker

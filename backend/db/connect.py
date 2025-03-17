@@ -5,9 +5,12 @@ from .pool_variants import PoolVariant
 log = logger.get_logger("DB")
 
 
+db_version = dep.DB_VERSION
+
+
 def get_session():
     engine = create_engine(
-        'sqlite:///data/DB/dbv4.db',
+        f'sqlite:///data/DB/dbv{db_version}.db',
         connect_args={'check_same_thread': False}
     )
 

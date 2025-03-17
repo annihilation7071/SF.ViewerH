@@ -6,8 +6,7 @@ log = logger.get_logger("App.routers.main")
 projects: Projects = None
 project_cache: dict = {}
 
-PROJECTS_PER_PAGE = 60
-PPG = PROJECTS_PER_PAGE
+PROJECTS_PER_PAGE = PPG = 60
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter()
@@ -18,25 +17,18 @@ def clear_cache():
     project_cache = {}
 
 
-def get_with_cache(project_lid: str):
+def get_with_cache(project_lid: str) -> Project:
     global project_cache
 
     if project_lid not in project_cache:
         project = projects.get_project(project_lid)
         project_cache = {
-            project_lid: {
-                "data": project,
-                "images": project.images
-            }
+            project_lid: project
         }
     else:
-        project = project_cache[project_lid]["data"]
-        if "images" not in project_cache[project_lid]:
-            project_cache[project_lid]["images"] = project.images
-        else:
-            images = project_cache[project_lid]["images"]
+        return project_cache[project_lid]
 
-    return project, project.images
+    return project
 
 
 @router.get("/", response_class=HTMLResponse, name="index")
@@ -65,25 +57,24 @@ async def index(request: Request, page: int = 1, search: str = ""):
 
 @router.get("/project/lid/{project_lid}", response_class=HTMLResponse)
 async def detail_view(request: Request, project_lid: str):
-    project, images = get_with_cache(project_lid)
+    project = get_with_cache(project_lid)
 
     return templates.TemplateResponse(
         "detailview.html",
         {
             "request": request,
-            "project": project,
-            "images": images
+            "project": project
         },
     )
 
 
 @router.get("/project/lid/{project_lid}/{page_id}", response_class=HTMLResponse)
 async def reader(request: Request, project_lid: str, page_id: int):
-    project, images = get_with_cache(project_lid)
+    project = get_with_cache(project_lid)
 
     page = page_id
-    image = images[page - 1]["path"]
-    total_pages = len(images)
+    image = project.images[page - 1]["path"]
+    total_pages = len(project.images)
     visible_pages = utils.get_visible_pages(page, total_pages)
     return templates.TemplateResponse(
         "reader.html",
