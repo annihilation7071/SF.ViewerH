@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime
 from pydantic import BaseModel, ValidationError, PrivateAttr, field_validator, ValidationError
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, DateTime, Column, ARRAY
-from sqlmodel import and_, any_, or_, desc, func, delete, update
+from sqlmodel import and_, any_, or_, desc, func, delete, update, Index, text, column
 from typing import Optional, List, Dict, Any, ClassVar
 from datetime import datetime
 import shutil

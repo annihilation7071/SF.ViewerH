@@ -1,7 +1,9 @@
 from backend.main_import import *
 
 
-log = logger.get_logger("Classes.db")
+log = logger.get_logger("Classes.db.project")
+
+info_version = 4
 
 
 class ProjectError(Exception):
@@ -10,7 +12,7 @@ class ProjectError(Exception):
 
 class ProjectBase(SQLModel):
     lid: str = Field(..., unique=True, nullable=False)
-    info_version: int = Field(default=4, index=True)
+    info_version: int = Field(default=info_version, index=True)
     lvariants: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
     source_id: str = Field(default="unknown", index=True)
     source: str = Field(default="unknown", index=True)
@@ -94,7 +96,7 @@ class Project(ProjectBase, table=True):
     search_body: str = Field(default="undefined", index=True)
     active: bool = Field(default=True, index=True)
     lib: str = Field(..., index=True)
-
+    # pool: str | None = Field(default=None, index=True)
 
     @property
     def _images_exts(self) -> set[str]:

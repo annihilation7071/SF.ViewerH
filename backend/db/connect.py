@@ -1,4 +1,6 @@
 from backend.main_import import *
+from .project import Project
+from .pool_variants import PoolVariant
 
 log = logger.get_logger("DB")
 
