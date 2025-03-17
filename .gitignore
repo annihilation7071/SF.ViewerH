@@ -23,4 +23,6 @@ __pycache__
 log*.txt
 /settings/aliases/*
 !/settings/aliases/aliases_default.json
+/user_data/*
+!/user_data/.getkeep
 !*.gitkeep
