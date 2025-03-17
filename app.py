@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
     main.projects = projects
     extra.projects = projects
     projects.update_projects()
-
+    projects.backup_variants()
     # projects.renew()
     log.debug(id(dep))
     log.debug(dep.Session)

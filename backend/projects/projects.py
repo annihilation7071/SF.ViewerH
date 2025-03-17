@@ -201,6 +201,48 @@ class Projects:
 
         session.delete(Project)
 
+    def backup_variants(self):
+        log.debug("backup_variants")
+        with dep.Session() as session, FileSession() as fs:
+            in_db = session.scalar(
+                select(PoolVariant).order_by(desc(PoolVariant.update_time))
+            )
+
+            if in_db:
+                version_in_db = in_db.update_time
+            else:
+                version_in_db = datetime(2000, 1, 1)
+
+            variants_file = Variants.load()
+
+            if variants_file.date > version_in_db:
+                log.debug(f"backup_variants: in db are outdated: {version_in_db}")
+                log.debug(f"backup_variants: updating variants in db from file: {variants_file.date}")
+                variants_file.date = version_in_db
+                session.delete(select(PoolVariant))
+                variants = variants_file.variants
+                session.add_all(variants)
+            else:
+                log.debug(f"backup_variants: in db are relevant: {version_in_db}")
+                if variants_file.date == version_in_db:
+                    log.debug(f"backup_variants: in file are relevant: {variants_file.date}")
+                    return
+
+                if variants_file.date < version_in_db:
+                    log.debug(f"backup_variants: in file are outdated: {variants_file.date}")
+                    log.debug("backup_variants: updating variants in file from db")
+                    variants_in_db = session.scalars(
+                        select(PoolVariant).order_by(desc(PoolVariant.update_time))
+                    ).all()
+
+                    variants_file.variants = variants_in_db
+                    variants_file.date = variants_in_db[0].update_time
+                    variants_file.save()
+                    log.debug(f"backup_variants: variants file saved. "
+                              f"Date: {variants_file.date}. "
+                              f"Count: {len(variants_file.variants)}.")
+
+
     # def update_aliases_(self, session: Session, fs: FSession):
     #     aliases = utils.get_aliases()
     #     aliases["nothing"] = "nothing"
