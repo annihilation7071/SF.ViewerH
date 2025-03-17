@@ -1,17 +1,5 @@
-from backend import dep
-from fastapi import FastAPI
-from contextlib import asynccontextmanager
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from backend.projects.projects import Projects
-# from backend.projects.projects_utils import update_projects
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from backend.main_import import *
 from routers import main, extra
-import os
-import asyncio
-from backend.utils import *
-from backend import logger
 from backend import init
 
 log = logger.get_logger("App.app")
@@ -31,12 +19,16 @@ async def lifespan(app: FastAPI):
     # noinspection PyGlobalUndefined
     global projects
     dep.libs = utils.read_libs(only_active=True)
+    dep.Session = connect.get_session()
     projects = Projects()
     dep.projects = projects
     main.projects = projects
     extra.projects = projects
     projects.update_projects()
     # projects.renew()
+    log.debug(id(dep))
+    log.debug(dep.Session)
+    log.debug(dep.libs)
     yield
 
 app = FastAPI(lifespan=lifespan)
