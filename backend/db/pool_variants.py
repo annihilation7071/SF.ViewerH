@@ -11,6 +11,7 @@ class PoolVariantError(Exception):
 class PoolVariantBase(SQLModel):
     lid: str = Field(..., index=True)
     project: str = Field(..., index=True, unique=True)
+    description: str = Field(..., index=True)
     priority: bool = Field(default=False, index=True)
     update_time: datetime = Field(..., index=True)
 

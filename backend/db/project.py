@@ -1,4 +1,5 @@
 from backend.main_import import *
+from .pool_variants import PoolVariant
 
 
 log = logger.get_logger("Classes.db.project")
@@ -69,8 +70,9 @@ class ProjectBase(SQLModel):
     def project_file_load(cls, file: Path):
         log.debug("project_file_load")
         data = utils.read_json(file)
-        data["_path"] = file.parent.parent
-        return cls.model_validate(data)
+        project = cls.model_validate(data)
+        project._path = file.parent.parent
+        return project
 
     def prolect_file_save(self, file: Path = None, fs: FSession = None):
         log.debug("project_file_save")
@@ -124,7 +126,7 @@ class Project(ProjectBase, table=True):
     @property
     def variants_view(self) -> list[str]:
         log.debug("variants_view")
-        variants = [x.split(":") for x in self.lvariants]
+        variants = [x.split(":") for x in self.variants]
         variants = [x[1] for x in variants]
         return variants
 
@@ -180,6 +182,52 @@ class Project(ProjectBase, table=True):
         self.__cache_images__ = pages
 
         return pages
+
+    @property
+    def variants(self) -> list[str]:
+        log.debug("lvariants")
+
+        with dep.Session() as session:
+            stmt = select(PoolVariant).where(PoolVariant.project == self.lid)
+            found = session.scalar(stmt)
+
+            if not found:
+                log.debug("lvariants: not found")
+                return []
+
+            log.debug("lvariants: found")
+
+            priority = session.scalar(
+                select(PoolVariant).where(
+                    and_(
+                        PoolVariant.lid == found.lid,
+                PoolVariant.priority == 1,
+                    )
+                )
+            )
+
+            log.debug(f"lvariants: priority: {priority}")
+
+            non_priority = session.scalars(
+                select(PoolVariant).where(
+                    and_(
+                        PoolVariant.lid == found.lid,
+                        PoolVariant.priority == 0,
+                    )
+                ).order_by(asc(PoolVariant.description))
+            ).all()
+
+            log.debug(f"lvariants: non_priority: {non_priority}")
+
+            result = [":".join([priority.project, priority.description, "p"])]
+            for pool_entry in non_priority:
+                result.append(
+                    ":".join([pool_entry.project, pool_entry.description])
+                )
+
+            log.debug(f"lvariants: result: {result}")
+
+            return result
 
     @classmethod
     def project_file_load(cls, file: Path) -> None:

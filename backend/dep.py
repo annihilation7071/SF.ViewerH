@@ -6,7 +6,8 @@ if TYPE_CHECKING:
     from settingsUI import App
     from backend.classes import Lib
 
-DB_VERSION = 4
+DB_VERSION = 5
+
 
 # noinspection PyTypeChecker
 Session: sqlmodel.Session = None
@@ -18,11 +19,17 @@ libs: dict[str, 'Lib'] = None
 settingsUI: 'App' = None
 
 
-def init():
-    global projects
-    global libs
-    global settingsUI
-    global Session
 
-    libs = utils.read_libs()
-    Session = connect.get_session()
+
+class ConfigPaths(BaseModel):
+    user_data: Path
+
+
+class Config(BaseModel):
+    paths: ConfigPaths
+
+
+with open(Path("./config.toml"), encoding="utf-8") as f:
+    config = Config.model_validate(
+        tomllib.loads(f.read())
+    )

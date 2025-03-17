@@ -6,7 +6,7 @@ log = logger.get_logger("Processor.general")
 meta_file = "metadata.json"
 
 
-def make_v_info(fs: FSession, path: Path, processor_name: str) -> None:
+def make_v_info(session: Session, fs: FSession, path: Path, processor_name: str) -> None:
     log.debug("make_v_info")
     log.info(f"Processing: {path}")
     template = ProjectBase(
@@ -23,7 +23,7 @@ def make_v_info(fs: FSession, path: Path, processor_name: str) -> None:
 
     vinfo_path = path / "sf.viewer/v_info.json"
 
-    template = upgrade(path, template)
+    template = upgrade(session, path, template)
 
     log.debug("Writing vinfo to project")
 

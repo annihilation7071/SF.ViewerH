@@ -120,11 +120,11 @@
             <div class="label-tags-container">
                 <div class="label">Variants:</div>
                 <div class="tags-container">
-                    {% for i in range(0, project.lvariants|length) %}
-                        <a href="{{ request.url_for('detail_view', project_lid=project.lvariants[i].split(':')[0]) }}?{{ request.query_params }}"
-                           class="tag tag-click{{ " tag-priority" if project.lvariants[i].split(':')[0] == project.lid }}">{{ project.variants_view[i] }}</a>
+                    {% for i in range(0, project.variants|length) %}
+                        <a href="{{ request.url_for('detail_view', project_lid=project.variants[i].split(':')[0]) }}?{{ request.query_params }}"
+                           class="tag tag-click{{ " tag-priority" if project.variants[i].split(':')[0] == project.lid }}">{{ project.variants_view[i] }}</a>
                     {% endfor %}
-                    <button class="edit-button" data-type="edit-variants" data-content="{{ '\n'.join(project.lvariants) }}">+</button>
+                    <button class="edit-button" data-type="edit-variants" data-content="{{ '\n'.join(project.variants) }}">+</button>
                 </div>
             </div>
 

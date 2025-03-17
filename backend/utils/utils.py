@@ -304,7 +304,7 @@ def make_search_body(project: 'Project') -> str:
     return search_body
 
 
-def write_json(path: Path, data: dict | list, fs: FSession = None) -> None:
+def write_json(path: Path, data: dict | list | str, fs: FSession = None) -> None:
     log.debug("write_json")
 
     def f(fs_: FSession):
@@ -313,10 +313,10 @@ def write_json(path: Path, data: dict | list, fs: FSession = None) -> None:
                 with fs_.open(path, 'w', encoding="utf-8") as f:
                     # noinspection PyTypeChecker
                     json.dump(data, f, indent=4, ensure_ascii=False)
-            elif isinstance(data, Project):
+            elif isinstance(data, str):
                 with fs_.open(path, 'w', encoding="utf-8") as f:
                     # noinspection PyTypeChecker
-                    json.dump(json.loads(data.model_dump_json()), f, indent=4, ensure_ascii=False)
+                    json.dump(json.loads(data), f, indent=4, ensure_ascii=False)
             else:
                 raise TypeError(f"Unsupported type {type(data)}")
         except:
