@@ -17,7 +17,7 @@ def get_session():
     SQLModel.metadata.create_all(engine)
 
     # noinspection PyPep8Naming,PyShadowingNames
-    Session = scoped_session(sessionmaker(bind=engine))
+    Session = sessionmaker(bind=engine)
 
     return Session
 
