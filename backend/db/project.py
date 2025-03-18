@@ -1,7 +1,6 @@
 from backend.main_import import *
 from .pool_variants import PoolVariant
 
-
 log = logger.get_logger("Classes.db.project")
 
 info_version = dep.DB_VERSION
@@ -83,6 +82,7 @@ class Project(ProjectBase, table=True):
     search_body: str = Field(default="undefined", index=True)
     active: bool = Field(default=True, index=True)
     lib: str = Field(..., index=True)
+
     # pool: str | None = Field(default=None, index=True)
 
     @property
@@ -184,7 +184,7 @@ class Project(ProjectBase, table=True):
             if self.is_pool:
                 lid = session.scalar(select(PoolVariant.project).where(
                     PoolVariant.lid == self.lid
-                    )
+                )
                 )
             else:
                 lid = self.lid
@@ -336,17 +336,35 @@ class Project(ProjectBase, table=True):
         self.project_renew_all()
         session.add(self)
 
-    def project_pool_create(self, session: Session) -> None:
-        log.debug(f"project_pool_create: {self.lid}")
-        variants = self.lvariants_lids
+    def pool_sync_(self, session: Session) -> None:
+        log.debug(f"pool_init_")
+        if not self.is_pool:
+            raise ProjectError(f"pool_init_: method allowed only for pool: {self.lid}")
 
-        priority = first_true(variants, pred=lambda v: v.priority is True)
+        variants = self.variants[1:]
+        log.debug(f"pool_init: variants: {variants}")
+        projects_lids = [variant.project for variant in variants]
 
-        # pool_lid = f"pool_{priority.lid}"
-        #
-        # stmt = select(Project).where(Project.lid == pool_lid)
-        # exist = session.scalar(stmt)
-        # if exist:
-        #     raise ProjectError(f"Project {pool_lid} already exists")
-        #
-        # pool = Project(**priority.model_dump(exclude={"id", "lid"}), lid=pool_lid)
+        projects = session.scalars(
+            select(Project).where(
+                Project.lid.in_(projects_lids),
+            )
+        ).all()
+
+        log.debug(f"pool_init: projects: {projects}")
+
+        synchronize_items = ["tag",
+                             "artist", "group", "parody",
+                             "character", "series", "language"]
+
+        for item in synchronize_items:
+            own = set(getattr(self, item))
+            log.debug(f"pool_init: item: {item}, own: {own}")
+
+            for project in projects:
+                own = own | set(getattr(project, item))
+
+            setattr(self, item, list(own))
+
+            log.debug(f"pool_init: item: {item}, own: {own}")
+

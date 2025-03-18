@@ -333,10 +333,14 @@ class Projects:
                     Project.lid == pool_entry.project,
                 )
             )
+
             pool = Project(
                 lid=lid,
-                **priority.model_dump(exclude={"lid", "id"})
+                active=True,
+                **priority.model_dump(exclude={"lid", "id", "active"})
             )
+
+            pool.pool_sync_(session)
 
             pools.append(pool)
 
