@@ -106,6 +106,11 @@ class Project(ProjectBase, table=True):
         return Path(dep.libs[self.lib].path / self.dir_name)
 
     @property
+    def path_info(self) -> Path:
+        log.debug("path_info")
+        return self.path / "sf.viewer/v_info.json"
+
+    @property
     def upload_date_str(self) -> str:
         log.debug("upload_date_str")
         return self.upload_date.replace(microsecond=0).isoformat()
@@ -312,7 +317,7 @@ class Project(ProjectBase, table=True):
         if self.is_pool:
             raise ProjectError(f"Cannot update vinfo for pool: {self.lid}")
 
-        file = self.path / "sf.viewer/v_info.json"
+        file = self.path_info
         if file.exists():
             self.prolect_file_save(fs=fs)
         else:

@@ -1,5 +1,6 @@
 from backend.main_import import *
 from . import projects_utils
+from . import editor
 
 
 # from backend import dep
@@ -153,12 +154,12 @@ class Projects:
 
         return sorted(result.items(), key=lambda x: x[1], reverse=True)
 
-    # def edit(self, project: Project, edit_type: str, data: str):
-    #     with dep.Session() as session, FileSession() as fs:
-    #         r = selector.edit(session, fs, project, edit_type, data)
-    #         session.commit()
-    #         fs.commit()
-    #         return r
+    def edit(self, project: Project, edit_type: str, data: str):
+        with dep.Session() as session, FileSession() as fs:
+            result = editor.edit(session, fs, project, edit_type, data)
+            session.commit()
+            fs.commit()
+            return result
 
     def clear_old_versions_(self, session: Session, target_version: int):
         log.debug(f"clear_old_versions: target version: {target_version}")

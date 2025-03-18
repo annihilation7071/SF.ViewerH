@@ -1,8 +1,4 @@
 from backend.main_import import *
-from backend import dep
-from backend.utils import *
-from backend import logger
-from backend.filesession import FileSession, FSession
 
 log = logger.get_logger("Editor.item")
 
@@ -17,28 +13,28 @@ edit_types = {
 }
 
 
-# def edit(session: Session, fs: FSession, project: ProjectE | ProjectEPool, edit_type: str, data: str, update_priority: bool = True):
-#     log.debug("item_editor.edit")
-#     log.debug(f"Edit type: {edit_type}")
-#     log.debug(f"Data: {data}")
-#
-#     if edit_type not in edit_types:
-#         raise ItemEditorError(f"edit_type: {edit_type} not supported")
-#
-#     items = data.split("\n")
-#     items = [item for item in items if item != ""]
-#     items = tag_normalizer(items)
-#     log.debug(f"Normalized items: {items}")
-#
-#     if project.lid.startswith("pool_") and type:
-#         log.debug(f"Project is a pool. Finding projects...")
-#         return multiple_edit(session, fs, project, edit_type, items)
-#
-#     setattr(project, edit_types[edit_type], items)
-#
-#     project.update_(session, fs=fs)
-#
-#     return project.lid
+def edit(session: Session, fs: FSession, project: Project, edit_type: str, data: str):
+    log.debug("item_editor.edit")
+    log.debug(f"Edit type: {edit_type}")
+    log.debug(f"Data: {data}")
+
+    if edit_type not in edit_types:
+        raise ItemEditorError(f"edit_type: {edit_type} not supported")
+
+    items = data.split("\n")
+    items = [item for item in items if item != ""]
+    items = utils.tag_normalizer(items)
+    log.debug(f"Normalized items: {items}")
+
+    # if project.lid.startswith("pool_") and type:
+    #     log.debug(f"Project is a pool. Finding projects...")
+    #     return multiple_edit(session, fs, project, edit_type, items)
+
+    setattr(project, edit_types[edit_type], items)
+
+    project.project_update_project(session, fs=fs)
+
+    return project.lid
 
 
 # def multiple_edit(session: Session, fs: FSession, project: ProjectEPool, edit_type: str, items: list):

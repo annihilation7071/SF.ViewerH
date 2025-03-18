@@ -1,6 +1,5 @@
 from backend.main_import import *
 
-
 log = logger.get_logger("Classes.db.pool")
 
 
@@ -52,6 +51,7 @@ class PoolVariantBase(SQLModel):
 
         return result
 
+
 class PoolVariant(PoolVariantBase, table=True):
     __tablename__ = "pools_variants"
 
@@ -66,4 +66,6 @@ class PoolVariant(PoolVariantBase, table=True):
         ),
     )
 
-
+    # @property
+    # def active(self) -> bool:
+    #     pass
