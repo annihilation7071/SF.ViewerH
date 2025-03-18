@@ -101,6 +101,18 @@ class Project(ProjectBase, table=True):
         return False
 
     @property
+    def has_pool(self) -> str | None:
+        log.debug("has_pool")
+        with dep.Session() as session:
+            pool_lid = session.scalar(
+                select(PoolVariant.lid).where(
+                    PoolVariant.project == self.lid
+                )
+            )
+
+        return pool_lid
+
+    @property
     def path(self) -> Path:
         log.debug("path")
         return Path(dep.libs[self.lib].path / self.dir_name)

@@ -13,10 +13,10 @@ edit_types = {
 }
 
 
-def edit(session: Session, fs: FSession, project: Project, edit_type: str, data: str):
-    log.debug("item_editor.edit")
-    log.debug(f"Edit type: {edit_type}")
-    log.debug(f"Data: {data}")
+def edit(session: Session, fs: FSession, project: Project, edit_type: str, data: str) -> str:
+    log.debug("edit")
+    log.debug(f"edit: type: {edit_type}")
+    log.debug(f"edit: data: {data}")
 
     if edit_type not in edit_types:
         raise ItemEditorError(f"edit_type: {edit_type} not supported")
@@ -24,63 +24,55 @@ def edit(session: Session, fs: FSession, project: Project, edit_type: str, data:
     items = data.split("\n")
     items = [item for item in items if item != ""]
     items = utils.tag_normalizer(items)
-    log.debug(f"Normalized items: {items}")
+    log.debug(f"edit: normalized items: {items}")
 
-    # if project.lid.startswith("pool_") and type:
-    #     log.debug(f"Project is a pool. Finding projects...")
-    #     return multiple_edit(session, fs, project, edit_type, items)
+    if project.is_pool:
+        log.debug(f"edit: project is a pool.")
+        return _edit_pool(session, fs, project, edit_type, items)
 
     setattr(project, edit_types[edit_type], items)
 
     project.project_update_project(session, fs=fs)
 
+    if pool_lid := project.has_pool:
+        log.debug(f"edit: project has pool: {pool_lid}")
+        pool = session.scalar(
+            select(Project).where(
+                Project.lid == pool_lid
+            )
+        )
+
+        pool.pool_sync_(session)
+
     return project.lid
 
 
-# def multiple_edit(session: Session, fs: FSession, project: ProjectEPool, edit_type: str, items: list):
-#     log.debug("item_editor.multiple_edit")
-#     project_items: list = getattr(project, edit_types[edit_type])
-#     minus = []
-#     plus = []
-#     for item in items:
-#         if item not in project_items:
-#             plus.append(item)
-#
-#     for item in items:
-#         try:
-#             project_items.remove(item)
-#         except ValueError:
-#             continue
-#
-#     minus = project_items
-#
-#     log.debug(f"Minus: {minus}")
-#     log.debug(f"Plus: {plus}")
-#
-#     log.debug(f"Finding variants....")
-#     for variant in project.lvariants:
-#         lid: str = variant.split(":")[0]
-#         log.debug(f"Variant: {lid}")
-#
-#         target_project: ProjectE = ProjectE.load_from_db(session, fs, lid)
-#         data: list = getattr(target_project, edit_types[edit_type])
-#         log.debug(f"Old data: {data}")
-#
-#         new_data = data
-#         for item in plus:
-#             if item not in new_data:
-#                 new_data.append(item)
-#
-#         for item in minus:
-#             if item in new_data:
-#                 new_data.remove(item)
-#
-#         log.debug(f"New data: {new_data}")
-#
-#         setattr(target_project, edit_types[edit_type], new_data)
-#         target_project.update_(session, fs)
-#
-#     project.update_pool(session, fs)
-#
-#     log.debug(f"Return: {project.lid}")
-#     return project.lid
+def _edit_pool(session: Session, fs: FSession, project: Project, edit_type: str, data: str) -> str:
+    log.debug("_edit_pool")
+
+    field = edit_types[edit_type]
+
+    original_data = set(getattr(project, field))
+    log.debug(f"_edit_pool: original_data: {original_data}")
+
+    deleted = original_data - set(data)
+    log.debug(f"_edit_pool: deleted: {deleted}")
+
+    added = set(data) - original_data
+    log.debug(f"_edit_pool: added: {added}")
+
+    projects_lids = [variant.project for variant in project.variants]
+
+    projects = session.scalars(
+        select(Project).where(
+            Project.lid.in_(projects_lids)
+        )
+    )
+
+    for project_ in projects:
+        old_data = set(getattr(project_, field))
+        new_data = old_data - deleted
+        new_data = new_data | added
+        setattr(project_, field, list(new_data))
+
+    return project.lid
