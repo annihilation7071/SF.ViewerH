@@ -19,6 +19,38 @@ class PoolVariantBase(SQLModel):
         validate_assignment = True
         allow_arbitrary_types = False
 
+    def to_str(self) -> str:
+        log.debug("to_str")
+        result = f"{self.lid}:{self.description}"
+        if self.priority:
+            result += ":p"
+        return result
+
+    @classmethod
+    def from_str(cls, string: str, lid: str) -> Union["PoolVariantBase", "PoolVariant"]:
+        log.debug("from_str")
+        separated = string.split(":")
+
+        if len(separated) > 3 or len(separated) < 2:
+            raise PoolVariantError(f"from_str: incorrect format: {string}")
+
+        lid = separated[0]
+        description = separated[1]
+
+        if len(separated) == 3 and separated[2].lower() in ["p", "priority"]:
+            priority = True
+        else:
+            priority = False
+
+        result = cls(
+            lid=lid,
+            project=lid,
+            description=description,
+            priority=priority,
+            update_time=datetime.now(),
+        )
+
+        return result
 
 class PoolVariant(PoolVariantBase, table=True):
     __tablename__ = "pools_variants"

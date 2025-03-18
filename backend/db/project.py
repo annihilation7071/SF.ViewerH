@@ -95,7 +95,9 @@ class Project(ProjectBase, table=True):
     def is_pool(self) -> bool:
         log.debug("is_pool")
         if self.lid.startswith("pool_"):
+            log.debug("is_pool: True")
             return True
+        log.debug("is_pool: False")
         return False
 
     @property
@@ -139,9 +141,9 @@ class Project(ProjectBase, table=True):
         return flags
 
     @property
-    def lvariants_count(self) -> int:
+    def variants_count(self) -> int:
         log.debug("lvariants_count")
-        return len(self.lvariants)
+        return len(self.variants) - 1
 
     __cache_images__: list[dict[str, Path | int]] = None
 
@@ -179,7 +181,17 @@ class Project(ProjectBase, table=True):
             return self.__cache_variants__
 
         with dep.Session() as session:
-            stmt = select(PoolVariant).where(PoolVariant.project == self.lid)
+            if self.is_pool:
+                lid = session.scalar(select(PoolVariant.project).where(
+                    PoolVariant.lid == self.lid
+                    )
+                )
+            else:
+                lid = self.lid
+
+            log.debug(f"variants: lid: {lid}")
+
+            stmt = select(PoolVariant).where(PoolVariant.project == lid)
             found = session.scalar(stmt)
 
             if not found:
@@ -197,6 +209,16 @@ class Project(ProjectBase, table=True):
                 )
             ).all()
 
+            pool = PoolVariant(
+                lid=variants[0].lid,
+                project=variants[0].lid,
+                description="pool",
+                priority=False,
+                update_time=datetime(2000, 1, 1),
+            )
+
+            variants = [pool] + list(variants)
+
             log.debug(f"variants: result: {variants}")
 
             self.__cache_variants__ = list(variants)
@@ -211,10 +233,12 @@ class Project(ProjectBase, table=True):
 
         for variant in self.variants:
             lid = variant.project
-            description = variant.description
-            priority = ":p" if variant.priority else ""
-            str_variant = f"{lid}:{description}{priority}"
-            result.append(str_variant)
+            if lid.startswith("pool_"):
+                continue
+            # description = variant.description
+            # priority = ":p" if variant.priority else ""
+            # str_variant = f"{lid}:{description}{priority}"
+            result.append(variant.to_str())
 
         result = "\n".join(result)
         return result

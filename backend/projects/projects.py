@@ -103,12 +103,12 @@ class Projects:
             stmt = select(func.count(Project.lid)).where(self.projects_filter)
             return session.scalar(stmt)
 
-    # def renew(self):
-    #     with dep.Session() as session, FileSession() as fs:
-    #         self.update_pools_(session, fs)
-    #         self.update_aliases_(session, fs)
-    #         session.commit()
-    #         fs.commit()
+    def renew(self):
+        with dep.Session() as session, FileSession() as fs:
+            self.update_pools_(session)
+            # self.update_aliases_(session, fs)
+            session.commit()
+            fs.commit()
 
     def get_project(self, lid: str) -> Project:
         log.debug("get_project")
@@ -197,9 +197,11 @@ class Projects:
 
     def delete_all_data_(self, session: Session) -> None:
         log.info("delete_all_data")
-        stmt = select(Project)
 
-        session.delete(Project)
+        # noinspection PyTypeChecker
+        session.exec(delete(Project))
+        # noinspection PyTypeChecker
+        session.exec(delete(PoolVariant))
 
     def backup_variants(self):
         log.debug("backup_variants")
@@ -219,6 +221,7 @@ class Projects:
                 log.debug(f"backup_variants: in db are outdated: {version_in_db}")
                 log.debug(f"backup_variants: updating variants in db from file: {variants_file.date}")
                 variants_file.date = version_in_db
+                # noinspection PyTypeChecker
                 session.exec(delete(PoolVariant))
                 variants = variants_file.variants
                 session.add_all(variants)
@@ -299,6 +302,59 @@ class Projects:
         stmt = select(func.count(Project.lid)).where(Project.lid.in_(lids))
 
         return session.scalar(stmt)
+
+    def update_pools_(self, session: Session):
+        log.debug("update_pools_")
+
+        pools_entries = session.scalars(
+            select(PoolVariant).where(
+                PoolVariant.priority == 1
+            )
+        ).all()
+
+        # priority_list = [pool_entry.project for pool_entry in pools_entries]
+        #
+        # priorities = session.scalars(
+        #     select(Project).where(
+        #         Project.lid.in_(priority_list)
+        #     )
+        # )
+
+        pools = []
+
+        for pool_entry in pools_entries:
+            lid = pool_entry.lid
+
+            if session.scalar(select(Project).where(Project.lid == lid)):
+                continue
+
+            priority = session.scalar(
+                select(Project).where(
+                    Project.lid == pool_entry.project,
+                )
+            )
+            pool = Project(
+                lid=lid,
+                **priority.model_dump(exclude={"lid", "id"})
+            )
+
+            pools.append(pool)
+
+        session.add_all(pools)
+
+        projects_with_pool = session.scalars(
+            select(PoolVariant.project)
+        ).all()
+
+        session.execute(
+            update(Project).where(
+                Project.lid.in_(projects_with_pool)
+            ).values(active=0)
+        )
+
+
+
+
 
     # noinspection da
     # def create_priority_(self,

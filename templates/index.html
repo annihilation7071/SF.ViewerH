@@ -55,7 +55,7 @@
                class="project-item-container">
                 <div class="project-item-preview-data pages-count">{{ project.pages }}</div>
                 {% if project.lid.startswith('pool_') %}
-                    <div class="project-item-preview-data lvariants-count">x{{ project.lvariants_count }}</div>
+                    <div class="project-item-preview-data lvariants-count">x{{ project.variants_count }}</div>
                 {% endif %}
                 <div class="project-item-preview">
                     <img src="{{ request.url_for('get_image', image_path=project.preview_path | urlencode) }}" alt="{{ project.title }}">
