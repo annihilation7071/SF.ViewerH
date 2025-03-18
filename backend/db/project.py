@@ -143,14 +143,14 @@ class Project(ProjectBase, table=True):
         log.debug("lvariants_count")
         return len(self.lvariants)
 
-    __cache_images__ = None
+    __cache_images__: list[dict[str, Path | int]] = None
 
     @property
     def images(self) -> list[dict[str, Path | int]]:
         log.debug("images")
 
         if self.__cache_images__ is not None:
-            log.debug("using_cache_images")
+            log.debug("images: using cache")
             return self.__cache_images__
 
         exts = self._images_exts
@@ -168,19 +168,25 @@ class Project(ProjectBase, table=True):
 
         return pages
 
+    __cache_variants__: list[PoolVariant] = None
+
     @property
     def variants(self) -> list[PoolVariant]:
-        log.debug("lvariants")
+        log.debug("variants")
+
+        if self.__cache_variants__ is not None:
+            log.debug("variants: using cache")
+            return self.__cache_variants__
 
         with dep.Session() as session:
             stmt = select(PoolVariant).where(PoolVariant.project == self.lid)
             found = session.scalar(stmt)
 
             if not found:
-                log.debug("lvariants: not found")
+                log.debug("variants: not found")
                 return []
 
-            log.debug("lvariants: found")
+            log.debug("variants: found")
 
             variants = session.scalars(
                 select(PoolVariant).where(
@@ -191,37 +197,27 @@ class Project(ProjectBase, table=True):
                 )
             ).all()
 
-            # priority = session.scalar(
-            #     select(PoolVariant).where(
-            #         and_(
-            #             PoolVariant.lid == found.lid,
-            #     PoolVariant.priority == 1,
-            #         )
-            #     )
-            # )
-            #
-            # log.debug(f"lvariants: priority: {priority}")
-            #
-            # non_priority = session.scalars(
-            #     select(PoolVariant).where(
-            #         and_(
-            #             PoolVariant.lid == found.lid,
-            #             PoolVariant.priority == 0,
-            #         )
-            #     ).order_by(asc(PoolVariant.description))
-            # ).all()
-            #
-            # log.debug(f"lvariants: non_priority: {non_priority}")
-            #
-            # result = [":".join([priority.project, priority.description, "p"])]
-            # for pool_entry in non_priority:
-            #     result.append(
-            #         ":".join([pool_entry.project, pool_entry.description])
-            #     )
+            log.debug(f"variants: result: {variants}")
 
-            log.debug(f"lvariants: result: {variants}")
+            self.__cache_variants__ = list(variants)
 
             return list(variants)
+
+    @property
+    def variants_edit_view(self) -> str:
+        log.debug("variants_edit_view")
+
+        result = []
+
+        for variant in self.variants:
+            lid = variant.project
+            description = variant.description
+            priority = ":p" if variant.priority else ""
+            str_variant = f"{lid}:{description}{priority}"
+            result.append(str_variant)
+
+        result = "\n".join(result)
+        return result
 
     @classmethod
     def project_file_load(cls, file: Path) -> None:

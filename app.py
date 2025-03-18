@@ -31,6 +31,7 @@ async def lifespan(app: FastAPI):
     log.debug(dep.Session)
     log.debug(dep.libs)
     yield
+    projects.backup_variants()
 
 app = FastAPI(lifespan=lifespan)
 # noinspection PyTypeChecker

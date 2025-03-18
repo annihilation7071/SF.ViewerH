@@ -21,12 +21,15 @@ def get_with_cache(project_lid: str) -> Project:
     global project_cache
 
     if project_lid not in project_cache:
+        if len(project_cache) > 10:
+            project_cache.pop(list(project_cache.keys())[randint(0, len(project_cache)-1)])
+
         project = projects.get_project(project_lid)
-        project_cache = {
-            project_lid: project
-        }
+        project_cache[project_lid] = project
     else:
         return project_cache[project_lid]
+
+    log.debug(f"get_with_cache: len: {len(project_cache)}")
 
     return project
 
