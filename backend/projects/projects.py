@@ -219,9 +219,10 @@ class Projects:
                 log.debug(f"backup_variants: in db are outdated: {version_in_db}")
                 log.debug(f"backup_variants: updating variants in db from file: {variants_file.date}")
                 variants_file.date = version_in_db
-                session.delete(select(PoolVariant))
+                session.exec(delete(PoolVariant))
                 variants = variants_file.variants
                 session.add_all(variants)
+                session.commit()
             else:
                 log.debug(f"backup_variants: in db are relevant: {version_in_db}")
                 if variants_file.date == version_in_db:

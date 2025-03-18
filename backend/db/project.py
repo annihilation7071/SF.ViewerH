@@ -46,21 +46,6 @@ class ProjectBase(SQLModel):
         log.debug("path")
         return self._path
 
-    class Variant(BaseModel):
-        lid: str
-        description: str
-        priority: bool
-
-        @classmethod
-        def read(cls, lid: str, description: str, priority: bool = False) -> "Variant":
-            return Variant(lid=lid, description=description, priority=priority)
-
-    @property
-    def lvariants_lids(self) -> list[Variant]:
-        log.debug("lvariants_lids")
-        lids = [self.Variant.read(*variant.split(":")) for variant in self.lvariants]
-        return lids
-
     @property
     def preview_path(self) -> Path:
         log.debug("preview_path")
@@ -184,7 +169,7 @@ class Project(ProjectBase, table=True):
         return pages
 
     @property
-    def variants(self) -> list[str]:
+    def variants(self) -> list[PoolVariant]:
         log.debug("lvariants")
 
         with dep.Session() as session:
@@ -197,37 +182,46 @@ class Project(ProjectBase, table=True):
 
             log.debug("lvariants: found")
 
-            priority = session.scalar(
+            variants = session.scalars(
                 select(PoolVariant).where(
-                    and_(
-                        PoolVariant.lid == found.lid,
-                PoolVariant.priority == 1,
-                    )
+                    PoolVariant.lid == found.lid
+                ).order_by(
+                    desc(PoolVariant.priority),
+                    asc(PoolVariant.description)
                 )
-            )
-
-            log.debug(f"lvariants: priority: {priority}")
-
-            non_priority = session.scalars(
-                select(PoolVariant).where(
-                    and_(
-                        PoolVariant.lid == found.lid,
-                        PoolVariant.priority == 0,
-                    )
-                ).order_by(asc(PoolVariant.description))
             ).all()
 
-            log.debug(f"lvariants: non_priority: {non_priority}")
+            # priority = session.scalar(
+            #     select(PoolVariant).where(
+            #         and_(
+            #             PoolVariant.lid == found.lid,
+            #     PoolVariant.priority == 1,
+            #         )
+            #     )
+            # )
+            #
+            # log.debug(f"lvariants: priority: {priority}")
+            #
+            # non_priority = session.scalars(
+            #     select(PoolVariant).where(
+            #         and_(
+            #             PoolVariant.lid == found.lid,
+            #             PoolVariant.priority == 0,
+            #         )
+            #     ).order_by(asc(PoolVariant.description))
+            # ).all()
+            #
+            # log.debug(f"lvariants: non_priority: {non_priority}")
+            #
+            # result = [":".join([priority.project, priority.description, "p"])]
+            # for pool_entry in non_priority:
+            #     result.append(
+            #         ":".join([pool_entry.project, pool_entry.description])
+            #     )
 
-            result = [":".join([priority.project, priority.description, "p"])]
-            for pool_entry in non_priority:
-                result.append(
-                    ":".join([pool_entry.project, pool_entry.description])
-                )
+            log.debug(f"lvariants: result: {variants}")
 
-            log.debug(f"lvariants: result: {result}")
-
-            return result
+            return list(variants)
 
     @classmethod
     def project_file_load(cls, file: Path) -> None:

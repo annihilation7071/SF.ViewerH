@@ -6,6 +6,7 @@ _path = dep.config.paths.user_data / "variants.json"
 
 
 class Variants(BaseModel):
+    version: int = 1
     date: datetime
     variants: list[PoolVariant] = []
 

@@ -1,3 +1,5 @@
+import sqlmodel
+
 from backend.main_import import *
 from .project import Project
 from .pool_variants import PoolVariant
@@ -17,7 +19,8 @@ def get_session():
     SQLModel.metadata.create_all(engine)
 
     # noinspection PyPep8Naming,PyShadowingNames
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind=engine,
+                           class_=sqlmodel.Session)
 
     return Session
 
