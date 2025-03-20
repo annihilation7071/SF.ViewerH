@@ -85,6 +85,8 @@ class Project(ProjectBase, table=True):
 
     # pool: str | None = Field(default=None, index=True)
 
+    __session__: Session | None = None
+
     @property
     def _images_exts(self) -> set[str]:
         return {".png", ".jpg", ".jpeg", ".gif", ".avif", ".webp",
@@ -191,54 +193,10 @@ class Project(ProjectBase, table=True):
     def variants(self) -> list[PoolVariant]:
         log.debug("variants")
 
-        if self.__cache_variants__ is not None:
-            log.debug("variants: using cache")
-            return self.__cache_variants__
-
         with dep.Session() as session:
-            if self.is_pool:
-                lid = session.scalar(select(PoolVariant.project).where(
-                    PoolVariant.lid == self.lid
-                )
-                )
-            else:
-                lid = self.lid
+            variants = self.get_variants(session=session)
 
-            log.debug(f"variants: lid: {lid}")
-
-            stmt = select(PoolVariant).where(PoolVariant.project == lid)
-            found = session.scalar(stmt)
-
-            if not found:
-                log.debug("variants: not found")
-                return []
-
-            log.debug("variants: found")
-
-            variants = session.scalars(
-                select(PoolVariant).where(
-                    PoolVariant.lid == found.lid
-                ).order_by(
-                    desc(PoolVariant.priority),
-                    asc(PoolVariant.description)
-                )
-            ).all()
-
-            pool = PoolVariant(
-                lid=variants[0].lid,
-                project=variants[0].lid,
-                description="pool",
-                priority=False,
-                update_time=datetime(2000, 1, 1),
-            )
-
-            variants = [pool] + list(variants)
-
-            log.debug(f"variants: result: {variants}")
-
-            self.__cache_variants__ = list(variants)
-
-            return list(variants)
+        return list(variants)
 
     @property
     def variants_edit_view(self) -> str:
@@ -310,14 +268,68 @@ class Project(ProjectBase, table=True):
             return True
         return False
 
+    def get_variants(self, session: Session) -> list[PoolVariant]:
+        log.debug("get_variants_")
+
+        if self.__cache_variants__ is not None:
+            log.debug("variants: using cache")
+            return self.__cache_variants__
+
+        if self.is_pool:
+            lid = session.scalar(select(PoolVariant.project).where(
+                PoolVariant.lid == self.lid
+            )
+            )
+        else:
+            lid = self.lid
+
+        log.debug(f"get_variants_: lid: {lid}")
+
+        stmt = select(PoolVariant).where(PoolVariant.project == lid)
+        found = session.scalar(stmt)
+
+        if not found:
+            log.debug("get_variants_: not found")
+            return []
+
+        log.debug("get_variants_: found")
+
+        variants = session.scalars(
+            select(PoolVariant).where(
+                PoolVariant.lid == found.lid
+            ).order_by(
+                desc(PoolVariant.priority),
+                asc(PoolVariant.description)
+            )
+        ).all()
+
+        pool = PoolVariant(
+            lid=variants[0].lid,
+            project=variants[0].lid,
+            description="pool",
+            priority=False,
+            update_time=datetime(2000, 1, 1),
+        )
+
+        variants = [pool] + list(variants)
+
+        log.debug(f"get_variants: result: {variants}")
+
+        self.__cache_variants__ = list(variants)
+
+        return list(variants)
+
     def get_pool_lid(self):
         log.debug("get_pool_lid")
-        with dep.Session() as session:
-            pool_lid = session.scalar(
-                select(PoolVariant.lid).where(
-                    PoolVariant.project == self.lid
+        if not self.is_pool:
+            with dep.Session() as session:
+                pool_lid = session.scalar(
+                    select(PoolVariant.lid).where(
+                        PoolVariant.project == self.lid
+                    )
                 )
-            )
+        else:
+            pool_lid = self.lid
 
         return pool_lid
 
@@ -363,12 +375,13 @@ class Project(ProjectBase, table=True):
         session.add(self)
 
     def pool_sync_(self, session: Session) -> None:
-        log.debug(f"pool_init_")
+        log.debug(f"pool_sync_")
         if not self.is_pool:
-            raise ProjectError(f"pool_init_: method allowed only for pool: {self.lid}")
+            raise ProjectError(f"pool_sync_: method allowed only for pool: {self.lid}")
 
-        variants = self.variants[1:]
-        log.debug(f"pool_init: variants: {variants}")
+        variants = self.get_variants(session)[1:]
+        # priority_lid = variants[0].project
+        log.debug(f"pool_sync_: variants: {variants}")
         projects_lids = [variant.project for variant in variants]
 
         projects = session.scalars(
@@ -376,21 +389,23 @@ class Project(ProjectBase, table=True):
                 Project.lid.in_(projects_lids),
             )
         ).all()
+        # priority = first_true(projects, lambda project_: project_.lid == priority_lid)
 
-        log.debug(f"pool_init: projects: {projects}")
+        log.debug(f"pool_sync_: projects: {projects}")
 
         synchronize_items = ["tag",
                              "artist", "group", "parody",
                              "character", "series", "language"]
 
         for item in synchronize_items:
-            own = set(getattr(self, item))
-            log.debug(f"pool_init: item: {item}, own: {own}")
+            own = set()
+            log.debug(f"pool_sync_: item: {item}, own: {own}")
 
             for project in projects:
                 own = own | set(getattr(project, item))
+                log.debug(f"pool_sync_: {item}: {own}")
 
             setattr(self, item, list(own))
 
-            log.debug(f"pool_init: item: {item}, own: {own}")
+            log.debug(f"pool_sync_: item: {item}, own: {own}")
 

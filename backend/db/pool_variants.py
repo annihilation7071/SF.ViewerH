@@ -8,7 +8,6 @@ class PoolVariantError(Exception):
 
 
 class PoolVariantBase(SQLModel):
-    lid: str = Field(..., index=True)
     project: str = Field(..., index=True, unique=True)
     description: str = Field(..., index=True)
     priority: bool = Field(default=False, index=True)
@@ -20,20 +19,20 @@ class PoolVariantBase(SQLModel):
 
     def to_str(self) -> str:
         log.debug("to_str")
-        result = f"{self.lid}:{self.description}"
+        result = f"{self.project}:{self.description}"
         if self.priority:
             result += ":p"
         return result
 
     @classmethod
-    def from_str(cls, string: str, lid: str) -> Union["PoolVariantBase", "PoolVariant"]:
+    def from_str(cls, string: str) -> Union["PoolVariantBase", "PoolVariant"]:
         log.debug("from_str")
         separated = string.split(":")
 
         if len(separated) > 3 or len(separated) < 2:
             raise PoolVariantError(f"from_str: incorrect format: {string}")
 
-        lid = separated[0]
+        project_lid = separated[0]
         description = separated[1]
 
         if len(separated) == 3 and separated[2].lower() in ["p", "priority"]:
@@ -42,8 +41,7 @@ class PoolVariantBase(SQLModel):
             priority = False
 
         result = cls(
-            lid=lid,
-            project=lid,
+            project=project_lid,
             description=description,
             priority=priority,
             update_time=datetime.now(),
@@ -56,6 +54,7 @@ class PoolVariant(PoolVariantBase, table=True):
     __tablename__ = "pools_variants"
 
     id: int = Field(..., index=True, primary_key=True)
+    lid: str = Field(..., index=True)
 
     __table_args__ = (
         Index(

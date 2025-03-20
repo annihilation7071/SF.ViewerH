@@ -2,7 +2,6 @@ from backend.main_import import *
 from . import projects_utils
 from . import editor
 
-
 # from backend import dep
 # from backend.db import Project
 # from backend.classes.lib import Lib
@@ -247,7 +246,6 @@ class Projects:
                               f"Date: {variants_file.date}. "
                               f"Count: {len(variants_file.variants)}.")
 
-
     # def update_aliases_(self, session: Session, fs: FSession):
     #     aliases = utils.get_aliases()
     #     aliases["nothing"] = "nothing"
@@ -294,9 +292,36 @@ class Projects:
     #
     #         projecte_updated.update_(session, fs=fs)
 
-    # def delete_pool_(self, session: Session, variants: list) -> None:
-    #     log.debug(f"delete_pool: {variants}")
-    #     session.execute(delete(Project).filter(and_(Project.lid.icontains("pool_"), Project.lvariants == variants)))
+    def delete_pool_(self, session: Session, pool_lid: str) -> None:
+        log.debug(f"delete_pool_: {pool_lid}")
+
+        projects_in_pool_lids = session.scalars(select(PoolVariant.project).where(
+            PoolVariant.lid == pool_lid
+        )).all()
+        log.debug(f"delete_pool_: found projects: {projects_in_pool_lids}")
+
+        # noinspection PyTypeChecker
+        session.execute(
+            delete(PoolVariant).where(
+                PoolVariant.lid == pool_lid
+            )
+        )
+
+        # noinspection PyTypeChecker
+        session.execute(
+            delete(Project).where(
+                Project.lid == pool_lid
+            )
+        )
+
+        log.debug(f"delete_pool_: pool deleted: {pool_lid}")
+
+        session.execute(
+            update(Project).where(
+                Project.lid.in_(projects_in_pool_lids)
+            ).values(active=True)
+        )
+        log.debug(f"delete_pool_: projects activated: {projects_in_pool_lids}")
 
     def check_lids_(self, session: Session, lids: list) -> int:
         log.debug(f"check_lids: {lids}")
@@ -313,20 +338,14 @@ class Projects:
             )
         ).all()
 
-        # priority_list = [pool_entry.project for pool_entry in pools_entries]
-        #
-        # priorities = session.scalars(
-        #     select(Project).where(
-        #         Project.lid.in_(priority_list)
-        #     )
-        # )
-
         pools = []
 
         for pool_entry in pools_entries:
+            log.debug(f"update_pools_: {pool_entry}")
             lid = pool_entry.lid
 
             if session.scalar(select(Project).where(Project.lid == lid)):
+                log.debug(f"update_pools_: pool found: {pool_entry}: continue")
                 continue
 
             priority = session.scalar(
@@ -344,6 +363,7 @@ class Projects:
             pool.pool_sync_(session)
 
             pools.append(pool)
+            log.debug(f"update_pools_: new pool created: {pool.lid}")
 
         session.add_all(pools)
 
@@ -356,79 +376,3 @@ class Projects:
                 Project.lid.in_(projects_with_pool)
             ).values(active=0)
         )
-
-
-
-
-
-    # noinspection da
-    # def create_priority_(self,
-    #                      session: Session,
-    #                      fs: FSession,
-    #                      variants: list,
-    #                      ) -> str:
-    #     log.debug("create_priority")
-    #
-    #     pool = ProjectEPool.create_pool(session, fs, variants)
-    #
-    #     return pool.lid
-
-    # def update_pools_(self, session: Session, fs: FSession, force: bool = False):
-    #     log.info(f"Updating pools...")
-    #
-    #     pool_need_create = []
-    #
-    #     stmt = select(Project).where(func.json_array_length(Project.lvariants) > 0)
-    #     projects_with_variants = session.scalars(stmt).all()
-    #
-    #     log.debug(f"projects_with_variants: {len(projects_with_variants)}")
-    #
-    #     unique_variants = []
-    #     unique_check = set()
-    #     for project in projects_with_variants:
-    #         if str(project.lvariants) not in unique_check:
-    #             # noinspection PyUnresolvedReferences
-    #             unique_check.add(str(project.lvariants))
-    #             unique_variants.append(project)
-    #
-    #     log.debug(f"unique_variants: {len(unique_variants)}")
-    #
-    #     for project in unique_variants:
-    #         log.debug(f"Processing: {project.lid}; {project.title}")
-    #         variant = project.lvariants
-    #         log.debug(f"Variants: {variant}")
-    #
-    #         pools = (
-    #             Project.lvariants == variant,
-    #             Project.lid.startswith("pool")
-    #         )
-    #
-    #         exist_pool = session.scalars(select(Project).where(*pools)).all()
-    #
-    #         if len(exist_pool) > 1:
-    #             log.warning(f"More than one pool found. Deliting all pools...")
-    #             session.execute(delete(Project).where(*pools))
-    #             exist_pool = []
-    #
-    #         if len(exist_pool) == 1:
-    #             log.debug(f"Found existing pool")
-    #             # flt = and_(
-    #             #     Project.lvariants == project.lvariants,
-    #             #     not_(Project.lid.startswith("pool")),
-    #             # )
-    #             #
-    #             # # stmt = select(Project).where(flt)
-    #             #
-    #             # stmt = update(Project).where(flt).values(active=False)
-    #             #
-    #             # # log.info(f"{len(session.scalars(select(Project).where(flt)).all())}")
-    #             #
-    #             # result = session.execute(stmt)
-    #             #
-    #             # # log.info(f"Updated rows: {result.rowcount}")
-    #
-    #             continue
-    #
-    #         if len(exist_pool) == 0:
-    #             log.info(f"Pool not found. Creating new pool...")
-    #             ProjectEPool.create_pool(session, fs, variant)
