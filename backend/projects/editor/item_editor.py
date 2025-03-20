@@ -34,7 +34,7 @@ def edit(session: Session, fs: FSession, project: Project, edit_type: str, data:
 
     project.project_update_project(session, fs=fs)
 
-    if pool_lid := project.has_pool:
+    if pool_lid := project.get_pool_lid():
         log.debug(f"edit: project has pool: {pool_lid}")
         pool = session.scalar(
             select(Project).where(

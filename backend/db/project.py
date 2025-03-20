@@ -101,16 +101,14 @@ class Project(ProjectBase, table=True):
         return False
 
     @property
-    def has_pool(self) -> str | None:
+    def has_pool(self) -> bool:
         log.debug("has_pool")
-        with dep.Session() as session:
-            pool_lid = session.scalar(
-                select(PoolVariant.lid).where(
-                    PoolVariant.project == self.lid
-                )
-            )
 
-        return pool_lid
+        pool_lid = self.get_pool_lid()
+
+        if pool_lid:
+            return True
+        return False
 
     @property
     def path(self) -> Path:
@@ -311,6 +309,17 @@ class Project(ProjectBase, table=True):
             self.search_body = search_body
             return True
         return False
+
+    def get_pool_lid(self):
+        log.debug("get_pool_lid")
+        with dep.Session() as session:
+            pool_lid = session.scalar(
+                select(PoolVariant.lid).where(
+                    PoolVariant.project == self.lid
+                )
+            )
+
+        return pool_lid
 
     def project_renew_all(self) -> bool:
         log.debug("project_renew_all")
