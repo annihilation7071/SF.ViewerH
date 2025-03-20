@@ -1,6 +1,6 @@
 from backend.main_import import *
 
-log = logger.get_logger("Editor.item")
+log = logger.get_logger("Projects.editor.item")
 
 
 class ItemEditorError(Exception):

@@ -103,7 +103,7 @@ class FSession:
             else:
                 if x.parent == x:
                     raise IOError(f"Incorrect path: {path}")
-                x = x.parent
+            x = x.parent
 
         path.mkdir(exist_ok=exist_ok, parents=parents)
 

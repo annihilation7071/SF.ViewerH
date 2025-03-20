@@ -1,9 +1,4 @@
 from backend.main_import import *
-from backend import dep
-from backend.utils import *
-from backend import logger
-from backend.filesession import FileSession, FSession
-from backend.db import Project, ProjectBase
 
 log = logger.get_logger("Editor.variants")
 
