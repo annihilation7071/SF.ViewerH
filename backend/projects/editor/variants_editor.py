@@ -1,6 +1,6 @@
 from backend.main_import import *
 
-log = logger.get_logger("Editor.variants")
+log = logger.get_logger("Projects.editor.variants_editor")
 
 if TYPE_CHECKING:
     from backend.projects.projects import Projects

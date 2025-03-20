@@ -1,7 +1,7 @@
 from backend.main_import import *
 from . import item_editor
 
-log = logger.get_logger("Editor.selector")
+log = logger.get_logger("Projects.editor.selector")
 
 
 def edit(session: Session, fs: FSession, project: Project, edit_type: str, data: str, extra: dict = None):
