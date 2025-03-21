@@ -29,6 +29,7 @@
     flex: 0 0 600px;
     display: flex;
     justify-content: center;
+    box-shadow: 5px 5px 7px rgba(0, 0, 0, 0.15);
 }
 
 .project-image img {
@@ -132,6 +133,7 @@
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid #ddd;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 

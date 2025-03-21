@@ -56,7 +56,8 @@ main {
     background: white;
     border-radius: 10px;
     overflow: hidden;
-    border: 1px solid #ddd;
+    border: 2px solid #ddd;
+    box-shadow: 2px 2px 5px #ddd;
     /* width: 17%; */
     aspect-ratio: 0.63;
     display: flex;
