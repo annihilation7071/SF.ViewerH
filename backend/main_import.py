@@ -23,6 +23,7 @@ from backend.db import connect
 from backend.db import PoolVariantBase, PoolVariant
 from backend.user_data import Variants
 from backend.db import Project, ProjectBase
+from backend.db import DBMetadata
 from backend.projects.projects import Projects
 
 

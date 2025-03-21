@@ -3,6 +3,7 @@ import sqlmodel
 from backend.main_import import *
 from .project import Project
 from .pool_variants import PoolVariant
+from .metadata import DBMetadata
 
 log = logger.get_logger("DB")
 

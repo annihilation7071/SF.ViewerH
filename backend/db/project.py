@@ -1,7 +1,7 @@
 from backend.main_import import *
 from .pool_variants import PoolVariant
 
-log = logger.get_logger("Classes.db.project")
+log = logger.get_logger("DB.project")
 
 info_version = dep.DB_VERSION
 

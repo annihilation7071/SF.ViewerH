@@ -225,14 +225,12 @@ class Projects:
                 session.exec(delete(PoolVariant))
                 variants = variants_file.variants
                 session.add_all(variants)
-                session.commit()
             else:
                 log.debug(f"backup_variants: in db are relevant: {version_in_db}")
                 if variants_file.date == version_in_db:
                     log.debug(f"backup_variants: in file are relevant: {variants_file.date}")
-                    return
 
-                if variants_file.date < version_in_db:
+                else:
                     log.debug(f"backup_variants: in file are outdated: {variants_file.date}")
                     log.debug("backup_variants: updating variants in file from db")
                     variants_in_db = session.scalars(
@@ -245,6 +243,12 @@ class Projects:
                     log.debug(f"backup_variants: variants file saved. "
                               f"Date: {variants_file.date}. "
                               f"Count: {len(variants_file.variants)}.")
+
+            metadata = DBMetadata.load(session)
+            metadata.variants_updated = max(version_in_db, variants_file.date)
+            session.commit()
+
+
 
     # def update_aliases_(self, session: Session, fs: FSession):
     #     aliases = utils.get_aliases()

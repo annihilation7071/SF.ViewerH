@@ -1,6 +1,6 @@
 from backend.main_import import *
 
-log = logger.get_logger("Classes.db.pool")
+log = logger.get_logger("DB.pool_variants")
 
 
 class PoolVariantError(Exception):
