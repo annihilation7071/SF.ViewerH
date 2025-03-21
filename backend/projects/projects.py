@@ -2,21 +2,6 @@ from backend.main_import import *
 from . import projects_utils
 from . import editor
 
-# from backend import dep
-# from backend.db import Project
-# from backend.classes.lib import Lib
-# from sqlalchemy import desc, and_, func, or_, Sequence, not_
-# from collections import defaultdict
-# from backend.editor import variants_editor
-# from backend.utils import *
-# from icecream import ic
-# from backend import logger
-# from sqlalchemy.orm import Session
-# from sqlalchemy import select, delete, update
-# from backend.projects import projects_utils
-# from backend.editor import selector
-# from backend.filesession import FileSession, FSession
-
 
 log = logger.get_logger("Projects.projects")
 
@@ -247,8 +232,6 @@ class Projects:
             metadata = DBMetadata.load(session)
             metadata.variants_updated = max(version_in_db, variants_file.date)
             session.commit()
-
-
 
     # def update_aliases_(self, session: Session, fs: FSession):
     #     aliases = utils.get_aliases()

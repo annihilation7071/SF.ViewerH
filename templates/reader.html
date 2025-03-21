@@ -11,7 +11,7 @@
     {% include 'header.html' %}
     <header class="extra_header">
         <div class="extra-nav-buttons">
-            <a href="{{ url_for('detail_view', project_lid=project_lid) }}?{{ request.query_string }}">Back</a>
+            <a href="{{ url_for('detail_view', project_lid=project_lid) }}?{{ request.query_params }}">Back</a>
         </div>
     </header>
     <main>
