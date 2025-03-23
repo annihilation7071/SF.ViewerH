@@ -1,8 +1,9 @@
 from backend.main_import import *
+from backend.db import PoolVariant
 
 log = logger.get_logger("User_data.variants")
 
-_path = dep.config.paths.user_data / "variants.json"
+_path = config.paths.user_data / "variants.json"
 
 
 class Variants(BaseModel):

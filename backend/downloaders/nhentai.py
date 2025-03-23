@@ -1,8 +1,4 @@
-from backend.utils import *
-import os
-import json
-from backend import logger
-from backend.classes.lib import Lib
+from backend.main_import import *
 from backend.classes.dsettings import NhentaiSettings
 
 log = logger.get_logger("Downloader.nhentai")

@@ -15,9 +15,11 @@ class Projects:
     def __init__(self):
         log.debug("load projects...")
         log.debug(f"Libs: {dep.libs}")
-        self.libs = utils.read_libs(only_active=True, check=True)
 
-        self.all_projects_filter = Project.lib.in_(dep.libs)
+        active_libs_names = Libs.load().get_names(only_active=True, check_path=True)
+
+
+        self.all_projects_filter = Project.lib.in_(active_libs_names)
         self.all_projects = select(Project).where(self.all_projects_filter)
 
         self.active_projects_filter = and_(self.all_projects_filter, Project.active == 1)

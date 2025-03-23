@@ -8,7 +8,7 @@ from .metadata import DBMetadata
 log = logger.get_logger("DB")
 
 
-db_version = dep.DB_VERSION
+db_version = base_config.DB_VERSION
 
 
 def get_session():

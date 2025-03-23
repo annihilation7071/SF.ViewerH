@@ -1,6 +1,7 @@
 from backend.main_import import *
 from routers import main, extra
 from backend import init
+from backend.db import project as project_
 
 log = logger.get_logger("App.app")
 
@@ -18,7 +19,7 @@ async def lifespan(app: FastAPI):
 
     # noinspection PyGlobalUndefined
     global projects
-    dep.libs = utils.read_libs(only_active=True)
+    dep.libs = Libs.load()
     dep.Session = connect.get_session()
     projects = Projects()
     dep.projects = projects
@@ -31,7 +32,7 @@ async def lifespan(app: FastAPI):
     log.debug(dep.Session)
     log.debug(dep.libs)
     yield
-    projects.backup_variants()
+    # projects.backup_variants()
 
 app = FastAPI(lifespan=lifespan)
 # noinspection PyTypeChecker

@@ -26,3 +26,4 @@ log*.txt
 /user_data/*
 !/user_data/.getkeep
 !*.gitkeep
+_backup

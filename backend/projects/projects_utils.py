@@ -18,7 +18,7 @@ def update_projects(session: Session, fs: FSession) -> None:
         cmdargs.reindex = False
         dep.projects.delete_all_data_(session)
 
-    for lib in dep.libs.values():
+    for lib in dep.libs.libs:
         if lib.active is False:
             continue
 
@@ -29,7 +29,7 @@ def update_projects(session: Session, fs: FSession) -> None:
         with open("./backend/v_info.json", "r", encoding="utf-8") as f:
             v_info_example = json.load(f)
 
-        dep.projects.clear_old_versions_(session, dep.DB_VERSION)
+        dep.projects.clear_old_versions_(session, base_config.DB_VERSION)
 
         processor = import_module(f"backend.processors.{lib.processor}")
 

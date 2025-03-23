@@ -3,7 +3,7 @@ from .pool_variants import PoolVariant
 
 log = logger.get_logger("DB.project")
 
-info_version = dep.DB_VERSION
+info_version = base_config.DB_VERSION
 
 
 class ProjectError(Exception):
