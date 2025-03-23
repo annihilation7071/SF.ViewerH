@@ -1,40 +1,40 @@
 from backend.main_import import *
 
 
-def libs_settings():
-    data = {
-        "download-default-nhentai": {
-            "active": True,
-            "processor": "nhentai",
-            "path": ".\\downloads\\default-nhentai"
-        },
-        "download-default-gallery-dl-hitomila": {
-            "active": True,
-            "processor": "gallery-dl-hitomila",
-            "path": ".\\downloads\\default-gallery-dl-hitomila"
-        },
-        "download-default-gallery-dl-nhentai": {
-            "active": False,
-            "processor": "gallery-dl-nhentai",
-            "path": ".\\downloads\\default-gallery-dl-nhentai"
-        }
-    }
-
-    path = Path("./settings/libs/libs_default.json")
-
-    if path.exists() is False:
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        utils.write_json(path, data)
-
-    else:
-        exist_data = utils.read_json(path)
-
-        for key in data.keys():
-            if key not in exist_data:
-                exist_data[key] = data[key]
-
-        utils.write_json(path, exist_data)
+# def libs_settings():
+#     data = {
+#         "download-default-nhentai": {
+#             "active": True,
+#             "processor": "nhentai",
+#             "path": ".\\downloads\\default-nhentai"
+#         },
+#         "download-default-gallery-dl-hitomila": {
+#             "active": True,
+#             "processor": "gallery-dl-hitomila",
+#             "path": ".\\downloads\\default-gallery-dl-hitomila"
+#         },
+#         "download-default-gallery-dl-nhentai": {
+#             "active": False,
+#             "processor": "gallery-dl-nhentai",
+#             "path": ".\\downloads\\default-gallery-dl-nhentai"
+#         }
+#     }
+#
+#     path = Path("./settings/libs/libs_default.json")
+#
+#     if path.exists() is False:
+#         path.parent.mkdir(parents=True, exist_ok=True)
+#
+#         utils.write_json(path, data)
+#
+#     else:
+#         exist_data = utils.read_json(path)
+#
+#         for key in data.keys():
+#             if key not in exist_data:
+#                 exist_data[key] = data[key]
+#
+#         utils.write_json(path, exist_data)
 
 
 def dowloaders_settings():
@@ -106,7 +106,7 @@ def downloaders_targets():
 
 
 def init():
-    libs_settings()
+    # libs_settings()
     dowloaders_settings()
     downloaders_targets()
 

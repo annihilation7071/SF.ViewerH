@@ -26,6 +26,9 @@ class Libs(BaseModel):
                 return lib
         raise KeyError(key)
 
+    def __len__(self):
+        return len(self.libs)
+
     @classmethod
     def load(cls) -> "Libs":
         log.debug("load")
@@ -109,5 +112,5 @@ class Libs(BaseModel):
             raise KeyError(f"Key {lib.name} already exists")
         self.libs.append(lib)
 
-    def delete(self, id_: str) -> None:
-        self.libs.pop(self._get_index(id_))
+    def delete(self, name: str) -> None:
+        self.libs.pop(self._get_index(name))

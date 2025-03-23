@@ -1,7 +1,7 @@
 from backend.main_import import *
 
 
-libs: dict[str, Lib] | None = None
+libs: Libs | None = None
 
 
 class TargetsFrame(customtkinter.CTkFrame):
@@ -9,7 +9,7 @@ class TargetsFrame(customtkinter.CTkFrame):
         super().__init__(master, **kwargs)
 
         global libs
-        libs = utils.read_libs(check=False, only_active=False)
+        libs = Libs.load()
         targets = utils.read_json(Path("./settings/download/download_targets.json"))
 
         self.grid_rowconfigure(0, weight=1)
@@ -62,7 +62,7 @@ class TargetsListField(customtkinter.CTkFrame):
         self.site_label.grid(row=0, column=0, sticky="new", padx=5, pady=5)
 
         self.lib_name = customtkinter.CTkOptionMenu(self,
-                                                    values=list(libs.keys()),
+                                                    values=libs.get_names(),
                                                     width=350,
                                                     command=self.change_target_lib)
         self.lib_name.set(lib_name)

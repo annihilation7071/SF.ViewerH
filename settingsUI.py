@@ -1,8 +1,6 @@
 from backend.main_import import *
-from backend.utils import *
-from backend.settingsUIb.mainframe import MainFrame
+from backend.settingsUIb import MainFrame
 from backend import init
-from backend import dep
 
 
 class App(customtkinter.CTk):

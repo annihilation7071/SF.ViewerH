@@ -1,6 +1,7 @@
 from backend.main_import import *
 from backend.settingsUIb.general import SelectFolder
 
+libs: Libs = None
 
 class LibsFrame(customtkinter.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -18,17 +19,17 @@ class LibsFrame(customtkinter.CTkFrame):
 class LibsList(customtkinter.CTkScrollableFrame):
     def __init__(self, master: LibsFrame, **kwargs):
         super().__init__(master, **kwargs)
+        global libs
+        libs = Libs.load()
 
         self.master = master
 
         self.grid_columnconfigure(0, weight=1)
 
-        libs = utils.read_libs(check=False, only_active=False)
-
         self.headers = Headers(master=self)
 
         for i in range(len(libs)):
-            row = LibField(master=self, lib=list(libs.values())[i])
+            row = LibField(master=self, lib=libs.libs[i])
             row.grid(row=i + 1, column=0, sticky='ew', padx=5, pady=5)
 
     def create(self):
@@ -79,7 +80,7 @@ class LibField(customtkinter.CTkFrame):
         self.columnconfigure((0, 1, 2, 3), weight=1)
 
         self.lib = lib
-        self.master = master
+        self.master: LibsList = master
 
         # Lib name
         self.label_1 = customtkinter.CTkLabel(
@@ -117,7 +118,7 @@ class LibField(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(self, text="Edit", command=self._edit, width=100)
         self.button.grid(row=0, column=3, sticky='e', padx=5, pady=5)
 
-        if lib.libfile.name == "libs_default.json":
+        if lib.name.startswith("download-default"):
             self.button.configure(state=tk.DISABLED)
 
     def _edit(self):
@@ -126,7 +127,7 @@ class LibField(customtkinter.CTkFrame):
 
     def _set_status(self, *args):
         self.lib.active = bool(self.status.get())
-        self.lib.save()
+        libs.save()
 
 
 class Editor(customtkinter.CTkToplevel):
@@ -150,19 +151,30 @@ class Editor(customtkinter.CTkToplevel):
 
     def save(self):
         lib = self.labels.get()
-        lib.save()
+
+        self.lib.name = lib.name
+        self.lib.processor = lib.processor
+        self.lib.active = lib.active
+        self.lib.path = lib.path
+
+        libs.save()
+
         self.cancel()
         dep.settingsUI.renew()
 
     def create(self):
         lib = self.labels.get()
-        lib.create()
+        libs.add(lib)
+        libs.save()
+
         self.cancel()
         dep.settingsUI.renew()
 
     def delete(self):
         lib = self.labels.get()
-        lib.delete()
+        libs.delete(lib.name)
+        libs.save()
+
         self.cancel()
         dep.settingsUI.renew()
 
@@ -177,42 +189,42 @@ class EditorFields(customtkinter.CTkFrame):
         # self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure((0, 1), weight=1)
 
-        # Lib file
-        self.libfile = customtkinter.CTkLabel(self, text="Lib file")
-        self.libfile.grid(row=0, column=0, sticky='w', padx=5, pady=5)
-
-        self.libfile_entry = customtkinter.CTkEntry(self, width=500)
-        self.libfile_entry.insert(0, os.path.splitext(lib.libfile.name)[0])
-        self.libfile_entry.grid(row=0, column=1, sticky='nsew', padx=5, pady=5)
-
-        if mode == "edit":
-            self.libfile_entry.configure(state=tk.DISABLED, fg_color="#B2BBBC")
+        # # Lib file
+        # self.libfile = customtkinter.CTkLabel(self, text="Lib file")
+        # self.libfile.grid(row=0, column=0, sticky='w', padx=5, pady=5)
+        #
+        # self.libfile_entry = customtkinter.CTkEntry(self, width=500)
+        # self.libfile_entry.insert(0, os.path.splitext(lib.libfile.name)[0])
+        # self.libfile_entry.grid(row=0, column=1, sticky='nsew', padx=5, pady=5)
+        #
+        # if mode == "edit":
+        #     self.libfile_entry.configure(state=tk.DISABLED, fg_color="#B2BBBC")
 
         # Name
         self.name = customtkinter.CTkLabel(self, text="Name")
-        self.name.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+        self.name.grid(row=0, column=0, sticky='w', padx=5, pady=5)
 
         self.name_entry = customtkinter.CTkEntry(self, width=500)
         self.name_entry.insert(0, lib.name)
-        self.name_entry.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
+        self.name_entry.grid(row=0, column=1, sticky='nsew', padx=5, pady=5)
 
         if mode == "edit":
             self.name_entry.configure(state=tk.DISABLED, fg_color="#B2BBBC")
 
         # Status
         self.active = customtkinter.CTkLabel(self, text="Active")
-        self.active.grid(row=2, column=0, sticky='w', padx=5, pady=5)
+        self.active.grid(row=1, column=0, sticky='w', padx=5, pady=5)
 
         self.active_checkbox = customtkinter.CTkCheckBox(self, text="")
         if lib.active:
             self.active_checkbox.select()
         else:
             self.active_checkbox.deselect()
-        self.active_checkbox.grid(row=2, column=1, sticky='nsew', padx=5, pady=5)
+        self.active_checkbox.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
 
         # Processor
         self.processor = customtkinter.CTkLabel(self, text="Processor")
-        self.processor.grid(row=3, column=0, sticky='w', padx=5, pady=5)
+        self.processor.grid(row=2, column=0, sticky='w', padx=5, pady=5)
 
         processors = os.listdir(Path("./backend/processors"))
         processors = [os.path.splitext(processor)[0] for processor in processors]
@@ -222,19 +234,18 @@ class EditorFields(customtkinter.CTkFrame):
             values=processors,
         )
         self.processor_menu.set(lib.processor)
-        self.processor_menu.grid(row=3, column=1, sticky='nsew', padx=5, pady=5)
+        self.processor_menu.grid(row=2, column=1, sticky='nsew', padx=5, pady=5)
 
         # Path
         self.path = customtkinter.CTkLabel(self, text="Path")
-        self.path.grid(row=4, column=0, sticky='w', padx=5, pady=5)
+        self.path.grid(row=3, column=0, sticky='w', padx=5, pady=5)
 
         self.path_entry = SelectFolder(self, width=20)
         self.path_entry.set(lib.path)
-        self.path_entry.grid(row=4, column=1, sticky='nsew', padx=5, pady=5)
+        self.path_entry.grid(row=3, column=1, sticky='nsew', padx=5, pady=5)
 
     def get(self) -> Lib:
         lib = Lib(
-            libfile=Path(f"./settings/libs/{self.libfile_entry.get()}.json"),
             name=self.name_entry.get(),
             processor=self.processor_menu.get(),
             active=bool(self.active_checkbox.get()),
