@@ -118,7 +118,7 @@ class LibField(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(self, text="Edit", command=self._edit, width=100)
         self.button.grid(row=0, column=3, sticky='e', padx=5, pady=5)
 
-        if lib.name.startswith("download-default"):
+        if lib.category == "default":
             self.button.configure(state=tk.DISABLED)
 
     def _edit(self):

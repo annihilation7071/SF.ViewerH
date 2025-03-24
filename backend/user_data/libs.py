@@ -64,7 +64,7 @@ class Libs(BaseModel):
         exist = self.get_names()
         for default_lib in default_libs:
             if default_lib.name not in exist:
-                self.libs.insert(0, default_lib)
+                self.libs.append(default_lib)
 
     def add_old_format(self) -> None:
         old_path = Path("settings/libs")
@@ -110,7 +110,7 @@ class Libs(BaseModel):
         exist = self.get_names()
         if lib.name in exist:
             raise KeyError(f"Key {lib.name} already exists")
-        self.libs.append(lib)
+        self.libs.insert(0, lib)
 
     def delete(self, name: str) -> None:
         self.libs.pop(self._get_index(name))
