@@ -1,4 +1,3 @@
-from backend.downloaders.nhentai import NHentaiDownloader
 from backend.main_import import *
 from typing import Literal
 
@@ -109,7 +108,6 @@ class DownloadersSettings(BaseModel):
 
     @classmethod
     def load(cls) -> "DownloadersSettings":
-        print(_path)
         if _path.exists():
             settings = cls.model_validate(utils.read_json(_path))
         else:
@@ -119,4 +117,4 @@ class DownloadersSettings(BaseModel):
         return settings
 
     def save(self):
-        utils.write_json(_path, self.model_dump())
+        utils.write_json(_path, self.model_dump_json())

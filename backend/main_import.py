@@ -21,7 +21,9 @@ from backend.filesession import FileSession, FSession
 from backend.utils import *
 from backend.cmdargs import cmdargs
 from backend import dep
-from backend.user_data import Lib, Libs, DownloadersSettings, BaseDownloaderSettings
+from backend.user_data import Lib, Libs
+from backend.user_data import DownloadersSettings, BaseDownloaderSettings
+from backend.user_data import DownloadersTargets, DownloaderTarget
 from backend.db import connect
 from backend.db import PoolVariantBase, PoolVariant
 from backend.user_data import Variants

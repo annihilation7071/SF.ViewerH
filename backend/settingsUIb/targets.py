@@ -2,6 +2,7 @@ from backend.main_import import *
 
 
 libs: Libs | None = None
+targets: DownloadersTargets | None = None
 
 
 class TargetsFrame(customtkinter.CTkFrame):
@@ -9,18 +10,19 @@ class TargetsFrame(customtkinter.CTkFrame):
         super().__init__(master, **kwargs)
 
         global libs
+        global targets
         libs = Libs.load()
-        targets = utils.read_json(Path("./settings/download/download_targets.json"))
+        targets = DownloadersTargets.load()
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        self.list = TargetsList(master=self, targets=targets)
+        self.list = TargetsList(master=self)
         self.list.grid(row=0, column=0, sticky="nsew")
 
 
 class TargetsList(customtkinter.CTkScrollableFrame):
-    def __init__(self, master: TargetsFrame, targets: dict, **kwargs):
+    def __init__(self, master: TargetsFrame, **kwargs):
         super().__init__(master, **kwargs)
 
         self.grid_columnconfigure((0, 1), weight=1)
@@ -28,12 +30,11 @@ class TargetsList(customtkinter.CTkScrollableFrame):
         self.headers = TargetsListHeaders(master=self)
         self.headers.grid(column=0, row=0, sticky='new', padx=5, pady=5, columnspan=2)
 
-        sites = list(targets.keys())
-        for i in range(len(sites)):
-            site = sites[i]
-            lib_name = targets[site]
+        targets_list = targets.get_list_targets()
+        for i in range(len(targets_list)):
+            target = targets_list[i]
 
-            field = TargetsListField(master=self, site=site, lib_name=lib_name)
+            field = TargetsListField(master=self, target=target)
             field.grid(row=i+1, column=0, sticky="new", padx=5, pady=5, columnspan=2)
 
 
@@ -51,27 +52,26 @@ class TargetsListHeaders(customtkinter.CTkFrame):
 
 
 class TargetsListField(customtkinter.CTkFrame):
-    def __init__(self, master: TargetsList, site: str, lib_name: str, **kwargs):
+    def __init__(self, master: TargetsList, target: DownloaderTarget, **kwargs):
         super().__init__(master, **kwargs)
 
-        self.site = site
+        self.target = target
 
         self.grid_columnconfigure((0, 1), weight=1)
 
-        self.site_label = customtkinter.CTkLabel(self, text=site, width=250)
+        self.site_label = customtkinter.CTkLabel(self, text=target.site, width=250)
         self.site_label.grid(row=0, column=0, sticky="new", padx=5, pady=5)
 
         self.lib_name = customtkinter.CTkOptionMenu(self,
                                                     values=libs.get_names(),
                                                     width=350,
                                                     command=self.change_target_lib)
-        self.lib_name.set(lib_name)
+        self.lib_name.set(target.lib)
         self.lib_name.grid(row=0, column=1, sticky="new", padx=5, pady=5)
 
     def change_target_lib(self, *args):
         new_target_lib = self.lib_name.get()
 
-        targets = utils.read_json(Path("./settings/download/download_targets.json"))
-        targets[self.site] = new_target_lib
+        self.target.lib = new_target_lib
+        targets.save()
 
-        utils.write_json(Path("./settings/download/download_targets.json"), targets)
