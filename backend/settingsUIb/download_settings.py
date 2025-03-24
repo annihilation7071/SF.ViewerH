@@ -1,7 +1,7 @@
 from backend.main_import import *
 from backend.classes.dsettings import BaseSettings
 
-dsettings: dict[str, BaseSettings] | None = None
+dsettings: DownloadersSettings | None = None
 
 
 class DSFrame(customtkinter.CTkFrame):
@@ -9,7 +9,7 @@ class DSFrame(customtkinter.CTkFrame):
         super().__init__(master, **kwargs)
 
         global dsettings
-        dsettings = BaseSettings.load()
+        dsettings = DownloadersSettings.load()
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -27,9 +27,9 @@ class DSList(customtkinter.CTkScrollableFrame):
         self.headers = DSListHeaders(master=self)
         self.headers.grid(column=0, row=0, sticky='new', padx=5, pady=5, columnspan=2)
 
-        downloaders = list(dsettings)
+        downloaders = dsettings.get_list_downloaders()
         for i in range(len(downloaders)):
-            downloader = dsettings[downloaders[i]]
+            downloader = downloaders[i]
 
             field = DSListField(master=self, downloader=downloader)
             field.grid(row=i + 1, column=0, sticky="new", padx=5, pady=5, columnspan=2)
@@ -58,7 +58,7 @@ class DSListHeaders(customtkinter.CTkFrame):
 
 
 class DSListField(customtkinter.CTkFrame):
-    def __init__(self, master: DSList, downloader: BaseSettings, **kwargs):
+    def __init__(self, master: DSList, downloader: BaseDownloaderSettings, **kwargs):
         super().__init__(master, **kwargs)
 
         self.downloader = downloader
@@ -84,7 +84,7 @@ class DSListField(customtkinter.CTkFrame):
         self.edit_button.grid(row=0, column=4, padx=5, pady=5)
 
     def _get_setting(self, name: str) -> tuple[str, str]:
-        if getattr(self.downloader, name) == "N/A":
+        if getattr(self.downloader, name) == "not_available":
             return "Not available", "#636467"
         if getattr(self.downloader, name) is None:
             return "Not configured", "#636467"
@@ -119,7 +119,8 @@ class Editor(customtkinter.CTkToplevel):
          self.downloader.user_agent,
          self.downloader.cookies) = self.fields.get()
 
-        self.downloader.save()
+        dsettings.save()
+
         dep.settingsUI.renew(active_tab=2)
 
     def cancel(self):
@@ -167,7 +168,7 @@ class EditorFields(customtkinter.CTkFrame):
 
         cookies = downloader.cookies if downloader.cookies else ""
         self.cookies_selector = CookiesSelector(master=self, width=500, height=100)
-        if cookies != "N/A":
+        if cookies != "not_available":
             self.cookies_selector.set(cookies)
         else:
             self.cookies_selector.disable()
@@ -235,7 +236,7 @@ class CookiesSelector(customtkinter.CTkFrame):
     def get(self):
         data = self.textarea.get(0.0, "end").replace("\n", "").replace("\t", "")
         if data == "Not available":
-            return "N/A"
+            return "not_available"
         return data
 
     def disable(self):

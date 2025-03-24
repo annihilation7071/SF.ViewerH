@@ -1,5 +1,6 @@
 from backend.main_import import *
 from backend.classes.dsettings import NhentaiSettings
+from backend.user_data import Lib
 
 log = logger.get_logger("Downloader.nhentai")
 

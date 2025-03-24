@@ -1,5 +1,3 @@
-import shutil
-
 from backend.main_import import *
 from typing import Literal
 
