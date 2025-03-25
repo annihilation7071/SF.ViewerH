@@ -57,8 +57,8 @@ app.py
 
 ### How to start:
 
-1. Upload files using [nhentai][1] or [gallery-dl][2]. (```--write-info-json``` parameter **MUST** be used
-   for [gallery-dl][2])
+1. Upload files using [nhentai][1] or [gallery-dl][2].(```--write-info-json``` parameter **MUST** be used
+   for [gallery-dl][2]. ```-meta``` parameter **MUST** be used for [nhentai][1])
 2. Use **settings.bat** or **settingsui.py** to configure libs.
 3. Use **run.bat** or **app.py**, the server IP address will appear in the terminal.
 <br>
