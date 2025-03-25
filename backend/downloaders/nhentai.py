@@ -33,7 +33,7 @@ class NHentaiDownloader:
         log.debug("start")
         self.prepare()
         output = os.path.abspath(self.lib.path)
-        command = f"nhentai --download --id {self.id_} -o {output}"
+        command = f"nhentai --download --id {self.id_} -o {output} --meta"
         process = await utils.run_command(command)
 
         return process

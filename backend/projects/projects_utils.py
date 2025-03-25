@@ -34,8 +34,10 @@ def update_projects(session: Session, fs: FSession) -> None:
         processor = import_module(f"backend.processors.{lib.processor}")
 
         path = lib.path
+        metafile = processor.meta_file
         log.debug(f"Lib path: {path}")
-        dirs = get_dirs(path, processor.meta_file)
+        log.debug(f"Metafile name: {metafile}")
+        dirs = get_dirs(path, metafile)
         log.debug(f"Dirs in lib path: {dirs}")
 
         dirs_not_in_db, dirs_not_exist = check_dirs(session, lib, dirs)

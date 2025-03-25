@@ -7,5 +7,5 @@ def http_proxy(s: str) -> bool:
 
 
 def cookies(s: str) -> bool:
-    matn = re.fullmatch(r"([a-zA-Z_\.\d\-\|]*=[a-zA-Z_\.\d\-\|]*)(; )?", s)
+    matn = re.fullmatch(r"([a-zA-Z_\.\d\-\|]+=[a-zA-Z_\.\d\-\|]+)(; [a-zA-Z_\.\d\-\|]+=[a-zA-Z_\.\d\-\|]+)*", s)
     return True if matn else False
