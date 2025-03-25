@@ -16,20 +16,25 @@ class GalleryDLDownloader:
     def prepare(self):
         log.debug("prepare")
         site = self.site
-        output = os.path.abspath(self.lib.path)
-        output += f"\\{self.id_}"
+        output = self.lib.path.absolute() / self.id_
         command = f"gallery-dl --write-info-json --directory={output}"
 
-        settings = GalleryDLSettings.load(site)
+        settings = (
+            DownloadersSettings.load()
+            .get_gallery_dl_downloader_by_site_name(site)
+        )
 
-        if settings.proxy:
-            command += f' --proxy="{settings.proxy}"'
+        if proxy := settings.get_proxy():
+            log.debug(f"prepare: proxy: {proxy}")
+            command += f' --proxy="{proxy}"'
 
-        if settings.user_agent:
-            command += f' --user-agent="{settings.user_agent}"'
+        if user_agent := settings.get_user_agent():
+            log.debug(f"prepare: user_agent: {user_agent}")
+            command += f' --user-agent="{user_agent}"'
 
-        if settings.cookies:
-            command += f' --cookies="{settings.cookies}"'
+        if cookies := settings.get_cookies():
+            log.debug(f"prepare: cookies: {cookies}")
+            command += f' --cookies="{cookies}"'
 
         command += f" {self.url}"
         self.command = command
@@ -38,6 +43,6 @@ class GalleryDLDownloader:
     async def start(self):
         log.debug("start")
         self.prepare()
-        process = await run_command(self.command)
+        process = await utils.run_command(self.command)
 
         return process

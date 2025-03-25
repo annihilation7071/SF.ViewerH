@@ -138,6 +138,14 @@ class DownloadersSettings(BaseModel):
         downloaders = list(self.model_dump().keys())
         return [getattr(self, key) for key in downloaders]
 
+    def get_gallery_dl_downloader_by_site_name(self, site_name: str) -> GalleryDLSettings:
+        for key in self.model_dump().keys():
+            if key.lower().startswith("gallery_dl"):
+                downloader_ = getattr(self, key)
+                if downloader_.site == site_name:
+                    return downloader_
+        raise KeyError(f"{site_name} not found")
+
     @classmethod
     def load(cls) -> "DownloadersSettings":
         if _path.exists():

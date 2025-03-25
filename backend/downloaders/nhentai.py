@@ -17,22 +17,25 @@ class NHentaiDownloader:
         log.debug("prepare")
         settings = DownloadersSettings.load().nhentai
 
-        if settings.get_proxy():
+        if proxy := settings.get_proxy():
+            log.debug(f"prepare: proxy: {proxy}")
             com = f"nhentai --proxy={settings.get_proxy()}"
             os.system(com)
 
-        if settings.get_user_agent():
-            com = f'nhentai --user-agent="{settings.get_user_agent()}"'
+        if user_agent := settings.get_user_agent():
+            log.debug(f"prepare: user_agent: {user_agent}")
+            com = f'nhentai --user-agent="{user_agent}"'
             os.system(com)
 
-        if settings.get_cookies():
-            com = f'nhentai --cookie="{settings.get_cookies()}"'
+        if cookies := settings.get_cookies():
+            log.debug(f"prepare: cookies: {cookies}")
+            com = f'nhentai --cookie="{cookies}"'
             os.system(com)
 
     async def start(self):
         log.debug("start")
         self.prepare()
-        output = os.path.abspath(self.lib.path)
+        output = self.lib.path.absolute()
         command = f"nhentai --download --id {self.id_} -o {output} --meta"
         process = await utils.run_command(command)
 
