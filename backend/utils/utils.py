@@ -220,7 +220,7 @@ def separate_url(url: str):
     }
 
     url = url.split('//')
-    url = [url[0]] + url[1].split('/')
+    url: list[str] = [url[0]] + url[1].split('/')
     protocol = url[0]
     site = url[1]
     address = url[2:]

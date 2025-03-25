@@ -1,5 +1,4 @@
 from backend.main_import import *
-from backend.classes.dsettings import BaseSettings
 
 dsettings: DownloadersSettings | None = None
 
@@ -96,7 +95,7 @@ class DSListField(customtkinter.CTkFrame):
 
 
 class Editor(customtkinter.CTkToplevel):
-    def __init__(self, master: DSListField, downloader: BaseSettings, **kwargs):
+    def __init__(self, master: DSListField, downloader: BaseDownloaderSettings, **kwargs):
         super().__init__(master, **kwargs)
 
         self.geometry("800x300")
@@ -128,7 +127,7 @@ class Editor(customtkinter.CTkToplevel):
 
 
 class EditorFields(customtkinter.CTkFrame):
-    def __init__(self, master: Editor, downloader: BaseSettings, **kwargs):
+    def __init__(self, master: Editor, downloader: BaseDownloaderSettings, **kwargs):
         super().__init__(master, **kwargs)
 
         # self.grid_rowconfigure(0, weight=1)
@@ -190,7 +189,7 @@ class EditorFields(customtkinter.CTkFrame):
             cookies = None
         else:
             if (self.check_cookies_file and
-                    self.downloader.cookies != "N/A" and
+                    self.downloader.cookies != "not_available" and
                     Path(cookies).exists() is False):
                 raise FileNotFoundError(f"Cookies file not found: {cookies}")
 

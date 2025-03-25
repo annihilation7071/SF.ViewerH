@@ -1,7 +1,8 @@
 from backend.main_import import *
-from backend.classes.dsettings import GalleryDLSettings
+from backend.user_data import Lib
+from .error import DownloaderError
 
-log = logger.get_logger("Downloader.gallerydl")
+log = logger.get_logger("Downloaders.gallerydl")
 
 
 class GalleryDLDownloader:

@@ -41,6 +41,12 @@ class DownloadersTargets(BaseModel):
     nhentai: DownloaderTarget = nhantai_target
     hitomila: DownloaderTarget = hitomila_target
 
+    def __getitem__(self, item) -> DownloaderTarget:
+        for target in self.get_list_targets():
+            if target.site == item:
+                return target
+        raise KeyError(item)
+
     @classmethod
     def load(cls) -> "DownloadersTargets":
         if _path.exists():
@@ -56,3 +62,7 @@ class DownloadersTargets(BaseModel):
     def get_list_targets(self) -> list[DownloaderTarget]:
         targets = list(self.model_dump().keys())
         return [getattr(self, key) for key in targets]
+
+    def get_list_sites(self) -> list[str]:
+        targets = self.get_list_targets()
+        return [target.site for target in targets]

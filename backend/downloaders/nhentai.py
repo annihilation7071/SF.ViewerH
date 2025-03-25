@@ -1,8 +1,8 @@
 from backend.main_import import *
-from backend.classes.dsettings import NhentaiSettings
 from backend.user_data import Lib
+from .error import DownloaderError
 
-log = logger.get_logger("Downloader.nhentai")
+log = logger.get_logger("Downloaders.nhentai")
 
 
 class NHentaiDownloader:
@@ -15,18 +15,18 @@ class NHentaiDownloader:
     @staticmethod
     def prepare():
         log.debug("prepare")
-        settings = NhentaiSettings.load()
+        settings = DownloadersSettings.load().nhentai
 
-        if settings.proxy:
-            com = f"nhentai --proxy={settings.proxy}"
+        if settings.get_proxy():
+            com = f"nhentai --proxy={settings.get_proxy()}"
             os.system(com)
 
-        if settings.user_agent:
-            com = f'nhentai --user-agent="{settings.user_agent}"'
+        if settings.get_user_agent():
+            com = f'nhentai --user-agent="{settings.get_user_agent()}"'
             os.system(com)
 
-        if settings.cookies:
-            com = f'nhentai --cookie="{settings.cookies}"'
+        if settings.get_cookies():
+            com = f'nhentai --cookie="{settings.get_cookies()}"'
             os.system(com)
 
     async def start(self):
@@ -34,6 +34,6 @@ class NHentaiDownloader:
         self.prepare()
         output = os.path.abspath(self.lib.path)
         command = f"nhentai --download --id {self.id_} -o {output}"
-        process = await run_command(command)
+        process = await utils.run_command(command)
 
         return process

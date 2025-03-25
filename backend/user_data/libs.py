@@ -18,7 +18,7 @@ class Libs(BaseModel):
     version: int = 1
     libs: list[Lib] = []
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> Lib:
         for lib in self.libs:
             if lib.name == key:
                 return lib

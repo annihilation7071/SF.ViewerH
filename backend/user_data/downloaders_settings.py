@@ -7,6 +7,7 @@ _path = config.paths.user_data / "downloaders_settings.json"
 
 
 class BaseDownloaderSettings(BaseModel):
+    _downloaders: Union['DownloadersSettings', None] = None
     site: str | None
     name: str
     proxy: str | None = None
@@ -23,6 +24,9 @@ class BaseDownloaderSettings(BaseModel):
             return v
         else:
             raise ValidationError(f"Invalid proxy format: {v}")
+
+    def get_cookies(self):
+        return self.cookies
 
 
 general_downloader_settings = BaseDownloaderSettings(
@@ -54,6 +58,18 @@ class NHentaiDownloaderSettings(BaseDownloaderSettings):
         else:
             raise ValidationError("Invalid cookies format")
 
+    def get_proxy(self):
+        if self.proxy:
+            return self.proxy
+        else:
+            return self._downloaders.general.proxy
+
+    def get_user_agent(self):
+        if self.user_agent:
+            return self.user_agent
+        else:
+            return self._downloaders.general.user_agent
+
 
 nhentai_downloader_settings = NHentaiDownloaderSettings(name="nhentai")
 
@@ -76,6 +92,22 @@ class GalleryDLSettings(BaseDownloaderSettings):
             return v
         else:
             raise ValidationError(f"Cookie file not found: {v}")
+
+    def get_proxy(self):
+        if self.proxy:
+            return self.proxy
+        elif self._downloaders.gallery_dl_general.proxy:
+            return self._downloaders.gallery_dl_general.proxy
+        else:
+            return self._downloaders.general.proxy
+
+    def get_user_agent(self):
+        if self.user_agent:
+            return self.user_agent
+        elif self._downloaders.gallery_dl_general.user_agent:
+            return self._downloaders.gallery_dl_general.user_agent
+        else:
+            return self._downloaders.general.user_agent
 
 
 gallery_dl_general_downloader_settings = GalleryDLSettings(
@@ -113,6 +145,10 @@ class DownloadersSettings(BaseModel):
         else:
             settings = cls()
             settings.save()
+
+        downloaders = settings.get_list_downloaders()
+        for downloader in downloaders:
+            downloader._downloaders = settings
 
         return settings
 
