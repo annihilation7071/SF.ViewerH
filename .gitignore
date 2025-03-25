@@ -27,3 +27,4 @@ log*.txt
 !/user_data/.getkeep
 !*.gitkeep
 _backup
+config.toml

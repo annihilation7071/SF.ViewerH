@@ -25,14 +25,16 @@ async def lifespan(app: FastAPI):
     dep.projects = projects
     main.projects = projects
     extra.projects = projects
-    projects.update_projects()
-    projects.backup_variants()
-    projects.renew()
+    if config.app.renew_projects_when_startup:
+        projects.update_projects()
+        projects.backup_variants()
+        projects.renew()
     log.debug(id(dep))
     log.debug(dep.Session)
     log.debug(dep.libs)
     yield
-    # projects.backup_variants()
+    if config.app.backup_variants_when_shutdown:
+        projects.backup_variants()
 
 app = FastAPI(lifespan=lifespan)
 # noinspection PyTypeChecker
@@ -59,4 +61,9 @@ async def favicon():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=1707, log_level="debug")
+    uvicorn.run(
+        app,
+        host=config.server.ip,
+        port=config.server.port,
+        log_level=config.logger.fastapi_log_level if config.logger.fastapi_log else None
+    )

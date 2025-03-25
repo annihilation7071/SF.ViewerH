@@ -5,6 +5,17 @@ import shutil
 from dataclasses import dataclass
 import os
 
+from backend.config import Config
+
+config = Config.load()
+
+log_level = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL,
+}
 
 @dataclass
 class Settings:
@@ -16,12 +27,12 @@ class Settings:
     filehandler_all: bool = False
     filehandler_all_level: int = logging.DEBUG
 
-    streamhandler: bool = True
-    streamhandler_level: int = logging.INFO
+    streamhandler: bool = config.logger.app_log_level
+    streamhandler_level: int = log_level[config.logger.app_log_level]
 
-    sockethandler: bool = True
-    sockethandler_settings: str = '127.0.0.1:19996'
-    sockethandler_level: int = logging.DEBUG
+    sockethandler: bool = config.logger.cutelog_log
+    sockethandler_settings: str = f"{config.logger.cutelog_ip}:{config.logger.cutelog_port}"
+    sockethandler_level: int = log_level[config.logger.cutelog_log_level]
 
 
 settings = Settings()

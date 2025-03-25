@@ -1,0 +1,27 @@
+# SETTINGS IN THIS (config_default.toml) FILE WILL BE IGNORED.
+# To make changes, copy this file and rename it to config.toml.
+
+[server]
+ip="127.0.0.1"
+port=1707
+
+[logger]
+# Log levels: debug, info, warning, error, critical
+
+app_log=true
+app_log_level="info"
+
+fastapi_log=true
+fastapi_log_level="info"
+
+cutelog_log=false
+cutelog_log_level="debug"
+cutelog_ip="127.0.0.1"
+cutelog_port=19996
+
+[app]
+renew_projects_when_startup=true
+backup_variants_when_shutdown=true
+
+[paths]
+user_data='./user_data'

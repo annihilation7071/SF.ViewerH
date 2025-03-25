@@ -338,6 +338,12 @@ def read_json(path: Path) -> dict | list:
     return data
 
 
+def read_toml(path: Path) -> dict:
+    with open(path, 'r', encoding="utf-8") as f:
+        data = tomllib.loads(f.read())
+    return data
+
+
 def separate_priority(variants: list) -> tuple[list[list[str]], list[list[str]]]:
     priority = []
     non_priority = []
