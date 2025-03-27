@@ -39,9 +39,7 @@ class Config(BaseModel):
     @classmethod
     def load(cls) -> 'Config':
         if _path.exists():
-            with open(_path, 'r', encoding="utf-8") as f:
-                data = tomllib.loads(f.read())
-            return cls.model_validate(data)
+            return cls.model_validate(read_toml(_path))
         else:
             return cls()
 

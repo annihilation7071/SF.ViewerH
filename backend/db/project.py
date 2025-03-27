@@ -53,7 +53,7 @@ class ProjectBase(SQLModel):
     @classmethod
     def project_file_load(cls, file: Path):
         log.debug("project_file_load")
-        data = utils.read_json(file)
+        data = read_json(file)
         project = cls.model_validate(data)
         project._path = file.parent.parent
         return project
@@ -71,7 +71,7 @@ class ProjectBase(SQLModel):
         include = set(ProjectBase.model_fields.keys())
         data = self.model_dump_json(include=include)
         file.parent.mkdir(parents=True, exist_ok=True)
-        utils.write_json(file, json.loads(data), fs=fs)
+        write_json(file, json.loads(data), fs=fs)
 
 
 class Project(ProjectBase, table=True):

@@ -25,16 +25,16 @@ from backend.main_import import *
 #     if path.exists() is False:
 #         path.parent.mkdir(parents=True, exist_ok=True)
 #
-#         utils.write_json(path, data)
+#         write_json(path, data)
 #
 #     else:
-#         exist_data = utils.read_json(path)
+#         exist_data = read_json(path)
 #
 #         for key in data.keys():
 #             if key not in exist_data:
 #                 exist_data[key] = data[key]
 #
-#         utils.write_json(path, exist_data)
+#         write_json(path, exist_data)
 
 
 def dowloaders_settings():
@@ -68,10 +68,10 @@ def dowloaders_settings():
 
     if path.exists() is False:
         path.parent.mkdir(parents=True, exist_ok=True)
-        utils.write_json(path, data)
+        write_json(path, data)
 
     else:
-        exist_data = utils.read_json(path)
+        exist_data = read_json(path)
 
         for downloader in data.keys():
             if downloader not in exist_data:
@@ -81,7 +81,7 @@ def dowloaders_settings():
                     if property_ not in exist_data[downloader]:
                         exist_data[downloader][property_] = data[downloader][property_]
 
-        utils.write_json(path, exist_data)
+        write_json(path, exist_data)
 
 
 def downloaders_targets():
@@ -94,15 +94,15 @@ def downloaders_targets():
 
     if path.exists() is False:
         path.parent.mkdir(parents=True, exist_ok=True)
-        utils.write_json(path, data)
+        write_json(path, data)
     else:
-        exist_data = utils.read_json(path)
+        exist_data = read_json(path)
 
         for site in data.keys():
             if site not in exist_data:
                 exist_data[site] = data[site]
 
-        utils.write_json(path, exist_data)
+        write_json(path, exist_data)
 
 
 def init():

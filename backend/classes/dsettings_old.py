@@ -103,7 +103,7 @@ class BaseSettings(BaseModel):
 
     @classmethod
     def load(cls) -> dict[str, 'BaseSettings']:
-        data: dict[str, dict[str, str]] = utils.read_json(Path("./settings/download/settings.json"))
+        data: dict[str, dict[str, str]] = read_json(Path("./settings/download/settings.json"))
         data = {key: defaultdict(lambda: "N/A", val) for key, val in data.items()}
 
         result = {}
@@ -119,7 +119,7 @@ class BaseSettings(BaseModel):
         return result
 
     def save(self):
-        data: dict[str, dict[str, str]] = utils.read_json(Path("./settings/download/settings.json"))
+        data: dict[str, dict[str, str]] = read_json(Path("./settings/download/settings.json"))
         atr = list(self.model_dump(exclude={"name"}))
 
         changed = False
@@ -133,7 +133,7 @@ class BaseSettings(BaseModel):
                 if key in data[self.name]:
                     data[self.name][key] = getattr(self, key)
 
-            utils.write_json(Path("./settings/download/settings.json"), data)
+            write_json(Path("./settings/download/settings.json"), data)
             log.debug(f"Changes were saved: {self.name}")
 
 

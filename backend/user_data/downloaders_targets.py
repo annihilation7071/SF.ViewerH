@@ -50,14 +50,14 @@ class DownloadersTargets(BaseModel):
     @classmethod
     def load(cls) -> "DownloadersTargets":
         if _path.exists():
-            return cls.model_validate(utils.read_json(_path))
+            return cls.model_validate(read_json(_path))
         else:
             targets = cls()
             targets.save()
             return targets
 
     def save(self):
-        utils.write_json(_path, self.model_dump_json())
+        write_json(_path, self.model_dump_json())
 
     def get_list_targets(self) -> list[DownloaderTarget]:
         targets = list(self.model_dump().keys())

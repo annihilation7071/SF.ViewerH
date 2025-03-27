@@ -149,7 +149,7 @@ class DownloadersSettings(BaseModel):
     @classmethod
     def load(cls) -> "DownloadersSettings":
         if _path.exists():
-            settings = cls.model_validate(utils.read_json(_path))
+            settings = cls.model_validate(read_json(_path))
         else:
             settings = cls()
             settings.save()
@@ -161,4 +161,4 @@ class DownloadersSettings(BaseModel):
         return settings
 
     def save(self):
-        utils.write_json(_path, self.model_dump_json())
+        write_json(_path, self.model_dump_json())

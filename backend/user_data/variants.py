@@ -13,7 +13,7 @@ class Variants(BaseModel):
 
     def save(self):
         log.debug("save")
-        utils.write_json(
+        write_json(
             _path,
             self.model_dump_json()
         )
@@ -23,7 +23,7 @@ class Variants(BaseModel):
         log.debug("load")
         if _path.exists():
             log.debug("load: file exists")
-            return cls.model_validate(utils.read_json(_path))
+            return cls.model_validate(read_json(_path))
         else:
             log.debug("load: file does not exist")
             return cls(

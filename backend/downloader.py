@@ -37,7 +37,7 @@ async def _download(url: str, projects: Projects):
 
     url, site, id_ = utils.separate_url(url)
 
-    targets = utils.read_json(Path("./settings/download/download_targets.json"))
+    targets = read_json(Path("./settings/download/download_targets.json"))
 
     if site not in targets:
         raise DownloaderError(f"Not found setting for {site} in download_targets.json")

@@ -3,7 +3,6 @@ from backend.main_import import *
 
 if TYPE_CHECKING:
     from backend.db import Project, ProjectBase
-    from backend.classes.lib import Lib
 
 
 log = logger.get_logger("Utils")
@@ -220,7 +219,7 @@ def separate_url(url: str):
     }
 
     url = url.split('//')
-    url: list[str] = [url[0]] + url[1].split('/')
+    url = [url[0]] + url[1].split('/')
     protocol = url[0]
     site = url[1]
     address = url[2:]
@@ -302,46 +301,6 @@ def make_search_body(project: 'Project') -> str:
             search_body += f"{k}:{v};;;"
 
     return search_body
-
-
-def write_json(path: Path, data: dict | list | str, fs: FSession = None) -> None:
-    log.debug("write_json")
-
-    def f(fs_: FSession):
-        try:
-            if isinstance(data, list | dict):
-                with fs_.open(path, 'w', encoding="utf-8") as f:
-                    # noinspection PyTypeChecker
-                    json.dump(data, f, indent=4, ensure_ascii=False)
-            elif isinstance(data, str):
-                with fs_.open(path, 'w', encoding="utf-8") as f:
-                    # noinspection PyTypeChecker
-                    json.dump(json.loads(data), f, indent=4, ensure_ascii=False)
-            else:
-                raise TypeError(f"Unsupported type {type(data)}")
-        except:
-            log.exception("Failed to write json")
-            raise
-
-    if fs is None:
-        with FileSession() as fs:
-            f(fs)
-            fs.commit()
-    else:
-        f(fs)
-
-
-def read_json(path: Path) -> dict | list:
-    with open(path, 'r', encoding="utf-8") as f:
-        data = json.load(f)
-
-    return data
-
-
-def read_toml(path: Path) -> dict:
-    with open(path, 'r', encoding="utf-8") as f:
-        data = tomllib.loads(f.read())
-    return data
 
 
 def separate_priority(variants: list) -> tuple[list[list[str]], list[list[str]]]:

@@ -17,7 +17,6 @@ from backend import validators
 from backend import base_config
 from backend.config import config
 from backend import logger
-from backend.filesession import FileSession, FSession
 from backend.utils import *
 from backend.cmdargs import cmdargs
 from backend import dep
