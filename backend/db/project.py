@@ -1,4 +1,5 @@
 from backend.main_import import *
+from .old import ProjectBaseV5
 from .pool_variants import PoolVariant
 
 log = logger.get_logger("DB.project")
@@ -14,13 +15,13 @@ class ProjectBase(SQLModel):
     lid: str = Field(..., unique=True, nullable=False)
     info_version: int = Field(default=info_version, index=True)
     lvariants: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
-    source_id: str = Field(default="unknown", index=True)
-    source: str = Field(default="unknown", index=True)
+    source_id: list[str] = Field(default=["unknown"], sa_column=Column(JSON, index=True))
+    source: list[str] = Field(default=["unknown"], sa_column=Column(JSON, index=True))
     url: str = Field(default="unknown")
-    downloader: str = Field(default="unknown", index=True)
+    downloader: list[str] = Field(default=["unknown"], sa_column=Column(JSON, index=True))
     title: str = Field(default=None, index=True)
     subtitle: str | None = Field(default=None, index=True)
-    upload_date: datetime | None = Field(default=None, index=True)
+    upload_date: datetime | None = Field(default=None)
     preview: str = Field(default=None)
     parody: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
     character: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
@@ -30,7 +31,7 @@ class ProjectBase(SQLModel):
     language: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
     category: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
     series: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
-    pages: int = Field(default=-1, sa_column=Column(JSON, index=True))
+    pages: list[int] = Field(default=[-1], sa_column=Column(JSON, index=True))
     episodes: list[str] = Field(default=[], sa_column=Column(JSON, index=True))
     preview_hash: str = Field(default="undefined", index=True)
 
@@ -54,7 +55,17 @@ class ProjectBase(SQLModel):
     def project_file_load(cls, file: Path):
         log.debug("project_file_load")
         data = read_json(file)
-        project = cls.model_validate(data)
+        try:
+            project = cls.model_validate(data)
+        except ValidationError:
+            project = ProjectBaseV5.model_validate(data).model_dump()
+            project["source_id"] = [project["source_id"]]
+            project["source"] = [project["source"]]
+            project["downloader"] = [project["downloader"]]
+            project["pages"] = [project["pages"]]
+
+            project = cls.model_validate(project)
+
         project._path = file.parent.parent
         return project
 
@@ -62,12 +73,6 @@ class ProjectBase(SQLModel):
         log.debug("project_file_save")
         if file is None:
             file = self.path / "sf.viewer/v_info.json"
-        # exclude = {
-        #     "id", "dir_name",
-        #     "search_body", "active",
-        #     "lib"
-        # }
-        # noinspection PyUnresolvedReferences
         include = set(ProjectBase.model_fields.keys())
         data = self.model_dump_json(include=include)
         file.parent.mkdir(parents=True, exist_ok=True)
@@ -234,7 +239,7 @@ class Project(ProjectBase, table=True):
         files = os.listdir(self.path)
         pages_count = len([file for file in files if os.path.splitext(file)[1].lower() in exts])
         if pages_count != self.pages:
-            self.pages = pages_count
+            self.pages = [pages_count]
             return True
         return False
 
@@ -393,7 +398,7 @@ class Project(ProjectBase, table=True):
 
         log.debug(f"pool_sync_: projects: {projects}")
 
-        synchronize_items = ["tag",
+        synchronize_items = ["tag", "source", "source_id", "pages",
                              "artist", "group", "parody",
                              "character", "series", "language"]
 

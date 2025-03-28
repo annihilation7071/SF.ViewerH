@@ -41,14 +41,18 @@
             <div class="label-tags-container">
                 <div class="label">Source:</div>
                 <div class="tags-container">
-                    <a href="{{ request.url_for('index') }}?search=source:{{ project.source }}&page=1" class="tag tag-click">{{ project.source }}</a>
+                    {% for source in project.source %}
+                    <a href="{{ request.url_for('index') }}?search=source:{{ source }}&page=1" class="tag tag-click">{{ source }}</a>
+                    {% endfor %}
                 </div>
             </div>
 
             <div class="label-tags-container">
                 <div class="label">Source ID:</div>
                 <div class="tags-container">
-                    <div class="tag tag-nonclick">{{ project.source_id }}</div>
+                    {% for source_id in project.source_id %}
+                    <div class="tag tag-nonclick">{{ source_id }}</div>
+                    {% endfor %}
                 </div>
             </div>
 
@@ -130,7 +134,9 @@
 
             <div class="label-tags-container">
                 <div class="label">Pages:</div>
-                <div class="tag tag-nonclick">{{ project.pages }}</div>
+                {% for pages in project.pages %}
+                <div class="tag tag-nonclick">{{ pages }}</div>
+                {% endfor %}
             </div>
         </div>
     </main>

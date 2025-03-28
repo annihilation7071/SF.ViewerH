@@ -38,6 +38,11 @@ def upgrade(session: Session, project_path: Path, template_: ProjectBase = None)
         template = upgrade_to_5(template, session)
         upgraded = True
 
+    if template.info_version == 5:
+        log.debug("Current version is 5. Upgrading to 6.")
+        template = upgrade_to_6(template)
+        upgraded = True
+
     if upgraded is False:
         log.debug("Upgrading not need.")
         if template_:
@@ -124,4 +129,15 @@ def upgrade_to_5(template: ProjectBase, session: Session) -> ProjectBase:
     template.lvariants = ["depricated"]
 
     log.debug(f"Upgrade to version 5 completed")
+    return template
+
+
+def upgrade_to_6(template: ProjectBase) -> ProjectBase:
+    log.debug("Upgrading to v6.")
+
+    # Adding eposodes
+
+    template.info_version = 6
+
+    log.debug(f"Upgrade to version 6 completed")
     return template
