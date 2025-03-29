@@ -30,30 +30,3 @@ class ProjectBaseV5(SQLModel):
     class Config:
         validate_assignment = True
         allow_arbitrary_types = False
-
-    @property
-    def path(self) -> Path:
-        log.debug("path")
-        return self._path
-
-    @property
-    def preview_path(self) -> Path:
-        log.debug("preview_path")
-        return self.path / self.preview
-
-    @classmethod
-    def project_file_load(cls, file: Path):
-        log.debug("project_file_load")
-        data = read_json(file)
-        project = cls.model_validate(data)
-        project._path = file.parent.parent
-        return project
-
-    def prolect_file_save(self, file: Path = None, fs: FSession = None):
-        log.debug("project_file_save")
-        if file is None:
-            file = self.path / "sf.viewer/v_info.json"
-        include = set(ProjectBase.model_fields.keys())
-        data = self.model_dump_json(include=include)
-        file.parent.mkdir(parents=True, exist_ok=True)
-        write_json(file, json.loads(data), fs=fs)

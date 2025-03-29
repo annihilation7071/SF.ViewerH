@@ -14,8 +14,8 @@ def parse(path: Path, template: ProjectBase) -> ProjectBase:
     with open(os.path.join(path, meta_file), "r", encoding='utf-8') as f:
         metadata = defaultdict(lambda: False, json.load(f))
 
-    template.source = "nhentai.net"
-    template.downloader = "gallery-dl"
+    template.source = ["nhentai.net"]
+    template.downloader = ["gallery-dl"]
 
     files = os.listdir(path)
     files = [file for file in files if file.startswith("nhentai_")]
@@ -28,7 +28,7 @@ def parse(path: Path, template: ProjectBase) -> ProjectBase:
     try:
         if metadata["gallery_id"] is not False:
             _id = metadata["gallery_id"]
-            template.source_id = str(_id)
+            template.source_id = [str(_id)]
         else:
             try:
                 _id = _name[0:_name.find(" ")]
@@ -37,9 +37,9 @@ def parse(path: Path, template: ProjectBase) -> ProjectBase:
                 _id = _name
                 _id = int(_id)
                 raise e
-            template.source_id = str(_id)
+            template.source_id = [str(_id)]
     except Exception:
-        template.source_id = "unknown"
+        template.source_id = ["unknown"]
 
     template.url = "unknown"
     template.title = metadata["title"] or metadata["title_en"] or _name
@@ -60,6 +60,6 @@ def parse(path: Path, template: ProjectBase) -> ProjectBase:
     template.artist = f("artist") or ["unknown"]
     template.group = f("group") or ["unknown"]
     template.language = [f("language")] or ["unknown"]
-    template.pages = f("count") or -1
+    template.pages = [f("count")] or [-1]
 
     return template

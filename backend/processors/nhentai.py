@@ -14,8 +14,8 @@ def parse(path: Path, template: ProjectBase) -> ProjectBase:
     with open(os.path.join(path, meta_file), "r", encoding='utf-8') as f:
         metadata = defaultdict(lambda: False, json.load(f))
 
-    template.source = "nhentai.net"
-    template.downloader = "nhentai"
+    template.source = ["nhentai.net"]
+    template.downloader = ["nhentai"]
 
     files = os.listdir(path)
     files = sorted(files)
@@ -28,7 +28,7 @@ def parse(path: Path, template: ProjectBase) -> ProjectBase:
 
         _id = _name[1:_name.find("]")]
         _id = int(_id)
-        template.source_id = str(_id)
+        template.source_id = [str(_id)]
     except Exception:
         # noinspection PyUnresolvedReferences
         template.source_id = metadata["URL"].split("/")[-1] or metadata["url"].split("/")[-1] or "unknown"
@@ -53,6 +53,6 @@ def parse(path: Path, template: ProjectBase) -> ProjectBase:
             a = [a]
         setattr(template, attr, a)
 
-    template.pages = f("Pages") or -1
+    template.pages = [f("Pages")] or [-1]
 
     return template
