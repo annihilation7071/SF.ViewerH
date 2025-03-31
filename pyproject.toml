@@ -1,6 +1,6 @@
 [project]
 	name = "SF.ViewerH"
-	version = "1.0.0"
+	version = "1.1.0"
 	description = "Viewer for project downloaded via nhentai\\gallery-dl"
 	readme = "README.md"
 	requires-python = ">=3.11"
