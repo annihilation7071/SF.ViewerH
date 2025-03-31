@@ -5,7 +5,7 @@ _path = Path("./config.toml")
 
 class ConfigServer(BaseModel):
     ip: str = "127.0.0.1"
-    port: int = 1708
+    port: int = 1707
 
 
 class ConfigLogger(BaseModel):
